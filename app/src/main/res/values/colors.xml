@@ -2,7 +2,6 @@
 <!-- Modified by Daniel Collingwood, 2026 -->
 <resources>
 
-    <color name="ic_launcher_background">#0E1A3C</color>
     <color name="primary">#0038b8</color>
     <color name="secondary">#7851a9</color>
     <color name="primary_night">#8fa8ff</color>
