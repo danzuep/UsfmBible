@@ -20,6 +20,7 @@ package com.github.danzuep.yeshua.android.translations
 import android.content.Intent
 import com.github.danzuep.yeshua.android.core.repository.remote.UsfmMetadata
 import android.net.Uri
+import android.os.Bundle
 import android.provider.OpenableColumns
 import android.text.InputType
 import android.view.MotionEvent
@@ -123,11 +124,11 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         }
 
         intent.getStringExtra(KEY_DOWNLOAD_TRANSLATION)?.let { viewModel.downloadTranslation(it) }
-        if (intent.action == Intent.ACTION_VIEW) {
-            // Clear the action so the dialog is not shown again when the activity is recreated.
-            intent.action = null
-            intent.data?.let { openFile(it) }
-        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.let { openFile(it) }
     }
 
     private fun setupFastScroller() {
