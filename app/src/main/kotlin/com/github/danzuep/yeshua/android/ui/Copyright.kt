@@ -76,13 +76,22 @@ fun Context.showCopyright(translationShortName: String) {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://ebible.org/$translationShortName/copr.htm")))
         return
     }
+    showBlocks(blocks + CopyrightBlock(translationShortName))
+}
+
+/** Shows [markdown] (headings, bullets, links and paragraphs) in a dialog, e.g. a licence file, and calls [onDismiss] when it closes. */
+fun Context.showMarkdown(markdown: String, onDismiss: () -> Unit = {}) =
+        showBlocks(parseCopyrightMarkdown(markdown), onDismiss)
+
+private fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {}) {
     val content = android.view.LayoutInflater.from(this).inflate(R.layout.dialog_translation_details, null)
     content.findViewById<TextView>(R.id.details_text).apply {
-        text = (blocks + CopyrightBlock(translationShortName)).toText()
+        text = blocks.toText()
         movementMethod = LinkMovementMethod.getInstance()
     }
     AlertDialog.Builder(this)
             .setView(content)
             .setPositiveButton(android.R.string.ok, null)
+            .setOnDismissListener { onDismiss() }
             .show()
 }
