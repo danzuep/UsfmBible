@@ -22,11 +22,21 @@ import java.util.zip.ZipInputStream
 /** The books of a USFM zip and its copyright notice (`copr.htm`) converted to markdown, if it has one. */
 internal class UsfmZip(val books: Map<String, ScriptureBook>, val copyright: String?)
 
-/** Reads a USFM zip (as published by eBible.org) into the books of [BOOK_CODES], keyed by USFM code. */
-internal fun readUsfmZip(input: InputStream): UsfmZip = ZipInputStream(input).use { zip ->
-    val entries = generateSequence { zip.nextEntry }.filter { !it.isDirectory }.map { it.name to zip.readBytes() }.toList()
-    val copyright = entries.firstOrNull { (name, _) -> name.substringAfterLast('/').equals("copr.htm", ignoreCase = true) }
-            ?.let { (_, bytes) -> copyrightHtmlToMarkdown(bytes.decodeToString()) }
-            ?.ifEmpty { null }
-    UsfmZip(readUsfmBooks(entries.asSequence()), copyright)
+/**
+ * Reads a USFM zip (as published by eBible.org), or a single plain USFM book (`.usfm`/`.sfm`), into the books of
+ * [BOOK_CODES], keyed by USFM code.
+ */
+internal fun readUsfmZip(input: InputStream): UsfmZip {
+    val bytes = input.readBytes()
+    // Zip files start with the "PK" signature, anything else is treated as a single USFM book.
+    if (!(bytes.size >= 2 && bytes[0] == 'P'.code.toByte() && bytes[1] == 'K'.code.toByte())) {
+        return UsfmZip(readUsfmBooks(sequenceOf("book.usfm" to bytes)), null)
+    }
+    return ZipInputStream(bytes.inputStream()).use { zip ->
+        val entries = generateSequence { zip.nextEntry }.filter { !it.isDirectory }.map { it.name to zip.readBytes() }.toList()
+        val copyright = entries.firstOrNull { (name, _) -> name.substringAfterLast('/').equals("copr.htm", ignoreCase = true) }
+                ?.let { (_, bytes) -> copyrightHtmlToMarkdown(bytes.decodeToString()) }
+                ?.ifEmpty { null }
+        UsfmZip(readUsfmBooks(entries.asSequence()), copyright)
+    }
 }

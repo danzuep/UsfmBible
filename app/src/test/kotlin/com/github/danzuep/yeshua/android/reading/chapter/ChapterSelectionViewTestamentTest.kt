@@ -16,6 +16,7 @@
 
 package com.github.danzuep.yeshua.android.reading.chapter
 
+import com.github.danzuep.yeshua.android.core.Bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -56,7 +57,7 @@ class ChapterSelectionViewTestamentTest {
     fun testTestamentTabVisibility_invalidIndicesIgnored() {
         assertEquals(
             ChapterSelectionView.TestamentTabVisibility(showOldTestament = false, showNewTestament = false),
-            ChapterSelectionView.testamentTabVisibility(listOf(-1, 66, 100))
+            ChapterSelectionView.testamentTabVisibility(listOf(-1, Bible.BOOK_COUNT, 200))
         )
         assertEquals(
             ChapterSelectionView.TestamentTabVisibility(showOldTestament = false, showNewTestament = true),

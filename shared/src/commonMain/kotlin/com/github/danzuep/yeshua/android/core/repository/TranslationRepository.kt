@@ -218,7 +218,7 @@ class TranslationRepository(
         notifyTranslationsUpdated(available, downloaded)
     }
 
-    /** Installs the translation in [content] (a zip of USFM books), e.g. one the user picked. */
+    /** Installs the translation in [content] (a USFM book or a zip of them), e.g. one the user picked. */
     suspend fun importTranslation(translationInfo: TranslationInfo, content: ByteArray) {
         Logger.withTag(TAG).i { "Start importing translation - ${translationInfo.shortName}" }
         val translation = remoteTranslationService.readTranslation(RemoteTranslationInfo.fromTranslationInfo(translationInfo), content)

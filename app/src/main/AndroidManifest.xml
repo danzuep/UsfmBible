@@ -57,8 +57,79 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
+        <activity
+            android:name=".ui.MarkdownActivity"
+            android:exported="true"
+            android:theme="@style/DialogOnlyTheme"
+            android:excludeFromRecents="true">
+            <!-- Opens .md files, such as licences, in a dialog. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.md" />
+                <data android:pathPattern=".*\\..*\\.md" />
+                <data android:pathPattern=".*\\..*\\..*\\.md" />
+                <data android:pathPattern=".*\\.MD" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="text/markdown" />
+                <data android:mimeType="text/x-markdown" />
+            </intent-filter>
+        </activity>
         <activity android:name=".settings.SettingsActivity" />
-        <activity android:name=".translations.TranslationsActivity" />
+        <activity android:name=".translations.TranslationsActivity" android:exported="true">
+            <!-- Opens .usfm/.sfm books and zips of them, matched by extension because there is no registered MIME type. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.usfm" />
+                <data android:pathPattern=".*\\..*\\.usfm" />
+                <data android:pathPattern=".*\\..*\\..*\\.usfm" />
+                <data android:pathPattern=".*\\.USFM" />
+                <data android:pathPattern=".*\\.sfm" />
+                <data android:pathPattern=".*\\..*\\.sfm" />
+                <data android:pathPattern=".*\\..*\\..*\\.sfm" />
+                <data android:pathPattern=".*\\.SFM" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.usfm" />
+                <data android:pathPattern=".*\\..*\\.usfm" />
+                <data android:pathPattern=".*\\..*\\..*\\.usfm" />
+                <data android:pathPattern=".*\\.USFM" />
+                <data android:pathPattern=".*\\.sfm" />
+                <data android:pathPattern=".*\\..*\\.sfm" />
+                <data android:pathPattern=".*\\..*\\..*\\.sfm" />
+                <data android:pathPattern=".*\\.SFM" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="text/usfm" />
+                <data android:mimeType="application/x-usfm" />
+                <data android:mimeType="text/x-usfm" />
+            </intent-filter>
+        </activity>
 
         <provider
             android:name=".search.RecentSearchProvider"

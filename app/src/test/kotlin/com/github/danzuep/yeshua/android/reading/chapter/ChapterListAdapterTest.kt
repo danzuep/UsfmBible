@@ -67,7 +67,7 @@ class ChapterListAdapterTest : BaseUnitTest() {
                 ChapterSelectionItem(bookIndex = index, bookName = bookName, chapterCount = Bible.getChapterCount(index))
             }
         )
-        assertEquals(Bible.BOOK_COUNT, adapter.groupCount)
+        assertEquals(MockContents.kjvBookNames.size, adapter.groupCount)
 
         val binding = ItemBookNameBinding.bind(adapter.getGroupView(1, false, null, FrameLayout(ApplicationProvider.getApplicationContext())))
         assertEquals("Exodus", binding.root.text.toString())
@@ -102,7 +102,7 @@ class ChapterListAdapterTest : BaseUnitTest() {
                 ChapterSelectionItem(bookIndex = index, bookName = bookName, chapterCount = Bible.getChapterCount(index))
             }
         )
-        assertEquals(Bible.BOOK_COUNT, adapter.groupCount)
+        assertEquals(MockContents.kjvBookNames.size, adapter.groupCount)
         assertEquals(10, adapter.getChildrenCount(0))
         assertEquals(6, adapter.getChildrenCount(2))
 

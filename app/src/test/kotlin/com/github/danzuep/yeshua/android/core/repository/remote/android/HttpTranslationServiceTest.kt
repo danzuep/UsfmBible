@@ -70,4 +70,13 @@ class HttpTranslationServiceTest : BaseUnitTest() {
         assertEquals("EXO", actual.bookNames[1])
         assertEquals(mapOf(Pair(0, 0) to listOf("\u2029In the beginning", "Earth was formless")), actual.verses)
     }
+
+    @Test
+    fun `test toRemoteTranslation() with a plain USFM book`() {
+        val info = RemoteTranslationInfo("eng_web", "World English Bible", "eng", 0L)
+        val usfm = "\\id GEN\n\\h Genesis\n\\c 1\n\\p\n\\v 1 In the beginning"
+        val actual = httpTranslationService.toRemoteTranslation(info, ByteArrayInputStream(usfm.toByteArray()))
+        assertEquals("Genesis", actual.bookNames[0])
+        assertEquals(mapOf(Pair(0, 0) to listOf("\u2029In the beginning")), actual.verses)
+    }
 }

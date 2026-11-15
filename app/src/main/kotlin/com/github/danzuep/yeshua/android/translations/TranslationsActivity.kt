@@ -18,7 +18,9 @@
 package com.github.danzuep.yeshua.android.translations
 
 import android.content.Intent
+import com.github.danzuep.yeshua.android.core.repository.remote.UsfmMetadata
 import android.net.Uri
+import android.os.Bundle
 import android.provider.OpenableColumns
 import android.text.InputType
 import android.view.MotionEvent
@@ -124,6 +126,11 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         intent.getStringExtra(KEY_DOWNLOAD_TRANSLATION)?.let { viewModel.downloadTranslation(it) }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.let { openFile(it) }
+    }
+
     private fun setupFastScroller() {
         viewBinding.fastScrollTrack.setOnTouchListener { view, event ->
             when (event.actionMasked) {
@@ -197,14 +204,29 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         }
     }
 
-    private fun showUploadTranslationDialog(uri: Uri) {
+    /** Installs the opened file straight away if it names its translation and language, otherwise asks for them. */
+    private fun openFile(uri: Uri) = viewModel.readUsfmMetadata(uri) { metadata ->
+        val shortName = metadata?.shortName
+        val language = metadata?.language
+        if (shortName == null || language == null) {
+            showUploadTranslationDialog(uri, metadata)
+            return@readUsfmMetadata
+        }
+        val progress = indeterminateProgressDialog(R.string.dialog_title_uploading)
+        viewModel.uploadTranslation(uri, metadata.name ?: shortName, shortName, language) { successful ->
+            progress?.dismiss()
+            if (successful) toast(R.string.toast_uploaded) else showUploadTranslationDialog(uri, metadata)
+        }
+    }
+
+    private fun showUploadTranslationDialog(uri: Uri, metadata: UsfmMetadata? = null) {
         val form = DialogUploadTranslationBinding.inflate(layoutInflater)
         val fileName = contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
             if (it.moveToFirst()) it.getString(0) else null
         }.orEmpty().substringBeforeLast('.')
-        form.uploadName.setText(fileName)
-        form.uploadShortName.setText(fileName.replace(Regex("[^A-Za-z0-9]"), "_"))
-        form.uploadLanguage.setText(java.util.Locale.getDefault().language)
+        form.uploadName.setText(metadata?.name ?: fileName)
+        form.uploadShortName.setText(metadata?.shortName ?: fileName.replace(Regex("[^A-Za-z0-9]"), "_"))
+        form.uploadLanguage.setText(metadata?.language ?: java.util.Locale.getDefault().language)
 
         AlertDialog.Builder(this)
             .setTitle(R.string.dialog_title_upload_translation)

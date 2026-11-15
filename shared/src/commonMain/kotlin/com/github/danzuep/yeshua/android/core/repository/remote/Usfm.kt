@@ -70,6 +70,27 @@ private val HEADING_LINE = Regex("""^\\(?:s\d?|ms\d?)\s+(.*)""")
 private val PARAGRAPH_LINE = Regex("""^\\(?:p|m|pi\d?|mi|pm[a-z]?|po|pr|cls|li\d?|lim\d?|ph\d?)(?:\s+(.*))?$""")
 private val POETRY_LINE = Regex("""^\\q(\d?)(?:\s+(.*))?$""")
 
+/** What a USFM file says about its translation; any part may be missing. */
+class UsfmMetadata(val name: String?, val shortName: String?, val language: String?)
+
+private val LANGUAGE_CODE = Regex("""[A-Za-z]{2,3}""")
+
+/**
+ * Reads the translation's abbreviation and language from the `\id` line, e.g. `\id GEN EN_ULT en_English_ltr` (the
+ * Door43/Paratext convention) gives ULT and `en`. USFM has no marker for the full name, so the name is the abbreviation.
+ * Returns null when the file defines neither.
+ */
+fun parseUsfmMetadata(content: String): UsfmMetadata? {
+    val id = content.removePrefix("\uFEFF").lineSequence().map { it.trim() }.firstOrNull { it.startsWith("\\id ") } ?: return null
+    val tokens = id.split(WHITESPACE).drop(2)
+    val project = tokens.getOrNull(0)?.split('_', '-')?.takeIf { it.size >= 2 && LANGUAGE_CODE.matches(it[0]) }
+    val languageTag = tokens.getOrNull(1)?.split('_', '-')?.takeIf { it.size >= 2 }?.get(0)?.takeIf { LANGUAGE_CODE.matches(it) }
+    val language = (languageTag ?: project?.get(0))?.lowercase()
+    val shortName = project?.drop(1)?.joinToString("_")?.takeIf { Regex("[A-Za-z0-9_]+").matches(it) }
+    if (language == null && shortName == null) return null
+    return UsfmMetadata(shortName, shortName, language)
+}
+
 /**
  * Parses USFM into verses that keep their structure, see [PARAGRAPH] and [HEADING]: paragraph markers, section
  * headings and poetry lines are stored in the verse text, which readers that don't care remove with `stripStructure()`.

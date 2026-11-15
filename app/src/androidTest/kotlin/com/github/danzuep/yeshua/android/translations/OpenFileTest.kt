@@ -1,0 +1,108 @@
+/*
+ * Copyright (C) 2026 Daniel Collingwood
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.github.danzuep.yeshua.android.translations
+
+import android.app.Activity
+import android.app.Application
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.ParcelFileDescriptor
+import android.view.accessibility.AccessibilityNodeInfo
+import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
+import kotlinx.coroutines.runBlocking
+import com.github.danzuep.yeshua.android.core.repository.local.android.AndroidTranslationStorage
+import com.github.danzuep.yeshua.android.core.repository.local.android.db.AndroidDatabase
+import com.github.danzuep.yeshua.android.ui.MarkdownActivity
+import org.junit.Test
+import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+/**
+ * Opens files the way another app would (a VIEW intent with the file's URI) and checks what the app does with them.
+ * Screenshots go to /sdcard/Download/shots, where the workflow picks them up.
+ */
+class OpenFileTest {
+    private companion object {
+        const val DIALOG_TEXT = "Abbreviation, e.g. KJV"
+        const val TIMEOUT_MS = 60_000L
+    }
+
+    private val context: Context get() = ApplicationProvider.getApplicationContext()
+    private val automation get() = InstrumentationRegistry.getInstrumentation().uiAutomation
+
+    private fun <T : Activity> open(activity: Class<T>, name: String, content: String): ActivityScenario<T> {
+        val file = File(context.filesDir, name).apply { writeText(content) }
+        return ActivityScenario.launch(Intent(Intent.ACTION_VIEW, Uri.fromFile(file), context, activity))
+    }
+
+    /** Whether a node on screen has [text] as its text, description or hint (empty fields only expose their hint). */
+    private fun isShown(text: String): Boolean {
+        fun AccessibilityNodeInfo.contains(): Boolean =
+            listOf(this.text, contentDescription, hintText).any { it?.contains(text) == true } ||
+                (0 until childCount).any { getChild(it)?.contains() == true }
+        return automation.rootInActiveWindow?.contains() == true
+    }
+
+    private fun await(what: String, condition: () -> Boolean) {
+        val deadline = System.currentTimeMillis() + TIMEOUT_MS
+        while (!condition()) {
+            assertTrue(System.currentTimeMillis() < deadline, "Timed out waiting for ")
+            Thread.sleep(250)
+        }
+    }
+
+    private fun screenshot(name: String) {
+        automation.executeShellCommand("mkdir -p /sdcard/Download/shots").close()
+        automation.executeShellCommand("screencap -p /sdcard/Download/shots/$name.png").use { ParcelFileDescriptor.AutoCloseInputStream(it).readBytes() }
+    }
+
+    private fun installed() = runBlocking {
+        AndroidTranslationStorage(AndroidDatabase(ApplicationProvider.getApplicationContext<Application>()), context)
+            .readTranslations().filter { it.downloaded }.associateBy { it.shortName }
+    }
+
+    @Test
+    fun usfmFileThatNamesItsTranslationIsInstalledWithoutTheDialog() {
+        open(TranslationsActivity::class.java, "direct.usfm", "\\id GEN EN_ULT en_English_ltr\n\\h Direct\n\\c 1\n\\p\n\\v 1 Direct verse\n").use {
+            await("the translation to be installed") { "ULT" in installed() }
+            assertEquals("en", installed().getValue("ULT").language)
+            assertFalse(isShown(DIALOG_TEXT), "the import dialog was shown")
+            screenshot("usfm-direct")
+        }
+    }
+
+    @Test
+    fun usfmFileWithoutMetadataAsksForIt() {
+        open(TranslationsActivity::class.java, "plain.usfm", "\\id GEN\n\\h Plain\n\\c 1\n\\p\n\\v 1 Plain verse\n").use {
+            await("the import dialog") { isShown(DIALOG_TEXT) }
+            screenshot("usfm-dialog")
+        }
+    }
+
+    @Test
+    fun markdownFileIsShownInADialog() {
+        open(MarkdownActivity::class.java, "licence.md", "# Smoke licence\n\nPermission is granted.\n").use {
+            await("the licence text") { isShown("Permission is granted.") }
+            screenshot("markdown")
+        }
+    }
+}

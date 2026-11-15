@@ -43,7 +43,7 @@ interface RemoteTranslationService {
 
     suspend fun fetchTranslation(downloadProgress: SendChannel<Int>, translationInfo: RemoteTranslationInfo, sites: List<String>): RemoteTranslation
 
-    /** Reads a translation from [content], the bytes of a zip of USFM books, e.g. one picked by the user. */
+    /** Reads a translation from [content], the bytes of a USFM book or a zip of them, e.g. one picked by the user. */
     suspend fun readTranslation(translationInfo: RemoteTranslationInfo, content: ByteArray): RemoteTranslation
 
     /** Translations prepackaged in the APK assets; empty for regular builds. */
