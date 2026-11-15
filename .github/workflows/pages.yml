@@ -12,17 +12,6 @@ on:
       - 'app/src/main/assets/translations.csv'
       - '.github/scripts/web-smoke.mjs'
       - '.github/workflows/pages.yml'
-  pull_request:
-    paths:
-      - 'web/**'
-      - 'shared/**'
-      - 'buildSrc/**'
-      - 'gradle/**'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - 'app/src/main/assets/translations.csv'
-      - '.github/scripts/web-smoke.mjs'
-      - '.github/workflows/pages.yml'
   workflow_dispatch:
     inputs:
       translations:
