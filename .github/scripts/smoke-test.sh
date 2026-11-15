@@ -133,7 +133,7 @@ sleep 1
 dump_ui
 cp ui.xml ui-copyright.xml
 adb exec-out screencap -p > screen-copyright.png
-if tap_desc "Copyright|©"; then
+if tap_desc "Copyright"; then
   sleep 3
   dump_ui
   adb exec-out screencap -p > screen-copyright.png
