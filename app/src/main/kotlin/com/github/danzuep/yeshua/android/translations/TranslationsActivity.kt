@@ -128,7 +128,17 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.let { openFile(it) }
+        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.takeIf { hasUsfmName(it) }?.let { openFile(it) }
+    }
+
+    private fun displayName(uri: Uri): String? =
+        runCatching { contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { if (it.moveToFirst()) it.getString(0) else null } }.getOrNull()
+            ?: uri.lastPathSegment
+
+    /** The MIME filters also match any text or unknown-type file, so check the extension here; an unnamed file is given the benefit of the doubt. */
+    private fun hasUsfmName(uri: Uri): Boolean {
+        val extension = displayName(uri)?.substringAfterLast('.', "")?.lowercase() ?: return true
+        return extension.isEmpty() || extension in setOf("usfm", "sfm", "zip")
     }
 
     private fun setupFastScroller() {
@@ -221,9 +231,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
 
     private fun showUploadTranslationDialog(uri: Uri, metadata: UsfmMetadata? = null) {
         val form = DialogUploadTranslationBinding.inflate(layoutInflater)
-        val fileName = contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
-            if (it.moveToFirst()) it.getString(0) else null
-        }.orEmpty().substringBeforeLast('.')
+        val fileName = displayName(uri).orEmpty().substringBeforeLast('.')
         form.uploadName.setText(metadata?.name ?: fileName)
         form.uploadShortName.setText(metadata?.shortName ?: fileName.replace(Regex("[^A-Za-z0-9]"), "_"))
         form.uploadLanguage.setText(metadata?.language ?: java.util.Locale.getDefault().language)
