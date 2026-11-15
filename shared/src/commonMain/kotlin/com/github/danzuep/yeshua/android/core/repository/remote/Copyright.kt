@@ -29,6 +29,9 @@ private val LINE_BREAK = Regex("""<br\b[^>]*>""", RegexOption.IGNORE_CASE)
 private val ANY_TAG = Regex("""<[^>]*>""")
 private val ENTITY = Regex("""&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z]+);""")
 private val SPACES = Regex("""[ \t\r\n\u00A0]+""")
+private val ABSOLUTE_LINK = Regex("""^(?:https?:|mailto:)""", RegexOption.IGNORE_CASE)
+private val NAVIGATION_LABELS = setOf("^", "<", ">")
+private const val GENERATOR_NOTE = "HTML generated with Haiola"
 private const val HEADING_MARK = "\u0001"
 private const val BLOCK_MARK = "\u0002"
 private const val ITEM_MARK = "\u0003"
@@ -61,7 +64,7 @@ fun copyrightHtmlToMarkdown(html: String): String {
             .replace(ANCHOR) { match ->
                 val label = match.groupValues[2].replace(ANY_TAG, "").trim()
                 val href = match.groupValues[1].trim()
-                if (href.startsWith("#") || href.isEmpty() || label.isEmpty()) label else "[$label]($href)"
+                if (!ABSOLUTE_LINK.containsMatchIn(href) || label.isEmpty()) label else "[$label]($href)"
             }
             .replace(HEADING_TAG) { "$BLOCK_MARK$HEADING_MARK${it.groupValues[1]}$BLOCK_MARK" }
             .replace(LIST_ITEM) { "$BLOCK_MARK$ITEM_MARK" }
@@ -71,7 +74,7 @@ fun copyrightHtmlToMarkdown(html: String): String {
     return decodeEntities(text).split(BLOCK_MARK).mapNotNull { raw ->
         val body = raw.removePrefix(HEADING_MARK).removePrefix(ITEM_MARK).replace(SPACES, " ").trim()
         when {
-            body.isEmpty() -> null
+            body.isEmpty() || body in NAVIGATION_LABELS || body.startsWith(GENERATOR_NOTE) -> null
             raw.startsWith(HEADING_MARK) -> "# $body"
             raw.startsWith(ITEM_MARK) -> "- $body"
             else -> body
