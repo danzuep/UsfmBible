@@ -19,6 +19,7 @@ package com.github.danzuep.yeshua.android.translations
 
 import android.content.Intent
 import com.github.danzuep.yeshua.android.core.repository.remote.UsfmMetadata
+import com.github.danzuep.yeshua.android.core.repository.remote.parseFileNameMetadata
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -232,9 +233,10 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     private fun showUploadTranslationDialog(uri: Uri, metadata: UsfmMetadata? = null) {
         val form = DialogUploadTranslationBinding.inflate(layoutInflater)
         val fileName = displayName(uri).orEmpty().substringBeforeLast('.')
-        form.uploadName.setText(metadata?.name ?: fileName)
-        form.uploadShortName.setText(metadata?.shortName ?: fileName.replace(Regex("[^A-Za-z0-9]"), "_"))
-        form.uploadLanguage.setText(metadata?.language ?: java.util.Locale.getDefault().language)
+        val guess = metadata ?: parseFileNameMetadata(fileName)
+        form.uploadName.setText(guess?.name ?: fileName)
+        form.uploadShortName.setText(guess?.shortName ?: fileName.replace(Regex("[^A-Za-z0-9]"), "_"))
+        form.uploadLanguage.setText(guess?.language ?: java.util.Locale.getDefault().language)
 
         AlertDialog.Builder(this)
             .setTitle(R.string.dialog_title_upload_translation)

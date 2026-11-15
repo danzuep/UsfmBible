@@ -91,6 +91,35 @@ fun parseUsfmMetadata(content: String): UsfmMetadata? {
     return UsfmMetadata(shortName, shortName, language)
 }
 
+private val FILE_NAME_SEPARATORS = charArrayOf('_', '-', ' ', '.')
+private val CAMEL_CASE_NAME = Regex("""([a-z]{2,3})([A-Za-z0-9]+)""")
+private val LOCALE_PART = Regex("""[A-Za-z]{2}|[A-Za-z]{4}|\d{3}""")
+
+/**
+ * Guesses the language and abbreviation from a file name (without extension) such as `cmn_ncvt_zh-HK`, `cmn-ncvt` or
+ * `engWebp`: the first part is the language code, an optional locale (`zh-HK`) may end the name, and what is between
+ * is the abbreviation, upper-cased. Returns null when the name does not fit.
+ */
+fun parseFileNameMetadata(fileName: String): UsfmMetadata? {
+    val parts = fileName.split(*FILE_NAME_SEPARATORS).filter { it.isNotEmpty() }
+    val language: String
+    var middle: List<String>
+    if (parts.size >= 2) {
+        language = parts[0]
+        middle = parts.drop(1)
+        // A trailing locale is a language and a region, or just a region.
+        if (middle.size >= 3 && LANGUAGE_CODE.matches(middle[middle.size - 2]) && LOCALE_PART.matches(middle.last())) middle = middle.dropLast(2)
+        else if (middle.size >= 2 && LOCALE_PART.matches(middle.last())) middle = middle.dropLast(1)
+    } else {
+        val match = parts.firstOrNull()?.let { CAMEL_CASE_NAME.matchEntire(it) } ?: return null
+        language = match.groupValues[1]
+        middle = listOf(match.groupValues[2])
+    }
+    if (!LANGUAGE_CODE.matches(language)) return null
+    val abbreviation = middle.joinToString("_").uppercase().takeIf { it.isNotEmpty() } ?: return null
+    return UsfmMetadata(abbreviation, abbreviation, language.lowercase())
+}
+
 /**
  * Parses USFM into verses that keep their structure, see [PARAGRAPH] and [HEADING]: paragraph markers, section
  * headings and poetry lines are stored in the verse text, which readers that don't care remove with `stripStructure()`.
@@ -178,8 +207,9 @@ fun readUsfmBooks(entries: Sequence<Pair<String, ByteArray>>): Map<String, Scrip
     val books = hashMapOf<String, ScriptureBook>()
     for ((name, content) in entries) {
         val lowercaseName = name.lowercase()
-        if (lowercaseName.endsWith(".usfm") || lowercaseName.endsWith(".sfm")) {
-            val book = parseUsfm(content.decodeToString())
+        // Zips made on a Mac carry "__MACOSX/._*.usfm" resource forks, and any file that is not valid USFM must not fail the rest.
+        if ((lowercaseName.endsWith(".usfm") || lowercaseName.endsWith(".sfm")) && !lowercaseName.startsWith("__macosx/") && !lowercaseName.substringAfterLast('/').startsWith("._")) {
+            val book = runCatching { parseUsfm(content.decodeToString()) }.getOrNull() ?: continue
             if (book.code in BOOK_CODES) books[book.code] = book
         }
     }
