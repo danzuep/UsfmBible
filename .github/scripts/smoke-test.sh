@@ -27,6 +27,19 @@ dump_ui() {
   adb pull /sdcard/ui.xml ui.xml > /dev/null 2>&1
 }
 
+# Opens /sdcard/Download/$1 in the app through a MediaStore content URI, like a file manager would (apps cannot read file:// URIs).
+open_usfm() {
+  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/Download/$1" > /dev/null
+  local id=""
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    id=$(adb shell content query --uri content://media/external/file --projection _id --where "_display_name='$1'" | grep -o '_id=[0-9]*' | head -n 1 | cut -d= -f2)
+    [ -n "$id" ] && break
+    sleep 1
+  done
+  echo "MediaStore id of $1: ${id:-none}"
+  adb shell am start -W -a android.intent.action.VIEW --grant-read-uri-permission -n "$APP_ID/$APP_NAMESPACE.translations.TranslationsActivity" -d "content://media/external/file/$id" > /dev/null
+}
+
 adb install app/build/outputs/apk/release/app-release.apk
 adb logcat -c
 # Open Genesis first (importing the bundled translation takes a while), then jump to another book. A page must
@@ -154,7 +167,7 @@ adb shell svc data enable
 # Opening a .usfm file from another app (here, a VIEW intent with no MIME type) must offer to import it.
 printf '\\id GEN\n\\h Smoke\n\\c 1\n\\p\n\\v 1 Smoke verse\n' > smoke.usfm
 adb push smoke.usfm /sdcard/Download/smoke.usfm > /dev/null
-adb shell am start -W -a android.intent.action.VIEW -d file:///sdcard/Download/smoke.usfm > /dev/null
+open_usfm smoke.usfm
 sleep 3
 dump_ui
 cp ui.xml ui-usfm.xml
@@ -169,7 +182,7 @@ sleep 1
 # A file that names its translation and language (\\id GEN EN_ULT en_English_ltr) is installed without the dialog.
 printf '\\id GEN EN_ULT en_English_ltr\n\\h Smoke\n\\c 1\n\\p\n\\v 1 Smoke verse\n' > direct.usfm
 adb push direct.usfm /sdcard/Download/direct.usfm > /dev/null
-adb shell am start -W -a android.intent.action.VIEW -d file:///sdcard/Download/direct.usfm > /dev/null
+open_usfm direct.usfm
 sleep 6
 dump_ui
 cp ui.xml ui-usfm-direct.xml
