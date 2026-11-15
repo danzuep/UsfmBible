@@ -125,8 +125,15 @@ adb shell am start -W --activity-single-top -n "$APP_ID/$APP_NAMESPACE.LauncherA
 sleep 5
 adb shell svc wifi disable
 adb shell svc data disable
+# The toolbar hides while scrolling down, so scroll back up to show it.
+for _ in 1 2 3; do
+  adb shell input swipe $((width / 2)) $((height / 4)) $((width / 2)) $((height * 3 / 4)) 200
+done
+sleep 1
 dump_ui
-if tap_desc "Copyright"; then
+cp ui.xml ui-copyright.xml
+adb exec-out screencap -p > screen-copyright.png
+if tap_desc "Copyright|©"; then
   sleep 3
   dump_ui
   adb exec-out screencap -p > screen-copyright.png
