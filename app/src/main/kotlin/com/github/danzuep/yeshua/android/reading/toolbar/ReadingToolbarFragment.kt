@@ -17,8 +17,6 @@
 
 package com.github.danzuep.yeshua.android.reading.toolbar
 
-import android.content.Intent
-import android.net.Uri
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +25,7 @@ import com.github.danzuep.yeshua.android.R
 import com.github.danzuep.yeshua.android.core.VerseIndex
 import com.github.danzuep.yeshua.android.databinding.FragmentReadingToolbarBinding
 import com.github.danzuep.yeshua.android.infra.BaseFragment
+import com.github.danzuep.yeshua.android.ui.showCopyright
 import com.github.danzuep.yeshua.android.ui.toast
 
 @AndroidEntryPoint
@@ -44,9 +43,7 @@ class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, Readi
     override fun initializeView() {
         viewBinding.toolbar.initialize { viewEvent ->
             when (viewEvent) {
-                is ReadingToolbar.ViewEvent.OpenCopyright -> startActivity(
-                    Intent(Intent.ACTION_VIEW, Uri.parse("https://ebible.org/${viewEvent.translationShortName}/copr.htm"))
-                )
+                is ReadingToolbar.ViewEvent.OpenCopyright -> requireContext().showCopyright(viewEvent.translationShortName)
                 is ReadingToolbar.ViewEvent.OpenTimeline -> navigator.navigate(requireActivity(), Navigator.SCREEN_TIMELINE)
                 is ReadingToolbar.ViewEvent.OpenBookmarks -> navigator.navigate(requireActivity(), Navigator.SCREEN_BOOKMARKS)
                 is ReadingToolbar.ViewEvent.OpenHighlights -> navigator.navigate(requireActivity(), Navigator.SCREEN_HIGHLIGHTS)

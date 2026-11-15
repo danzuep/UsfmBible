@@ -44,6 +44,7 @@ import com.github.danzuep.yeshua.android.ui.dialog
 import com.github.danzuep.yeshua.android.ui.fadeIn
 import com.github.danzuep.yeshua.android.ui.indeterminateProgressDialog
 import com.github.danzuep.yeshua.android.ui.progressDialog
+import com.github.danzuep.yeshua.android.ui.showCopyright
 import com.github.danzuep.yeshua.android.ui.toast
 
 @AndroidEntryPoint
@@ -170,7 +171,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                 .setPositiveButton(R.string.action_download) { _, _ -> viewModel.downloadTranslation(translation) }
                 .setNegativeButton(android.R.string.cancel, null)
                 .setNeutralButton(R.string.action_copyright_permissions) { _, _ ->
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://ebible.org/${translation.shortName}/copr.htm")))
+                    showCopyright(translation.shortName)
                 }
                 .show()
         }
