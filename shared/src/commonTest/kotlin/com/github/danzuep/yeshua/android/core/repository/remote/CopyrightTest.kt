@@ -53,6 +53,12 @@ class CopyrightTest {
     }
 
     @Test
+    fun `test copyrightHtmlToMarkdown() drops a linked generator note`() {
+        val page = "<p>Public domain.</p><p>HTML generated with <a href=\"https://haiola.org\">Haiola</a> by eBible.org 13 Nov 2026</p>"
+        assertEquals("Public domain.", copyrightHtmlToMarkdown(page))
+    }
+
+    @Test
     fun `test parseCopyrightMarkdown()`() {
         assertEquals(
             listOf(
