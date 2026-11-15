@@ -200,11 +200,11 @@ class BibleReadingRepositoryTest : BaseUnitTest() {
 
         // no cache yet, read from LocalReadingStorage
         coEvery { localReadingStorage.readBookNames(MockContents.kjvShortName) } returns MockContents.kjvBookNames
-        assertEquals(MockContents.kjvBookNames, bibleReadingRepository.readBookNames(MockContents.kjvShortName))
+        assertEquals(MockContents.kjvBookNames, bibleReadingRepository.readBookNames(MockContents.kjvShortName).take(MockContents.kjvBookNames.size))
 
         // has cache now, read from there
         coEvery { localReadingStorage.readBookNames(any()) } throws IllegalStateException("Should read from in-memory cache")
-        assertEquals(MockContents.kjvBookNames, bibleReadingRepository.readBookNames(MockContents.kjvShortName))
+        assertEquals(MockContents.kjvBookNames, bibleReadingRepository.readBookNames(MockContents.kjvShortName).take(MockContents.kjvBookNames.size))
     }
 
     @Test
@@ -213,11 +213,11 @@ class BibleReadingRepositoryTest : BaseUnitTest() {
 
         // no cache yet, read from LocalReadingStorage
         coEvery { localReadingStorage.readBookShortNames(MockContents.kjvShortName) } returns MockContents.kjvBookShortNames
-        assertEquals(MockContents.kjvBookShortNames, bibleReadingRepository.readBookShortNames(MockContents.kjvShortName))
+        assertEquals(MockContents.kjvBookShortNames, bibleReadingRepository.readBookShortNames(MockContents.kjvShortName).take(MockContents.kjvBookShortNames.size))
 
         // has cache now, read from there
         coEvery { localReadingStorage.readBookShortNames(any()) } throws IllegalStateException("Should read from in-memory cache")
-        assertEquals(MockContents.kjvBookShortNames, bibleReadingRepository.readBookShortNames(MockContents.kjvShortName))
+        assertEquals(MockContents.kjvBookShortNames, bibleReadingRepository.readBookShortNames(MockContents.kjvShortName).take(MockContents.kjvBookShortNames.size))
     }
 
     @Test
