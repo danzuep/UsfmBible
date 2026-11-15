@@ -204,4 +204,21 @@ class UsfmTest {
         assertEquals(null, parseUsfmMetadata("\\id GEN"))
         assertEquals(null, parseUsfmMetadata("\\id GEN World English Bible"))
     }
+
+    @Test
+    fun `test parseFileNameMetadata()`() {
+        for ((name, language, abbreviation) in listOf(
+            Triple("cmn_ncvt_zh-HK", "cmn", "NCVT"),
+            Triple("cmn-ncvt", "cmn", "NCVT"),
+            Triple("engWebp", "eng", "WEBP"),
+            Triple("eng_web_US", "eng", "WEB"),
+            Triple("eng_web", "eng", "WEB"),
+        )) {
+            val metadata = parseFileNameMetadata(name)
+            assertEquals(language, metadata?.language, name)
+            assertEquals(abbreviation, metadata?.shortName, name)
+            assertEquals(abbreviation, metadata?.name, name)
+        }
+        assertEquals(null, parseFileNameMetadata("Bible"))
+    }
 }

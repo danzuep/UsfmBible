@@ -102,6 +102,10 @@
                 <data android:pathPattern=".*\\..*\\.sfm" />
                 <data android:pathPattern=".*\\..*\\..*\\.sfm" />
                 <data android:pathPattern=".*\\.SFM" />
+                <data android:pathPattern=".*\\.zip" />
+                <data android:pathPattern=".*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\.ZIP" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -119,6 +123,10 @@
                 <data android:pathPattern=".*\\..*\\.sfm" />
                 <data android:pathPattern=".*\\..*\\..*\\.sfm" />
                 <data android:pathPattern=".*\\.SFM" />
+                <data android:pathPattern=".*\\.zip" />
+                <data android:pathPattern=".*\\..*\\.zip" />
+                <data android:pathPattern=".*\\..*\\..*\\.zip" />
+                <data android:pathPattern=".*\\.ZIP" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -128,6 +136,8 @@
                 <data android:mimeType="text/usfm" />
                 <data android:mimeType="application/x-usfm" />
                 <data android:mimeType="text/x-usfm" />
+                <data android:mimeType="application/zip" />
+                <data android:mimeType="application/x-zip-compressed" />
                 <!-- File managers report unknown extensions like .usfm as this, often with an opaque content URI that has no extension to match. -->
                 <data android:mimeType="application/octet-stream" />
                 <!-- Other file managers and Android's own extension map label unknown text files text/plain; the activity checks the extension. -->
