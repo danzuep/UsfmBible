@@ -122,7 +122,11 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         }
 
         intent.getStringExtra(KEY_DOWNLOAD_TRANSLATION)?.let { viewModel.downloadTranslation(it) }
-        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.let { showUploadTranslationDialog(it) }
+        if (intent.action == Intent.ACTION_VIEW) {
+            // Clear the action so the dialog is not shown again when the activity is recreated.
+            intent.action = null
+            intent.data?.let { showUploadTranslationDialog(it) }
+        }
     }
 
     private fun setupFastScroller() {
