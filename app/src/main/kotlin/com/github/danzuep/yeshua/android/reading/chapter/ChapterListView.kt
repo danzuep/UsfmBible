@@ -70,11 +70,12 @@ class ChapterListView : ExpandableListView {
             return
         }
 
-        expandGroup(groupToExpand)
-        if (lastExpandedGroup != groupToExpand) {
+        // Collapse the previous book first: collapsing a book above after expanding shifts the rows up and the list ends up further down.
+        if (lastExpandedGroup in 0 until adapter.groupCount && lastExpandedGroup != groupToExpand) {
             collapseGroup(lastExpandedGroup)
-            lastExpandedGroup = groupToExpand
         }
+        lastExpandedGroup = groupToExpand
+        expandGroup(groupToExpand)
         setSelectedGroup(groupToExpand)
     }
 
