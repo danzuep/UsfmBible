@@ -236,8 +236,10 @@ class TranslationRepository(
         Logger.withTag(TAG).i { "Translation downloaded" }
         downloadProgressChannel.trySend(100)
 
+        // The 66 book WEBP edition is simply called WEB once it is downloaded.
+        val downloaded = translation.translationInfo.toTranslationInfo(true)
         localTranslationStorage.saveTranslation(
-            translation.translationInfo.toTranslationInfo(true),
+            if (downloaded.shortName == "engwebp") downloaded.copy(name = "WEB") else downloaded,
             translation.bookNames, translation.bookShortNames, translation.verses
         )
         remoteTranslationService.removeTranslationCache(toDownload)

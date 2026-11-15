@@ -32,8 +32,6 @@ private val SPACES = Regex("""[ \t\r\n\u00A0]+""")
 private val ABSOLUTE_LINK = Regex("""^(?:https?:|mailto:)""", RegexOption.IGNORE_CASE)
 private val NAVIGATION_LABELS = setOf("^", "<", ">")
 private const val GENERATOR_NOTE = "HTML generated with"
-// The WEBP edition (the 66 book WEB) is simply called WEB.
-private val WEBP_NAME = Regex("""\bWEBP\b""")
 private const val HEADING_MARK = "\u0001"
 private const val BLOCK_MARK = "\u0002"
 private const val ITEM_MARK = "\u0003"
@@ -74,7 +72,7 @@ fun copyrightHtmlToMarkdown(html: String): String {
             .replace(LINE_BREAK, " ")
             .replace(ANY_TAG, "")
     return decodeEntities(text).split(BLOCK_MARK).mapNotNull { raw ->
-        val body = raw.removePrefix(HEADING_MARK).removePrefix(ITEM_MARK).replace(SPACES, " ").replace(WEBP_NAME, "WEB").trim()
+        val body = raw.removePrefix(HEADING_MARK).removePrefix(ITEM_MARK).replace(SPACES, " ").trim()
         when {
             body.isEmpty() || body in NAVIGATION_LABELS || body.startsWith(GENERATOR_NOTE) -> null
             raw.startsWith(HEADING_MARK) -> "# $body"
