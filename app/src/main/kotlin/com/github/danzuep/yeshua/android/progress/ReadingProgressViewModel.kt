@@ -110,16 +110,18 @@ class ReadingProgressViewModel @Inject constructor(
             }
         }
 
+        // The deuterocanon is only listed once a chapter of it was read, so that it does not clutter translations without it.
+        val bookCount = if (chaptersReadCountPerBook.drop(Bible.CANON_BOOK_COUNT).any { it > 0 }) Bible.BOOK_COUNT else Bible.CANON_BOOK_COUNT
         var finishedBooks = 0
         var finishedOldTestament = 0
         var finishedNewTestament = 0
-        for ((bookIndex, chaptersRead) in chaptersReadPerBook.withIndex()) {
+        for ((bookIndex, chaptersRead) in chaptersReadPerBook.take(bookCount).withIndex()) {
             val chaptersReadCount = chaptersReadCountPerBook[bookIndex]
             if (chaptersReadCount == Bible.getChapterCount(bookIndex)) {
                 ++finishedBooks
                 if (bookIndex < Bible.OLD_TESTAMENT_COUNT) {
                     ++finishedOldTestament
-                } else {
+                } else if (!Bible.isDeuterocanon(bookIndex)) {
                     ++finishedNewTestament
                 }
             }

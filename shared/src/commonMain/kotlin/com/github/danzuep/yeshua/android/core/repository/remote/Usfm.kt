@@ -23,10 +23,11 @@ import com.github.danzuep.yeshua.android.core.RUBY_MARK
 import com.github.danzuep.yeshua.android.core.RUBY_SEPARATOR
 import com.github.danzuep.yeshua.android.core.removeRuby
 
-/** Protestant canon in the app's order (0-based book index = position in this list). */
+/** The 66 book canon followed by the deuterocanon, in the app's order (0-based book index = position in this list). */
 val BOOK_CODES: List<String> = ("GEN EXO LEV NUM DEU JOS JDG RUT 1SA 2SA 1KI 2KI 1CH 2CH EZR NEH EST JOB PSA PRO ECC SNG ISA JER LAM " +
         "EZK DAN HOS JOL AMO OBA JON MIC NAM HAB ZEP HAG ZEC MAL MAT MRK LUK JHN ACT ROM 1CO 2CO GAL EPH PHP COL " +
-        "1TH 2TH 1TI 2TI TIT PHM HEB JAS 1PE 2PE 1JN 2JN 3JN JUD REV").split(" ")
+        "1TH 2TH 1TI 2TI TIT PHM HEB JAS 1PE 2PE 1JN 2JN 3JN JUD REV " +
+        "TOB JDT ESG WIS SIR BAR LJE S3Y SUS BEL 1MA 2MA 3MA 4MA 1ES 2ES MAN PS2").split(" ")
 
 /** A book of scripture, independent of the markup (USFM, USX, ...) it was read from. Verse numbers are 1-based. */
 class ScriptureBook(val code: String, val name: String?, val chapters: Map<Int, Map<Int, String>>)
@@ -151,7 +152,7 @@ fun parseUsfm(content: String): ScriptureBook {
     return ScriptureBook(requireNotNull(code) { "Missing \\id marker" }, name, chapters)
 }
 
-/** Reads the USFM books out of the (file name, bytes) entries of a zip as published by eBible.org, keyed by USFM code. Only books of the 66 book canon are kept. */
+/** Reads the USFM books out of the (file name, bytes) entries of a zip as published by eBible.org, keyed by USFM code. Only books of the canon and deuterocanon in [BOOK_CODES] are kept. */
 fun readUsfmBooks(entries: Sequence<Pair<String, ByteArray>>): Map<String, ScriptureBook> {
     val books = hashMapOf<String, ScriptureBook>()
     for ((name, content) in entries) {
