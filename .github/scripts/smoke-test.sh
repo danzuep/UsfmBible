@@ -166,6 +166,25 @@ fi
 adb shell input keyevent KEYCODE_BACK
 sleep 1
 
+# A file that names its translation and language (\\id GEN EN_ULT en_English_ltr) is installed without the dialog.
+printf '\\id GEN EN_ULT en_English_ltr\n\\h Smoke\n\\c 1\n\\p\n\\v 1 Smoke verse\n' > direct.usfm
+adb push direct.usfm /sdcard/Download/direct.usfm > /dev/null
+adb shell am start -W -a android.intent.action.VIEW -d file:///sdcard/Download/direct.usfm > /dev/null
+sleep 6
+dump_ui
+cp ui.xml ui-usfm-direct.xml
+adb exec-out screencap -p > screen-usfm-direct.png
+if grep -q "Abbreviation, e.g. KJV" ui-usfm-direct.xml 2> /dev/null; then
+  echo "FAIL: a .usfm file that names its translation still showed the import dialog"
+  status=1
+fi
+if ! grep -q "ULT" ui-usfm-direct.xml 2> /dev/null; then
+  echo "FAIL: the translation from the .usfm file was not installed"
+  status=1
+fi
+adb shell input keyevent KEYCODE_BACK
+sleep 1
+
 # Regression test: submitting "jhn1" used to relaunch SearchActivity in an endless loop, freezing the screen after the results showed.
 adb shell am start -W -n "$APP_ID/$APP_NAMESPACE.search.SearchActivity" > /dev/null
 sleep 3

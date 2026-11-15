@@ -19,6 +19,8 @@ package com.github.danzuep.yeshua.android.translations
 
 import android.app.Application
 import android.net.Uri
+import com.github.danzuep.yeshua.android.core.repository.remote.UsfmMetadata
+import com.github.danzuep.yeshua.android.core.repository.remote.parseUsfmMetadata
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
@@ -252,6 +254,20 @@ class TranslationsViewModel @Inject constructor(
             runCatching { withContext(coroutineDispatcherProvider.default) { translationManager.saveDownloadSites(sites) } }
                 .onFailure { e -> Logger.withTag(tag).e(e) { "Failed to save download sites" } }
             loadTranslations(forceRefresh = true)
+        }
+    }
+
+    /** Passes the metadata in the head of the plain USFM file in [uri] (null for a zip or when it has none) to [onLoaded] on the main thread. */
+    fun readUsfmMetadata(uri: Uri, onLoaded: (UsfmMetadata?) -> Unit) {
+        viewModelScope.launch {
+            val metadata = runCatching {
+                withContext(coroutineDispatcherProvider.default) {
+                    val head = requireNotNull(application.contentResolver.openInputStream(uri)) { "Cannot open $uri" }.use { it.readNBytes(4096) }
+                    // Zips start with "PK".
+                    if (head.size >= 2 && head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()) null else parseUsfmMetadata(head.decodeToString())
+                }
+            }.onFailure { e -> Logger.withTag(tag).e(e) { "Failed to read USFM metadata" } }.getOrNull()
+            onLoaded(metadata)
         }
     }
 

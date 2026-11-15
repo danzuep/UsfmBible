@@ -192,4 +192,16 @@ class UsfmTest {
         assertEquals("Tobit", translation.bookNames[Bible.CANON_BOOK_COUNT])
         assertEquals(Bible.BOOK_COUNT, BOOK_CODES.size)
     }
+
+    @Test
+    fun `test parseUsfmMetadata()`() {
+        val full = parseUsfmMetadata("\\id GEN EN_ULT en_English_ltr Mon Jan 1\n\\c 1")
+        assertEquals("ULT", full?.shortName)
+        assertEquals("ULT", full?.name)
+        assertEquals("en", full?.language)
+        assertEquals("eng", parseUsfmMetadata("\\id GEN ENG-WEB")?.language)
+        assertEquals("WEB", parseUsfmMetadata("\\id GEN ENG-WEB")?.shortName)
+        assertEquals(null, parseUsfmMetadata("\\id GEN"))
+        assertEquals(null, parseUsfmMetadata("\\id GEN World English Bible"))
+    }
 }

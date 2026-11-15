@@ -41,6 +41,8 @@ jobs:
           ui-search.xml
           ui-usfm.xml
           screen-usfm.png
+          ui-usfm-direct.xml
+          screen-usfm-direct.png
 
   # Instrumented tests (app/src/androidTest) run in the app's own process, so they can use the shared fluent builders.
   instrumented:
