@@ -33,6 +33,7 @@ import com.github.danzuep.yeshua.android.core.repository.remote.siteOrigin
 import com.github.danzuep.yeshua.android.core.repository.remote.toRemoteTranslation as buildRemoteTranslation
 import com.github.danzuep.yeshua.android.core.repository.remote.toRemoteTranslationInfo
 import com.github.danzuep.yeshua.android.core.repository.remote.usfmZipUrl
+import com.github.danzuep.yeshua.android.ui.saveCopyright
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -80,7 +81,10 @@ class HttpTranslationService(private val context: Context) : RemoteTranslationSe
     }
 
     internal fun toRemoteTranslation(translationInfo: RemoteTranslationInfo, inputStream: InputStream): RemoteTranslation =
-            buildRemoteTranslation(translationInfo, readUsfmZip(inputStream))
+            readUsfmZip(inputStream).let { zip ->
+                zip.copyright?.let { context.saveCopyright(translationInfo.shortName, it) }
+                buildRemoteTranslation(translationInfo, zip.books)
+            }
 
     override suspend fun readTranslation(translationInfo: RemoteTranslationInfo, content: ByteArray): RemoteTranslation =
             withContext(Dispatchers.IO) { toRemoteTranslation(translationInfo, content.inputStream()) }
