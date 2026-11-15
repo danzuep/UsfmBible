@@ -27,17 +27,11 @@ dump_ui() {
   adb pull /sdcard/ui.xml ui.xml > /dev/null 2>&1
 }
 
-# Opens /sdcard/Download/$1 in the activity $2 of the app through a MediaStore content URI, like a file manager would (apps cannot read file:// URIs).
+# Opens /sdcard/Download/$1 in the activity $2 of the app through a documents-provider content URI, like a file manager
+# would (apps cannot read file:// URIs).
 open_usfm() {
-  adb shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file:///sdcard/Download/$1" > /dev/null
-  local id=""
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    id=$(adb shell content query --uri content://media/external/file --projection _id --where "_display_name='$1'" | grep -o '_id=[0-9]*' | head -n 1 | cut -d= -f2)
-    [ -n "$id" ] && break
-    sleep 1
-  done
-  echo "MediaStore id of $1: ${id:-none}"
-  adb shell am start -W -a android.intent.action.VIEW --grant-read-uri-permission -n "$APP_ID/$APP_NAMESPACE.$2" -d "content://media/external/file/$id" > /dev/null
+  adb shell am start -W -a android.intent.action.VIEW --grant-read-uri-permission -n "$APP_ID/$APP_NAMESPACE.$2" \
+    -d "content://com.android.externalstorage.documents/document/primary%3ADownload%2F$1" > /dev/null
 }
 
 adb install app/build/outputs/apk/release/app-release.apk
