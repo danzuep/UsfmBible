@@ -34,5 +34,9 @@ if [ -z "${NO_RUBY:-}" ]; then
   grep -q '^\\v 2 \\rb Ruby|reading\\rb\* ' "$work/minimal/$(basename "$john")"
 fi
 
+# Keep the copyright notice, which the app stores and shows offline.
+copr="$(find "$work/full" -type f -iname 'copr.htm' | head -n 1)"
+if [ -n "$copr" ]; then cp "$copr" "$work/minimal/copr.htm"; fi
+
 (cd "$work/minimal" && zip -q -r "$out" .)
 echo "Wrote $out ($(unzip -l "$out" | tail -n 1))"

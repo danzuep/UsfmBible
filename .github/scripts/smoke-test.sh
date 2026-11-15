@@ -120,6 +120,30 @@ if [ "$chapter_found" -ne 1 ]; then
   echo "FAIL: John 2 did not start with the chapter mark"
   status=1
 fi
+# The copyright notice is stored when the translation is imported, so it must show with no connection.
+adb shell am start -W --activity-single-top -n "$APP_ID/$APP_NAMESPACE.LauncherActivity" --ei "$APP_NAMESPACE.KEY_OPEN_BOOK" "${SMOKE_BOOK_INDEX:-42}" > /dev/null
+sleep 5
+adb shell svc wifi disable
+adb shell svc data disable
+dump_ui
+if tap_desc "Copyright"; then
+  sleep 3
+  dump_ui
+  adb exec-out screencap -p > screen-copyright.png
+  cp ui.xml ui-copyright.xml
+  if ! grep -q 'text="engwebu"' ui-copyright.xml 2> /dev/null; then
+    echo "FAIL: the copyright notice was not shown in the app"
+    status=1
+  fi
+  adb shell input keyevent KEYCODE_BACK
+  sleep 1
+else
+  echo "FAIL: could not tap the Copyright icon"
+  status=1
+fi
+adb shell svc wifi enable
+adb shell svc data enable
+
 # Regression test: submitting "jhn1" used to relaunch SearchActivity in an endless loop, freezing the screen after the results showed.
 adb shell am start -W -n "$APP_ID/$APP_NAMESPACE.search.SearchActivity" > /dev/null
 sleep 3
