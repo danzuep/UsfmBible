@@ -18,6 +18,7 @@ package com.github.danzuep.yeshua.android.core.repository.remote
 
 import com.github.danzuep.yeshua.android.core.RUBY_MARK
 import com.github.danzuep.yeshua.android.core.RUBY_SEPARATOR
+import com.github.danzuep.yeshua.android.core.Bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -175,5 +176,20 @@ class UsfmTest {
             mapOf(1 to "Before an empty verse", 2 to "", 3 to "And after this two empty verses", 4 to "", 5 to "", 6 to "You found me"),
             book.chapters.getValue(2)
         )
+    }
+
+    @Test
+    fun `test readUsfmBooks() keeps the deuterocanon after the canon`() {
+        val entries = sequenceOf(
+            "01TOB.usfm" to "\\id TOB\n\\h Tobit\n\\c 1\n\\p\n\\v 1 The book of the words of Tobit.".encodeToByteArray(),
+            "99XXA.usfm" to "\\id XXA\n\\c 1\n\\v 1 Not a known book.".encodeToByteArray(),
+        )
+        val books = readUsfmBooks(entries)
+        assertEquals(setOf("TOB"), books.keys)
+        val translation = toRemoteTranslation(RemoteTranslationInfo("x", "X", "eng", 0L), books)
+        assertEquals(Bible.BOOK_COUNT, translation.bookNames.size)
+        assertEquals(1, translation.verses.getValue(Pair(Bible.CANON_BOOK_COUNT, 0)).size)
+        assertEquals("Tobit", translation.bookNames[Bible.CANON_BOOK_COUNT])
+        assertEquals(Bible.BOOK_COUNT, BOOK_CODES.size)
     }
 }
