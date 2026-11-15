@@ -22,6 +22,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
@@ -53,7 +54,13 @@ class OpenFileTest {
         return ActivityScenario.launch(Intent(Intent.ACTION_VIEW, Uri.fromFile(file), context, activity))
     }
 
-    private fun isShown(text: String) = automation.rootInActiveWindow?.findAccessibilityNodeInfosByText(text)?.isNotEmpty() == true
+    /** Whether a node on screen has [text] as its text, description or hint (empty fields only expose their hint). */
+    private fun isShown(text: String): Boolean {
+        fun AccessibilityNodeInfo.contains(): Boolean =
+            listOf(this.text, contentDescription, hintText).any { it?.contains(text) == true } ||
+                (0 until childCount).any { getChild(it)?.contains() == true }
+        return automation.rootInActiveWindow?.contains() == true
+    }
 
     private fun await(what: String, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + TIMEOUT_MS
