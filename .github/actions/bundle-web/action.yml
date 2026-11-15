@@ -6,6 +6,6 @@ runs:
   - shell: bash
     run: |
       mkdir -p bundled-assets/bundled/translations
-      curl -fsSL "https://ebible.org/Scriptures/engwebu_usfm.zip" -o full-engwebu.zip
-      bash .github/scripts/make-minimal-web.sh full-engwebu.zip bundled-assets/bundled/translations/engwebu.zip
-      printf 'engwebu\tWorld English Bible Updated\teng\n' > bundled-assets/bundled/list.tsv
+      curl -fsSL "https://ebible.org/Scriptures/engwebp_usfm.zip" -o full-engwebp.zip
+      bash .github/scripts/make-minimal-web.sh full-engwebp.zip bundled-assets/bundled/translations/engwebp.zip
+      printf 'engwebp\tWorld English Bible\teng\n' > bundled-assets/bundled/list.tsv

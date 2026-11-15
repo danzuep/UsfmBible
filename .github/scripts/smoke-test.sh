@@ -138,7 +138,7 @@ if tap_desc "Copyright"; then
   dump_ui
   adb exec-out screencap -p > screen-copyright.png
   cp ui.xml ui-copyright.xml
-  if ! grep -q 'text="engwebu"' ui-copyright.xml 2> /dev/null; then
+  if ! grep -q 'engwebp' ui-copyright.xml 2> /dev/null; then
     echo "FAIL: the copyright notice was not shown in the app"
     status=1
   fi

@@ -16,7 +16,7 @@ on:
     inputs:
       translations:
         description: 'Comma separated eBible ids to publish'
-        default: 'engwebu,cmn-ncvt'
+        default: 'engwebp,cmn-ncvt'
       ruby_zip:
         description: 'Optional USFM zip URL with ruby text (e.g. a usfm-ruby release asset) used instead of the eBible zip of ruby_id'
         default: ''
@@ -64,7 +64,7 @@ jobs:
         args: --data ruby/Unihan_Readings.txt --language ${{ env.RUBY_LANGUAGE }} --usfm-in ruby/${{ env.RUBY_ID }}_usfm.zip --usfm-out ruby/${{ env.RUBY_ID }}_ruby.zip
     - name: Build the site
       env:
-        TRANSLATIONS: ${{ inputs.translations || 'engwebu,cmn-ncvt' }}
+        TRANSLATIONS: ${{ inputs.translations || 'engwebp,cmn-ncvt' }}
         RUBY_ZIP: ${{ inputs.ruby_zip || format('file://{0}/ruby/{1}_ruby.zip', github.workspace, env.RUBY_ID) }}
       run: |
         if [ -n "$RUBY_ZIP" ]; then TRANSLATIONS="${TRANSLATIONS/$RUBY_ID/$RUBY_ID=$RUBY_ZIP}"; fi

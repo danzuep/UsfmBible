@@ -55,8 +55,8 @@ jobs:
     - name: Download the WEB Bible to prepackage
       run: |
         mkdir -p bundle-src/translations
-        curl -fsSL "https://ebible.org/Scriptures/engwebu_usfm.zip" -o bundle-src/translations/engwebu.zip
-        printf 'engwebu\tWorld English Bible Updated\teng\n' > bundle-src/list.tsv
+        curl -fsSL "https://ebible.org/Scriptures/engwebp_usfm.zip" -o bundle-src/translations/engwebp.zip
+        printf 'engwebp\tWorld English Bible\teng\n' > bundle-src/list.tsv
     - name: Parse the WEB Bible into a prebuilt database
       run: |
         # Writes bundled-assets/bundled/bundled.db, so the app does not parse the USFM on first launch.

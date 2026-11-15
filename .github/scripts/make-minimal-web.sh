@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds a World English Bible zip containing only John 1-2 and Hebrews 1-2, for the smoke test.
-# Usage: make-minimal-web.sh <full engwebu_usfm.zip> <output zip>
+# Usage: make-minimal-web.sh <full engwebp_usfm.zip> <output zip>
 set -euo pipefail
 
 src="$1"
