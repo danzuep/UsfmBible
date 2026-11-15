@@ -78,11 +78,10 @@ fun Context.showCopyright(translationShortName: String) {
     }
     val content = android.view.LayoutInflater.from(this).inflate(R.layout.dialog_translation_details, null)
     content.findViewById<TextView>(R.id.details_text).apply {
-        text = blocks.toText()
+        text = (blocks + CopyrightBlock(translationShortName)).toText()
         movementMethod = LinkMovementMethod.getInstance()
     }
     AlertDialog.Builder(this)
-            .setTitle(translationShortName)
             .setView(content)
             .setPositiveButton(android.R.string.ok, null)
             .show()

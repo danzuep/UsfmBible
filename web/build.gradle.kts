@@ -19,7 +19,7 @@ plugins {
     id(Dependencies.Kotlin.Multiplatform.plugin)
 }
 
-val translationIds = providers.gradleProperty("translations").orElse("engwebu,cmn-ncvt")
+val translationIds = providers.gradleProperty("translations").orElse("engwebp,cmn-ncvt")
 val translationsDir = layout.buildDirectory.dir("translations")
 
 kotlin {
@@ -55,7 +55,7 @@ kotlin {
 // Downloads the translations from eBible.org and writes build/translations/<shortName>.json plus index.json.
 tasks.register<JavaExec>("convertTranslations") {
     group = "web"
-    description = "Converts eBible USFM translations to static JSON, e.g. -Ptranslations=engwebu,eng-kjv2006"
+    description = "Converts eBible USFM translations to static JSON, e.g. -Ptranslations=engwebp,eng-kjv2006"
     val jvmMain = kotlin.jvm().compilations.getByName("main")
     dependsOn(jvmMain.compileTaskProvider)
     classpath(jvmMain.output.allOutputs, jvmMain.runtimeDependencyFiles)
