@@ -18,6 +18,7 @@
 package com.github.danzuep.yeshua.android.reading.chapter
 
 import android.content.Context
+import android.graphics.Color
 import com.github.danzuep.yeshua.android.utils.localized
 import android.view.LayoutInflater
 import android.view.View
@@ -26,12 +27,16 @@ import android.widget.BaseExpandableListAdapter
 import android.widget.TextView
 import androidx.core.view.children
 import androidx.core.view.isVisible
+import com.github.danzuep.yeshua.android.R
+import com.github.danzuep.yeshua.android.core.Bible
 import com.github.danzuep.yeshua.android.databinding.ItemBookNameBinding
 import com.github.danzuep.yeshua.android.databinding.ItemChapterRowBinding
 
 class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.ViewEvent) -> Unit) : BaseExpandableListAdapter() {
     companion object {
         private const val ROW_CHILD_COUNT = 5
+        private const val NEW_TESTAMENT_SHADE = 0x1AFFFFFF
+        private const val OTHER_BOOKS_SHADE = 0x33FFFFFF
     }
 
     private class Tag(var bookIndex: Int, var chapterIndex: Int)
@@ -82,8 +87,18 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
         val binding = convertView?.let { ItemBookNameBinding.bind(it) }
             ?: ItemBookNameBinding.inflate(inflater, parent, false)
         binding.root.text = getGroup(groupPosition).bookName
-        binding.root.isSelected = getGroup(groupPosition).bookIndex == currentBookIndex
+        val bookIndex = getGroup(groupPosition).bookIndex
+        binding.root.isSelected = bookIndex == currentBookIndex
+        // Shade the sections apart; the selected book keeps the selector's own background.
+        binding.root.setBackgroundResource(R.drawable.background_chapter_book_name)
+        if (!binding.root.isSelected) binding.root.setBackgroundColor(sectionShade(bookIndex))
         return binding.root
+    }
+
+    private fun sectionShade(bookIndex: Int): Int = when {
+        bookIndex < Bible.OLD_TESTAMENT_COUNT -> Color.TRANSPARENT
+        bookIndex < Bible.CANON_BOOK_COUNT -> NEW_TESTAMENT_SHADE
+        else -> OTHER_BOOKS_SHADE
     }
 
     override fun isChildSelectable(groupPosition: Int, childPosition: Int): Boolean = true

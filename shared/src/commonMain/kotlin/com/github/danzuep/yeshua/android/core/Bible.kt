@@ -20,8 +20,7 @@ package com.github.danzuep.yeshua.android.core
 object Bible {
     /** The Protestant canon: [OLD_TESTAMENT_COUNT] + [NEW_TESTAMENT_COUNT] books. The deuterocanon comes after it, so these indexes never move. */
     const val CANON_BOOK_COUNT = 66
-    const val DEUTEROCANON_COUNT = 18
-    const val BOOK_COUNT = CANON_BOOK_COUNT + DEUTEROCANON_COUNT
+    const val BOOK_COUNT = CANON_BOOK_COUNT + 18
     const val OLD_TESTAMENT_COUNT = 39
     const val NEW_TESTAMENT_COUNT = 27
 
@@ -33,8 +32,6 @@ object Bible {
             14, 16, 10, 19, 51, 5, 1, 1, 1, 1, 16, 15, 7, 18, 9, 16, 1, 1)
 
     val TOTAL_CHAPTER_COUNT: Int = CHAPTER_COUNT.sum()
-
-    fun isDeuterocanon(bookIndex: Int) = bookIndex >= CANON_BOOK_COUNT
 
     fun getChapterCount(bookIndex: Int) = CHAPTER_COUNT[bookIndex]
 }

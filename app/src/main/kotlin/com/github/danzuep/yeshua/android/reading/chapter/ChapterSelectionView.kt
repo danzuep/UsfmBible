@@ -33,26 +33,21 @@ class ChapterSelectionView : ConstraintLayout {
     companion object {
         private const val SELECTION_OLD_TESTAMENT = 1
         private const val SELECTION_NEW_TESTAMENT = 2
-        private const val SELECTION_DEUTEROCANON = 3
 
-        @IntDef(SELECTION_OLD_TESTAMENT, SELECTION_NEW_TESTAMENT, SELECTION_DEUTEROCANON)
+        @IntDef(SELECTION_OLD_TESTAMENT, SELECTION_NEW_TESTAMENT)
         @Retention(AnnotationRetention.SOURCE)
         private annotation class Selection
 
-        /** The tabs are only useful when at least two of the testaments and the deuterocanon have a valid book. */
+        /** The testament tabs are only useful when both testaments have at least one valid book. */
         internal fun testamentTabVisibility(bookIndices: Collection<Int>): TestamentTabVisibility {
             val validBookIndices = bookIndices.filter { it in 0 until Bible.BOOK_COUNT }
             return TestamentTabVisibility(
                 showOldTestament = validBookIndices.any { it < Bible.OLD_TESTAMENT_COUNT },
-                showNewTestament = validBookIndices.any { it >= Bible.OLD_TESTAMENT_COUNT && !Bible.isDeuterocanon(it) },
-                showDeuterocanon = validBookIndices.any { Bible.isDeuterocanon(it) })
+                showNewTestament = validBookIndices.any { it >= Bible.OLD_TESTAMENT_COUNT })
         }
     }
 
-    internal data class TestamentTabVisibility(
-            val showOldTestament: Boolean, val showNewTestament: Boolean, val showDeuterocanon: Boolean = false) {
-        val showTabs: Boolean get() = listOf(showOldTestament, showNewTestament, showDeuterocanon).count { it } > 1
-    }
+    internal data class TestamentTabVisibility(val showOldTestament: Boolean, val showNewTestament: Boolean)
 
     sealed class ViewEvent {
         data class SelectBook(val bookIndex: Int) : ViewEvent()
@@ -74,18 +69,13 @@ class ChapterSelectionView : ConstraintLayout {
 
         viewBinding.chapterSelectionOldTestament.setOnClickListener { updateSelection(SELECTION_OLD_TESTAMENT, true) }
         viewBinding.chapterSelectionNewTestament.setOnClickListener { updateSelection(SELECTION_NEW_TESTAMENT, true) }
-        viewBinding.chapterSelectionDeuterocanon.setOnClickListener { updateSelection(SELECTION_DEUTEROCANON, true) }
         viewBinding.chapterListView.setOnScrollListener(object : AbsListView.OnScrollListener {
             override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {}
 
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
                 val firstVisibleGroup = ExpandableListView.getPackedPositionGroup(
                     viewBinding.chapterListView.getExpandableListPosition(firstVisibleItem))
-                updateSelection(when {
-                    firstVisibleGroup < Bible.OLD_TESTAMENT_COUNT -> SELECTION_OLD_TESTAMENT
-                    Bible.isDeuterocanon(firstVisibleGroup) -> SELECTION_DEUTEROCANON
-                    else -> SELECTION_NEW_TESTAMENT
-                }, false)
+                updateSelection(if (firstVisibleGroup < Bible.OLD_TESTAMENT_COUNT) SELECTION_OLD_TESTAMENT else SELECTION_NEW_TESTAMENT, false)
             }
         })
         updateSelection(SELECTION_OLD_TESTAMENT, false)
@@ -93,14 +83,17 @@ class ChapterSelectionView : ConstraintLayout {
 
     private fun updateSelection(@Selection newSelection: Int, scrollToFirstItem: Boolean) {
         selection = newSelection
-        viewBinding.chapterSelectionOldTestament.isSelected = selection == SELECTION_OLD_TESTAMENT
-        viewBinding.chapterSelectionNewTestament.isSelected = selection == SELECTION_NEW_TESTAMENT
-        viewBinding.chapterSelectionDeuterocanon.isSelected = selection == SELECTION_DEUTEROCANON
-        if (!scrollToFirstItem) return
         when (selection) {
-            SELECTION_OLD_TESTAMENT -> viewBinding.chapterListView.scrollToFirstBookFrom(0)
-            SELECTION_NEW_TESTAMENT -> viewBinding.chapterListView.scrollToFirstBookFrom(Bible.OLD_TESTAMENT_COUNT)
-            SELECTION_DEUTEROCANON -> viewBinding.chapterListView.scrollToFirstBookFrom(Bible.CANON_BOOK_COUNT)
+            SELECTION_OLD_TESTAMENT -> {
+                viewBinding.chapterSelectionOldTestament.isSelected = true
+                viewBinding.chapterSelectionNewTestament.isSelected = false
+                if (scrollToFirstItem) viewBinding.chapterListView.scrollToFirstBookFrom(0)
+            }
+            SELECTION_NEW_TESTAMENT -> {
+                viewBinding.chapterSelectionOldTestament.isSelected = false
+                viewBinding.chapterSelectionNewTestament.isSelected = true
+                if (scrollToFirstItem) viewBinding.chapterListView.scrollToFirstBookFrom(Bible.OLD_TESTAMENT_COUNT)
+            }
             else -> throw IllegalArgumentException("Unsupported selection type - $selection")
         }
     }
@@ -119,10 +112,10 @@ class ChapterSelectionView : ConstraintLayout {
     }
 
     private fun updateTestamentTabs(visibility: TestamentTabVisibility) {
-        val tabVisibility = if (visibility.showTabs) View.VISIBLE else View.GONE
+        val showTabs = visibility.showOldTestament && visibility.showNewTestament
+        val tabVisibility = if (showTabs) View.VISIBLE else View.GONE
         viewBinding.chapterSelectionOldTestament.visibility = tabVisibility
         viewBinding.chapterSelectionNewTestament.visibility = tabVisibility
-        viewBinding.chapterSelectionDeuterocanon.visibility = if (visibility.showTabs && visibility.showDeuterocanon) View.VISIBLE else View.GONE
     }
 
     fun expandCurrentBook() {

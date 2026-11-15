@@ -121,7 +121,7 @@ class ReadingProgressViewModel @Inject constructor(
                 ++finishedBooks
                 if (bookIndex < Bible.OLD_TESTAMENT_COUNT) {
                     ++finishedOldTestament
-                } else if (!Bible.isDeuterocanon(bookIndex)) {
+                } else if (bookIndex < Bible.CANON_BOOK_COUNT) {
                     ++finishedNewTestament
                 }
             }

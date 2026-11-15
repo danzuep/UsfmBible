@@ -16,7 +16,6 @@
 
 package com.github.danzuep.yeshua.android.reading.chapter
 
-import com.github.danzuep.yeshua.android.core.Bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,7 +24,7 @@ class ChapterSelectionViewTestamentTest {
     fun testTestamentTabVisibility_allBooks() {
         assertEquals(
             ChapterSelectionView.TestamentTabVisibility(showOldTestament = true, showNewTestament = true),
-            ChapterSelectionView.testamentTabVisibility((0 until Bible.CANON_BOOK_COUNT).toList())
+            ChapterSelectionView.testamentTabVisibility((0 until 66).toList())
         )
     }
 
@@ -41,7 +40,7 @@ class ChapterSelectionViewTestamentTest {
     fun testTestamentTabVisibility_onlyNewTestament() {
         assertEquals(
             ChapterSelectionView.TestamentTabVisibility(showOldTestament = false, showNewTestament = true),
-            ChapterSelectionView.testamentTabVisibility((39 until Bible.CANON_BOOK_COUNT).toList())
+            ChapterSelectionView.testamentTabVisibility((39 until 66).toList())
         )
     }
 
@@ -57,19 +56,11 @@ class ChapterSelectionViewTestamentTest {
     fun testTestamentTabVisibility_invalidIndicesIgnored() {
         assertEquals(
             ChapterSelectionView.TestamentTabVisibility(showOldTestament = false, showNewTestament = false),
-            ChapterSelectionView.testamentTabVisibility(listOf(-1, Bible.BOOK_COUNT, 100))
+            ChapterSelectionView.testamentTabVisibility(listOf(-1, 66, 100))
         )
         assertEquals(
             ChapterSelectionView.TestamentTabVisibility(showOldTestament = false, showNewTestament = true),
             ChapterSelectionView.testamentTabVisibility(listOf(-1, 39, 100))
         )
-    }
-
-    @Test
-    fun testTestamentTabVisibility_deuterocanon() {
-        val visibility = ChapterSelectionView.testamentTabVisibility((0 until Bible.BOOK_COUNT).toList())
-        assertEquals(ChapterSelectionView.TestamentTabVisibility(true, true, true), visibility)
-        assertEquals(true, visibility.showTabs)
-        assertEquals(false, ChapterSelectionView.testamentTabVisibility((Bible.CANON_BOOK_COUNT until Bible.BOOK_COUNT).toList()).showTabs)
     }
 }
