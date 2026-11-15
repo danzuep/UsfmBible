@@ -21,7 +21,7 @@ import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.view.ViewTreeObserver
+import android.view.View
 import android.widget.FrameLayout
 import androidx.annotation.IntDef
 import androidx.annotation.RequiresApi
@@ -55,13 +55,18 @@ class VerseDetailViewLayout : FrameLayout {
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = adapter.pageTitle(position)
         }.attach()
+    }
 
-        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                viewTreeObserver.removeOnGlobalLayoutListener(this)
-                translationY = height.toFloat()
-            }
-        })
+    private var isOpen = false
+
+    // The panel fills the screen, so a stale off-screen offset after a resize would leave it over the reader and block touches.
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (!isOpen) {
+            animate().cancel()
+            translationY = h.toFloat()
+            visibility = View.INVISIBLE
+        }
     }
 
     var verseDetail: VerseDetailViewData?
@@ -92,6 +97,8 @@ class VerseDetailViewLayout : FrameLayout {
     }
 
     fun show(@VerseDetail verseDetail: Int) {
+        isOpen = true
+        visibility = View.VISIBLE
         animate().translationY(0.0F)
         val requestedPage = when (verseDetail) {
             VERSE_DETAIL_VERSES -> VerseDetailPagerAdapter.PAGE_VERSES
@@ -111,7 +118,10 @@ class VerseDetailViewLayout : FrameLayout {
      * @return true if verse detail view was open, or false otherwise
      */
     fun hide(): Boolean {
-        animate().translationY(height.toFloat())
+        isOpen = false
+        animate().translationY(height.toFloat()).withEndAction {
+            if (!isOpen) visibility = View.INVISIBLE
+        }
         hideKeyboard()
 
         return adapter.verseDetail?.let {
