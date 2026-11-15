@@ -60,7 +60,7 @@
     <string name="hint_upload_short_name">Abbreviation, e.g. KJV</string>
     <string name="hint_upload_language">Language code, e.g. en, cmn, es</string>
     <string name="dialog_title_uploading">⬆ …</string>
-    <string name="dialog_message_failed_to_upload">Could not read a Bible from the file. It must be a zip of USFM books (.usfm or .sfm), and the abbreviation must not be used by an installed translation.</string>
+    <string name="dialog_message_failed_to_upload">Could not read a Bible from the file. It must be a USFM book (.usfm or .sfm) or a zip of them, and the abbreviation must not be used by an installed translation.</string>
     <string name="toast_uploaded">✓</string>
     <string name="action_download">⬇</string>
     <string name="action_download_engbsb">Berean Standard Bible</string>

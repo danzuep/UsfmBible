@@ -122,6 +122,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         }
 
         intent.getStringExtra(KEY_DOWNLOAD_TRANSLATION)?.let { viewModel.downloadTranslation(it) }
+        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.let { showUploadTranslationDialog(it) }
     }
 
     private fun setupFastScroller() {

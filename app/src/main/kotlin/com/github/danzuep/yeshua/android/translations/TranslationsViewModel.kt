@@ -256,7 +256,7 @@ class TranslationsViewModel @Inject constructor(
     }
 
     /**
-     * Installs the Bible in [uri] (a zip of USFM books) as [shortName], listed under [language] (e.g. `en` or `cmn`).
+     * Installs the Bible in [uri] (a USFM book or a zip of them) as [shortName], listed under [language] (e.g. `en` or `cmn`).
      * Passes whether it succeeded to [onCompleted] on the main thread.
      */
     fun uploadTranslation(uri: Uri, name: String, shortName: String, language: String, onCompleted: (Boolean) -> Unit) {
