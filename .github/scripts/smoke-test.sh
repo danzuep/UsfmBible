@@ -27,24 +27,6 @@ dump_ui() {
   adb pull /sdcard/ui.xml ui.xml > /dev/null 2>&1
 }
 
-# Opens /sdcard/Download/$1 in the activity $2 of the app through a MediaStore content URI, like a file manager would
-# (apps cannot read file:// URIs, and the shell cannot grant access to other providers' documents).
-open_usfm() {
-  adb shell content call --uri content://media/external_primary --method scan_file --arg "/sdcard/Download/$1"
-  local id=""
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    id=$(adb shell content query --uri content://media/external_primary/file --where "_display_name='$1'" | grep -o '_id=[0-9]*' | head -n 1 | cut -d= -f2)
-    [ -n "$id" ] && break
-    sleep 1
-  done
-  if [ -z "$id" ]; then
-    adb shell content query --uri content://media/external_primary/file --projection _id:_data --where "_data LIKE '%Download%'" | head -n 5
-    adb shell content query --uri content://media/external_primary/file --projection _id:_data | head -n 5
-  fi
-  echo "MediaStore id of $1: ${id:-none}"
-  adb shell am start -W -a android.intent.action.VIEW --grant-read-uri-permission -n "$APP_ID/$APP_NAMESPACE.$2" -d "content://media/external_primary/file/$id"
-}
-
 adb install app/build/outputs/apk/release/app-release.apk
 adb logcat -c
 # Open Genesis first (importing the bundled translation takes a while), then jump to another book. A page must
@@ -168,55 +150,6 @@ else
 fi
 adb shell svc wifi enable
 adb shell svc data enable
-
-# Opening a .usfm file from another app (here, a VIEW intent with no MIME type) must offer to import it.
-printf '\\id GEN\n\\h Smoke\n\\c 1\n\\p\n\\v 1 Smoke verse\n' > smoke.usfm
-adb push smoke.usfm /sdcard/Download/smoke.usfm > /dev/null
-open_usfm smoke.usfm translations.TranslationsActivity
-sleep 3
-dump_ui
-cp ui.xml ui-usfm.xml
-adb exec-out screencap -p > screen-usfm.png
-if ! grep -q "Abbreviation, e.g. KJV" ui-usfm.xml 2> /dev/null; then
-  echo "FAIL: opening a .usfm file did not show the import dialog"
-  status=1
-fi
-adb shell input keyevent KEYCODE_BACK
-sleep 1
-
-# A file that names its translation and language (\\id GEN EN_ULT en_English_ltr) is installed without the dialog.
-printf '\\id GEN EN_ULT en_English_ltr\n\\h Smoke\n\\c 1\n\\p\n\\v 1 Smoke verse\n' > direct.usfm
-adb push direct.usfm /sdcard/Download/direct.usfm > /dev/null
-open_usfm direct.usfm translations.TranslationsActivity
-sleep 6
-dump_ui
-cp ui.xml ui-usfm-direct.xml
-adb exec-out screencap -p > screen-usfm-direct.png
-if grep -q "Abbreviation, e.g. KJV" ui-usfm-direct.xml 2> /dev/null; then
-  echo "FAIL: a .usfm file that names its translation still showed the import dialog"
-  status=1
-fi
-if ! grep -q "ULT" ui-usfm-direct.xml 2> /dev/null; then
-  echo "FAIL: the translation from the .usfm file was not installed"
-  status=1
-fi
-adb shell input keyevent KEYCODE_BACK
-sleep 1
-
-# A .md file (e.g. a licence) opens in a dialog.
-printf '# Smoke licence\n\nPermission is granted.\n' > licence.md
-adb push licence.md /sdcard/Download/licence.md > /dev/null
-open_usfm licence.md ui.MarkdownActivity
-sleep 3
-dump_ui
-cp ui.xml ui-markdown.xml
-adb exec-out screencap -p > screen-markdown.png
-if ! grep -q "Smoke licence" ui-markdown.xml 2> /dev/null; then
-  echo "FAIL: opening a .md file did not show its text in a dialog"
-  status=1
-fi
-adb shell input keyevent KEYCODE_BACK
-sleep 1
 
 # Regression test: submitting "jhn1" used to relaunch SearchActivity in an endless loop, freezing the screen after the results showed.
 adb shell am start -W -n "$APP_ID/$APP_NAMESPACE.search.SearchActivity" > /dev/null

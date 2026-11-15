@@ -39,12 +39,6 @@ jobs:
           ui-copyright.xml
           ui.xml
           ui-search.xml
-          ui-usfm.xml
-          screen-usfm.png
-          ui-usfm-direct.xml
-          screen-usfm-direct.png
-          ui-markdown.xml
-          screen-markdown.png
 
   # Instrumented tests (app/src/androidTest) run in the app's own process, so they can use the shared fluent builders.
   instrumented:
@@ -67,10 +61,12 @@ jobs:
       with:
         api-level: 34
         arch: x86_64
-        script: ./gradlew connectedDebugAndroidTest -PbundledAssetsDir="$PWD/bundled-assets"
+        script: bash .github/scripts/instrumented.sh
     - uses: actions/upload-artifact@v7
       if: always()
       with:
         name: instrumented-results
-        path: app/build/reports/androidTests
+        path: |
+          app/build/reports/androidTests
+          shots
         if-no-files-found: ignore
