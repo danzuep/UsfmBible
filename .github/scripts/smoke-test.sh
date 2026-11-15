@@ -33,10 +33,14 @@ open_usfm() {
   adb shell content call --uri content://media/external_primary --method scan_file --arg "/sdcard/Download/$1"
   local id=""
   for _ in 1 2 3 4 5 6 7 8 9 10; do
-    id=$(adb shell content query --uri content://media/external_primary/file --projection _id:_display_name --where "_display_name='$1'" | grep -o '_id=[0-9]*' | head -n 1 | cut -d= -f2)
+    id=$(adb shell content query --uri content://media/external_primary/file --where "_display_name='$1'" | grep -o '_id=[0-9]*' | head -n 1 | cut -d= -f2)
     [ -n "$id" ] && break
     sleep 1
   done
+  if [ -z "$id" ]; then
+    adb shell content query --uri content://media/external_primary/file --projection _id:_data --where "_data LIKE '%Download%'" | head -n 5
+    adb shell content query --uri content://media/external_primary/file --projection _id:_data | head -n 5
+  fi
   echo "MediaStore id of $1: ${id:-none}"
   adb shell am start -W -a android.intent.action.VIEW --grant-read-uri-permission -n "$APP_ID/$APP_NAMESPACE.$2" -d "content://media/external_primary/file/$id"
 }
