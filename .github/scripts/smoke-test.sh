@@ -151,6 +151,21 @@ fi
 adb shell svc wifi enable
 adb shell svc data enable
 
+# Opening a .usfm file from another app (here, a VIEW intent with no MIME type) must offer to import it.
+printf '\\id GEN\n\\h Smoke\n\\c 1\n\\p\n\\v 1 Smoke verse\n' > smoke.usfm
+adb push smoke.usfm /sdcard/Download/smoke.usfm > /dev/null
+adb shell am start -W -a android.intent.action.VIEW -d file:///sdcard/Download/smoke.usfm > /dev/null
+sleep 3
+dump_ui
+cp ui.xml ui-usfm.xml
+adb exec-out screencap -p > screen-usfm.png
+if ! grep -q "Abbreviation, e.g. KJV" ui-usfm.xml 2> /dev/null; then
+  echo "FAIL: opening a .usfm file did not show the import dialog"
+  status=1
+fi
+adb shell input keyevent KEYCODE_BACK
+sleep 1
+
 # Regression test: submitting "jhn1" used to relaunch SearchActivity in an endless loop, freezing the screen after the results showed.
 adb shell am start -W -n "$APP_ID/$APP_NAMESPACE.search.SearchActivity" > /dev/null
 sleep 3
