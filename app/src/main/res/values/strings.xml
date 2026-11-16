@@ -76,6 +76,7 @@
     <string name="translation_detail_english_title">A 📖</string>
     <string name="dialog_title_download_sites">@string/action_download_sites</string>
     <string name="dialog_message_download_sites">One web address per line, for example https://ebible.org/download.php. Leave empty to use the default.</string>
+    <string name="dialog_technical_details">Technical details</string>
     <string name="dialog_title_error">⚠</string>
     <string name="dialog_title_downloading">⬇ …</string>
     <string name="dialog_title_installing">📦 …</string>

@@ -24,11 +24,13 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.SeekBar
 import androidx.annotation.StringRes
+import androidx.core.view.isVisible
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.danzuep.yeshua.android.R
 import com.github.danzuep.yeshua.android.core.Settings
+import com.github.danzuep.yeshua.android.databinding.DialogErrorDetailsBinding
 import com.github.danzuep.yeshua.android.databinding.WidgetRecyclerViewBinding
 import com.github.danzuep.yeshua.android.databinding.WidgetSeekBarBinding
 import com.github.danzuep.yeshua.android.ui.recyclerview.BaseItem
@@ -63,18 +65,29 @@ fun Activity.dialog(
     @StringRes message: Int,
     onPositive: DialogInterface.OnClickListener,
     onNegative: DialogInterface.OnClickListener? = null,
-    onDismiss: DialogInterface.OnDismissListener? = null
+    onDismiss: DialogInterface.OnDismissListener? = null,
+    error: Throwable? = null,
 ) {
     if (isDestroyed) return
 
-    MaterialAlertDialogBuilder(this)
-        .setCancelable(cancelable)
-        .setTitle(title)
-        .setMessage(message)
+    val builder = MaterialAlertDialogBuilder(this).setCancelable(cancelable).setTitle(title)
+    if (error == null) builder.setMessage(message) else builder.setView(errorDetailsView(message, error))
+    builder
         .setPositiveButton(android.R.string.ok, onPositive)
         .setNegativeButton(android.R.string.cancel, onNegative)
         .setOnDismissListener(onDismiss)
         .show()
+}
+
+/** The message, followed by a collapsed "Technical details" section with the selectable stack trace of [error]. */
+private fun Activity.errorDetailsView(@StringRes message: Int, error: Throwable): View {
+    val binding = DialogErrorDetailsBinding.inflate(layoutInflater)
+    binding.errorMessage.setText(message)
+    binding.errorDetails.text = error.stackTraceToString()
+    binding.errorDetailsToggle.setOnClickListener {
+        binding.errorDetailsScroll.isVisible = !binding.errorDetailsScroll.isVisible
+    }
+    return binding.root
 }
 
 fun Activity.dialog(cancelable: Boolean, title: CharSequence, @StringRes message: Int,

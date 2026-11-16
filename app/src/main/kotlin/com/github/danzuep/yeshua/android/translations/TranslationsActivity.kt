@@ -227,11 +227,15 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
             return@readUsfmMetadata
         }
         val progress = indeterminateProgressDialog(R.string.dialog_title_uploading)
-        viewModel.uploadTranslation(uri, metadata.name ?: shortName, shortName, language) { successful ->
+        viewModel.uploadTranslation(uri, metadata.name ?: shortName, shortName, language) { successful, error ->
             progress?.dismiss()
-            if (successful) toast(R.string.toast_uploaded) else showUploadTranslationDialog(uri, metadata)
+            if (successful) toast(R.string.toast_uploaded) else showUploadError(error)
         }
     }
+
+    private fun showUploadError(error: Throwable?) = dialog(
+        cancelable = true, title = R.string.dialog_title_error, message = R.string.dialog_message_failed_to_upload, onPositive = { _, _ -> }, error = error,
+    )
 
     private fun showUploadTranslationDialog(uri: Uri, metadata: UsfmMetadata? = null) {
         val form = DialogUploadTranslationBinding.inflate(layoutInflater)
@@ -248,11 +252,9 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                 val progress = indeterminateProgressDialog(R.string.dialog_title_uploading)
                 viewModel.uploadTranslation(
                     uri, form.uploadName.text.toString(), form.uploadShortName.text.toString().trim(), form.uploadLanguage.text.toString()
-                ) { successful ->
+                ) { successful, error ->
                     progress?.dismiss()
-                    if (successful) toast(R.string.toast_uploaded) else dialog(
-                        cancelable = true, title = R.string.dialog_title_error, message = R.string.dialog_message_failed_to_upload, onPositive = { _, _ -> },
-                    )
+                    if (successful) toast(R.string.toast_uploaded) else showUploadError(error)
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

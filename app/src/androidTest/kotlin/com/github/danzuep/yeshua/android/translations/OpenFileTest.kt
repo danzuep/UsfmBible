@@ -169,4 +169,18 @@ class OpenFileTest {
             screenshot("hag-reader")
         }
     }
+
+    @Test
+    fun failedImportShowsSelectableTechnicalDetails() {
+        val usfm = "\\id GEN EN_DUP en_English_ltr\n\\h Dup\n\\c 1\n\\p\n\\v 1 Dup verse\n"
+        open(TranslationsActivity::class.java, "dup.usfm", usfm).use { await("DUP to be installed") { "DUP" in installed() } }
+        // Importing the same abbreviation again fails.
+        open(TranslationsActivity::class.java, "dup2.usfm", usfm).use {
+            await("the error popup") { isShown("Technical details") }
+            assertFalse(isShown("already installed"), "the details should start collapsed")
+            click("Technical details")
+            await("the stack trace") { isShown("already installed") }
+            screenshot("import-error-details")
+        }
+    }
 }
