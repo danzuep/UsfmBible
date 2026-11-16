@@ -62,6 +62,7 @@
     <string name="dialog_title_uploading">⬆ …</string>
     <string name="dialog_message_failed_to_upload">Could not read a Bible from the file. It must be a USFM book (.usfm or .sfm) or a zip of them, and the abbreviation must not be used by an installed translation.</string>
     <string name="toast_uploaded">✓</string>
+    <string name="toast_file_too_large">File is too large to open (limit 1 MB)</string>
     <string name="action_download">⬇</string>
     <string name="action_download_engbsb">Berean Standard Bible</string>
     <string name="action_download_engwebp">World English Bible</string>
