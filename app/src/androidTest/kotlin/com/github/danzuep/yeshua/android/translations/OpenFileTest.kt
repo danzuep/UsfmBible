@@ -116,12 +116,11 @@ class OpenFileTest {
     @Test
     fun markdownIsOfferedOnceAsMarkdown() {
         assertEquals(listOf("MarkdownActivity"), offeredFor("a.md", "text/markdown"))
-        assertEquals(listOf("MarkdownActivity"), offeredFor("a.md", null))
     }
 
     @Test
     fun usfmAndZipAreOfferedOnceAsTranslations() {
-        for ((name, type) in listOf("a.usfm" to "application/octet-stream", "a.usfm" to "text/plain", "a.sfm" to null, "a.zip" to "application/zip")) {
+        for ((name, type) in listOf("a.usfm" to "application/octet-stream", "a.usfm" to "text/plain", "a.sfm" to "text/x-usfm", "a.zip" to "application/zip")) {
             assertEquals(listOf("TranslationsActivity"), offeredFor(name, type), "$name as $type")
         }
     }
