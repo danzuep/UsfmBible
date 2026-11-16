@@ -40,6 +40,7 @@ import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
  * Opens files the way another app would (a VIEW intent with the file's URI) and checks what the app does with them.
@@ -77,7 +78,10 @@ class OpenFileTest {
     private fun await(what: String, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + TIMEOUT_MS
         while (!condition()) {
-            assertTrue(System.currentTimeMillis() < deadline, "Timed out waiting for ")
+            if (System.currentTimeMillis() >= deadline) {
+                screenshot("timeout")
+                fail("Timed out waiting for $what")
+            }
             Thread.sleep(250)
         }
     }
@@ -167,6 +171,24 @@ class OpenFileTest {
         ActivityScenario.launch<ReadingActivity>(Intent(context, ReadingActivity::class.java).putExtra(ReadingActivity.KEY_OPEN_BOOK, 36)).use {
             await("Haggai 1 in the reader") { isShown("Haggai") || isShown("second year") }
             screenshot("hag-reader")
+        }
+    }
+
+    @Test
+    fun failedImportShowsSelectableTechnicalDetails() {
+        val usfm = "\\id GEN EN_DUP en_English_ltr\n\\h Dup\n\\c 1\n\\p\n\\v 1 Dup verse\n"
+        open(TranslationsActivity::class.java, "dup.usfm", usfm).use { await("DUP to be installed") { "DUP" in installed() } }
+        // Importing the same abbreviation again fails; the file has no metadata, so the dialog (pre-filled with DUP) is confirmed after the list has loaded.
+        open(TranslationsActivity::class.java, "DUP.usfm", "\\id GEN\n\\h Dup\n\\c 1\n\\p\n\\v 1 Dup verse\n").use {
+            await("the import dialog") { isShown(DIALOG_TEXT) }
+            // The screen's installed list loads in the background and the duplicate check reads it.
+            Thread.sleep(5_000)
+            click("OK")
+            await("the error popup") { isShown("Technical details") }
+            assertFalse(isShown("already installed"), "the details should start collapsed")
+            click("Technical details")
+            await("the stack trace") { isShown("already installed") }
+            screenshot("import-error-details")
         }
     }
 }

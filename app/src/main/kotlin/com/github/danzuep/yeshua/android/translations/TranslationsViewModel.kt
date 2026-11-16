@@ -275,23 +275,28 @@ class TranslationsViewModel @Inject constructor(
      * Installs the Bible in [uri] (a USFM book or a zip of them) as [shortName], listed under [language] (e.g. `en` or `cmn`).
      * Passes whether it succeeded to [onCompleted] on the main thread.
      */
-    fun uploadTranslation(uri: Uri, name: String, shortName: String, language: String, onCompleted: (Boolean) -> Unit) {
-        val valid = name.isNotBlank() && language.isNotBlank() && Regex("[A-Za-z0-9_]+").matches(shortName) &&
-                loadedDownloadedTranslations.none { it.shortName == shortName }
-        if (!valid) {
-            onCompleted(false)
+    fun uploadTranslation(uri: Uri, name: String, shortName: String, language: String, onCompleted: (Boolean, Throwable?) -> Unit) {
+        val problem = when {
+            name.isBlank() -> "The name is blank"
+            language.isBlank() -> "The language is blank"
+            !Regex("[A-Za-z0-9_]+").matches(shortName) -> "The abbreviation \"$shortName\" must only contain letters, digits and underscores"
+            loadedDownloadedTranslations.any { it.shortName == shortName } -> "A translation with the abbreviation \"$shortName\" is already installed"
+            else -> null
+        }
+        if (problem != null) {
+            onCompleted(false, IllegalArgumentException(problem))
             return
         }
 
         viewModelScope.launch {
-            val successful = runCatching {
+            val result = runCatching {
                 withContext(coroutineDispatcherProvider.default) {
                     val content = requireNotNull(application.contentResolver.openInputStream(uri)) { "Cannot open $uri" }.use { it.readBytes() }
                     translationManager.importTranslation(TranslationInfo(shortName, name.trim(), language.trim().lowercase(), content.size.toLong(), true), content)
                 }
                 loadTranslations(forceRefresh = false)
-            }.onFailure { e -> Logger.withTag(tag).e(e) { "Failed to upload translation" } }.isSuccess
-            onCompleted(successful)
+            }.onFailure { e -> Logger.withTag(tag).e(e) { "Failed to upload translation" } }
+            onCompleted(result.isSuccess, result.exceptionOrNull())
         }
     }
 
