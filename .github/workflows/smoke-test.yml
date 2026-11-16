@@ -1,6 +1,11 @@
 name: APK smoke test
 on:
   workflow_dispatch:
+    inputs:
+      test_class:
+        description: 'Run only this instrumented test class (e.g. com.github.danzuep.yeshua.android.translations.OpenFileTest for the "Open with" USFM/zip/Markdown tests); blank runs all'
+        required: false
+        default: ''
 
 jobs:
   smoke:
@@ -35,8 +40,6 @@ jobs:
           screen-bookmarked.png
           screen-chapter.png
           screen-ruby.png
-          screen-copyright.png
-          ui-copyright.xml
           ui.xml
           ui-search.xml
 
@@ -61,7 +64,7 @@ jobs:
       with:
         api-level: 34
         arch: x86_64
-        script: bash .github/scripts/instrumented.sh
+        script: bash .github/scripts/instrumented.sh "${{ inputs.test_class }}"
     - uses: actions/upload-artifact@v7
       if: always()
       with:

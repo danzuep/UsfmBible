@@ -140,8 +140,8 @@
                 <data android:mimeType="application/x-zip-compressed" />
                 <!-- File managers report unknown extensions like .usfm as this, often with an opaque content URI that has no extension to match. -->
                 <data android:mimeType="application/octet-stream" />
-                <!-- Other file managers and Android's own extension map label unknown text files text/plain or another text type; the activity checks the extension. -->
-                <data android:mimeType="text/*" />
+                <!-- Some file managers label unknown text files text/plain; the activity checks the extension. Not text/*, which also matches text/markdown and lists this app twice for .md files. -->
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 

@@ -129,7 +129,10 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) intent.data?.takeIf { hasUsfmName(it) }?.let { openFile(it) }
+        if (savedInstanceState == null && intent.action == Intent.ACTION_VIEW) {
+            val uri = intent.data
+            if (uri != null && hasUsfmName(uri)) openFile(uri) else if (uri != null) finish()
+        }
     }
 
     private fun displayName(uri: Uri): String? =

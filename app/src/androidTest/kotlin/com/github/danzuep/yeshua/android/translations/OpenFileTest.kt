@@ -20,8 +20,10 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.pm.LabeledIntent
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.provider.Settings
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -104,5 +106,38 @@ class OpenFileTest {
             await("the licence text") { isShown("Permission is granted.") }
             screenshot("markdown")
         }
+    }
+
+    /** The app's activities that "Open with" offers for a VIEW intent; more than one makes the app appear twice in the chooser. */
+    private fun offeredFor(name: String, mimeType: String?): List<String> {
+        val uri = Uri.fromFile(File(context.filesDir, name))
+        val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, mimeType).setPackage(context.packageName)
+        return context.packageManager.queryIntentActivities(intent, 0).map { it.activityInfo.name.substringAfterLast('.') }
+    }
+
+    @Test
+    fun markdownIsOfferedOnceAsMarkdown() {
+        assertEquals(listOf("MarkdownActivity"), offeredFor("a.md", "text/markdown"))
+    }
+
+    @Test
+    fun usfmAndZipAreOfferedOnceAsTranslations() {
+        for ((name, type) in listOf("a.usfm" to "application/octet-stream", "a.usfm" to "text/plain", "a.sfm" to "text/x-usfm", "a.zip" to "application/zip")) {
+            assertEquals(listOf("TranslationsActivity"), offeredFor(name, type), "$name as $type")
+        }
+    }
+
+    @Test
+    fun chooserForUsfmListsThisApp() {
+        val view = Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse("content://example.files/books/a.usfm"), "application/octet-stream")
+        // The emulator has no other USFM handler and a lone match skips the chooser, so add a stand-in second choice.
+        val other = LabeledIntent(Intent(Settings.ACTION_SETTINGS), "android", "Another app", 0)
+        val chooser = Intent.createChooser(view, "Open with").putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(other)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooser)
+        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
+        Thread.sleep(8_000)
+        screenshot("usfm-open-with")
+        await("this app in the chooser") { isShown(label) }
+        automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
     }
 }
