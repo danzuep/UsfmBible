@@ -68,6 +68,12 @@ class OpenFileTest {
         return automation.rootInActiveWindow?.contains() == true
     }
 
+    private fun click(text: String) {
+        fun AccessibilityNodeInfo.find(): AccessibilityNodeInfo? =
+            if (this.text?.toString().equals(text, ignoreCase = true)) this else (0 until childCount).firstNotNullOfOrNull { getChild(it)?.find() }
+        assertTrue(automation.rootInActiveWindow?.find()?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true, "no \"$text\" button to click")
+    }
+
     private fun await(what: String, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + TIMEOUT_MS
         while (!condition()) {
@@ -148,10 +154,13 @@ class OpenFileTest {
     @Test
     fun realHaggaiFileInstallsAndOpensInTheReader() {
         val haggai = InstrumentationRegistry.getInstrumentation().context.assets.open("HAG.usfm").use { it.readBytes().decodeToString() }
+        // A real eBible book has no translation in its \id line, so the dialog asks for it (pre-filled from the file name).
         open(TranslationsActivity::class.java, "HAG.usfm", haggai).use {
-            await("the translation to be installed or the dialog to ask for details") { installed().isNotEmpty() && "HAG" in installed().keys || isShown(DIALOG_TEXT) }
+            await("the import dialog") { isShown(DIALOG_TEXT) }
+            click("OK")
+            await("HAG to be installed or an error") { "HAG" in installed() || isShown("Failed") || isShown("Error") }
             screenshot("hag-imported")
-            assertFalse(isShown(DIALOG_TEXT), "the import dialog was shown, so the file's metadata or import failed")
+            assertTrue("HAG" in installed(), "the import failed")
         }
         val shortName = installed().keys.single { it == "HAG" }
         runBlocking { repository.saveCurrentTranslation(shortName) }
