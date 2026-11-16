@@ -174,11 +174,10 @@ class OpenFileTest {
     fun failedImportShowsSelectableTechnicalDetails() {
         val usfm = "\\id GEN EN_DUP en_English_ltr\n\\h Dup\n\\c 1\n\\p\n\\v 1 Dup verse\n"
         open(TranslationsActivity::class.java, "dup.usfm", usfm).use { await("DUP to be installed") { "DUP" in installed() } }
-        // Importing the same abbreviation again fails.
-        open(TranslationsActivity::class.java, "dup2.usfm", usfm).use {
-            // The installed list loads asynchronously, and the duplicate check needs it.
-            Thread.sleep(5_000)
-            screenshot("import-error-before")
+        // Importing the same abbreviation again fails; the file has no metadata, so the dialog (pre-filled with DUP) is confirmed after the list has loaded.
+        open(TranslationsActivity::class.java, "DUP.usfm", "\\id GEN\n\\h Dup\n\\c 1\n\\p\n\\v 1 Dup verse\n").use {
+            await("the import dialog") { isShown(DIALOG_TEXT) }
+            click("OK")
             await("the error popup") { isShown("Technical details") }
             assertFalse(isShown("already installed"), "the details should start collapsed")
             click("Technical details")
