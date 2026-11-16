@@ -91,7 +91,7 @@ private fun Context.showCopyrightSearch(translationShortName: String) {
             .setMessage(getString(R.string.copyright_not_found, translationShortName))
             .setPositiveButton(R.string.copyright_search) { _, _ ->
                 val search = Intent(Intent.ACTION_WEB_SEARCH)
-                        .putExtra(SearchManager.QUERY, "$translationShortName Bible translation copyright")
+                        .putExtra(SearchManager.QUERY, "${translationShortName.replace('_', '-')} Bible translation copyright")
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 try {
                     startActivity(search)
