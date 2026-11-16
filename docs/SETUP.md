@@ -1,4 +1,4 @@
-# Quickstart: Yeshua Reader
+# Quickstart: USFM Bible
 
 ## Prerequisites
 - Visual Studio Code with Dev Containers extension
@@ -7,12 +7,12 @@
 ## Setup
 1. Clone the repository:
    ```bash
-   git clone https://github.com/danzuep/Yeshua.git
-   cd Yeshua
+   git clone https://github.com/danzuep/UsfmBible.git
+   cd UsfmBible
    ```
 
 2. Open in VS Code:
-   - File > Open Folder > Select the Yeshua directory
+   - File > Open Folder > Select the UsfmBible directory
    - When prompted, click "Reopen in Container" to start the devcontainer
 
 3. Build the project:

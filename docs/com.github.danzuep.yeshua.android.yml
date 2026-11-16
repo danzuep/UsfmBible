@@ -4,15 +4,15 @@ Categories:
   - Religion
 License: Apache-2.0
 AuthorName: danzuep
-WebSite: https://github.com/danzuep/Yeshua
-SourceCode: https://github.com/danzuep/Yeshua
-IssueTracker: https://github.com/danzuep/Yeshua/issues
-Changelog: https://github.com/danzuep/Yeshua/blob/HEAD/docs/CHANGELOG.md
+WebSite: https://github.com/danzuep/UsfmBible
+SourceCode: https://github.com/danzuep/UsfmBible
+IssueTracker: https://github.com/danzuep/UsfmBible/issues
+Changelog: https://github.com/danzuep/UsfmBible/blob/HEAD/docs/CHANGELOG.md
 
-AutoName: Yeshua
+AutoName: USFM Bible
 
 RepoType: git
-Repo: https://github.com/danzuep/Yeshua.git
+Repo: https://github.com/danzuep/UsfmBible.git
 
 Builds:
   - versionName: 0.33.5
@@ -26,7 +26,7 @@ Builds:
       - update-alternatives --auto javac
     gradle:
       - yes
-    binary: https://github.com/danzuep/Yeshua/releases/download/v%v+%c/Yeshua-v%v.apk
+    binary: https://github.com/danzuep/UsfmBible/releases/download/v%v+%c/UsfmBible-v%v.apk
     prebuild: echo "appVersion=$$VERSION$$" >> ../gradle.properties
 
 AllowedAPKSigningKeys: 251db968637432563e19f7da98cbe2994eb15e0f6aa194b4cfc99cbac9948860

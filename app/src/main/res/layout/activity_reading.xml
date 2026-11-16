@@ -30,7 +30,7 @@
             android:contentDescription="@string/action_search"
             android:src="@drawable/ic_search"
             app:backgroundTint="@color/search_fab_background"
-            app:layout_behavior="com.github.danzuep.yeshua.android.reading.search.FloatingActionButtonScrollAwareBehavior" />
+            app:layout_behavior="com.github.danzuep.yeshua.reading.search.FloatingActionButtonScrollAwareBehavior" />
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/app_bar"
@@ -42,11 +42,11 @@
                 android:id="@+id/toolbar_fragment"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:name="com.github.danzuep.yeshua.android.reading.toolbar.ReadingToolbarFragment"
+                android:name="com.github.danzuep.yeshua.reading.toolbar.ReadingToolbarFragment"
                 app:layout_scrollFlags="scroll|enterAlways" />
         </com.google.android.material.appbar.AppBarLayout>
 
-        <com.github.danzuep.yeshua.android.reading.detail.VerseDetailViewLayout
+        <com.github.danzuep.yeshua.reading.detail.VerseDetailViewLayout
             android:id="@+id/verse_detail_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -57,7 +57,7 @@
         android:id="@+id/chapter_selection_fragment"
         android:layout_width="@dimen/chapter_selection_view_width"
         android:layout_height="match_parent"
-        android:name="com.github.danzuep.yeshua.android.reading.chapter.ChapterSelectionFragment"
+        android:name="com.github.danzuep.yeshua.reading.chapter.ChapterSelectionFragment"
         android:layout_gravity="start" />
 </androidx.drawerlayout.widget.DrawerLayout>
 </FrameLayout>

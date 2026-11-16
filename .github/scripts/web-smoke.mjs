@@ -39,10 +39,10 @@ try {
   }
 
   await page.selectOption('#chapter', { value: '1' });
-  await page.waitForFunction(() => document.title.endsWith('2 · Yeshua'));
+  await page.waitForFunction(() => document.title.endsWith('2 · USFM Bible'));
   await page.evaluate(() => document.querySelector('#text section[data-book="42"][data-chapter="2"]').scrollIntoView());
-  await page.waitForFunction(() => document.title.endsWith('3 · Yeshua'));
-  await page.waitForFunction(() => document.title.endsWith('3 · Yeshua'));
+  await page.waitForFunction(() => document.title.endsWith('3 · USFM Bible'));
+  await page.waitForFunction(() => document.title.endsWith('3 · USFM Bible'));
 
   assert.ok((await page.locator('#text section').count()) >= 3, 'neighbouring chapters are loaded for infinite scroll');
 
@@ -52,7 +52,7 @@ try {
   await page.reload();
   await page.waitForSelector('#text .verse');
   assert.equal(await page.inputValue('#translation'), translations[1], 'translation is remembered');
-  assert.ok((await page.title()).endsWith('3 · Yeshua'), 'position is remembered');
+  assert.ok((await page.title()).endsWith('3 · USFM Bible'), 'position is remembered');
 
   assert.deepEqual(errors, [], 'no console errors');
   console.log('web smoke test passed');

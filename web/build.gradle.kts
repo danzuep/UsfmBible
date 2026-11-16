@@ -33,7 +33,7 @@ kotlin {
     js {
         browser {
             commonWebpackConfig {
-                outputFileName = "yeshua.js"
+                outputFileName = "usfmbible.js"
             }
             testTask { enabled = false }
         }
@@ -59,7 +59,7 @@ tasks.register<JavaExec>("convertTranslations") {
     val jvmMain = kotlin.jvm().compilations.getByName("main")
     dependsOn(jvmMain.compileTaskProvider)
     classpath(jvmMain.output.allOutputs, jvmMain.runtimeDependencyFiles)
-    mainClass.set("com.github.danzuep.yeshua.android.web.ConvertKt")
+    mainClass.set("com.github.danzuep.yeshua.web.ConvertKt")
     args(
         rootProject.file("app/src/main/assets/translations.csv").absolutePath,
         translationsDir.get().asFile.absolutePath,

@@ -5,7 +5,7 @@
 set -u
 
 APP_ID="com.github.danzuep.yeshua.android"
-APP_NAMESPACE="com.github.danzuep.yeshua.android"
+APP_NAMESPACE="com.github.danzuep.yeshua"
 
 dump_ui() {
   rm -f ui.xml
