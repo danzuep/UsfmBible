@@ -89,7 +89,7 @@ class ChapterDrawerTest {
         val bible = InstrumentationRegistry.getInstrumentation().context.assets.open("$TRANSLATION.zip").use { it.readBytes() }
         val file = File(context.filesDir, "$TRANSLATION.zip").apply { writeBytes(bible) }
         ActivityScenario.launch<TranslationsActivity>(Intent(Intent.ACTION_VIEW, Uri.fromFile(file), context, TranslationsActivity::class.java)).use {
-            await("the import dialog") { isShown("Abbreviation, e.g. KJV") }
+            await("the import dialog") { isShown("Upload a Bible") }
             assertTrue(clickNode("OK") || run { Thread.sleep(1_000); clickNode("OK") }, "no OK button")
             await("$TRANSLATION to be installed") { TRANSLATION in installed() }
         }
