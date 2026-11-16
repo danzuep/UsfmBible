@@ -146,6 +146,9 @@
     <string name="settings_title_backup">☁ 💾 ⬆</string>
     <string name="settings_title_restore">☁ 💾 ⬇</string>
     <string name="action_copyright_permissions">©</string>
+    <string name="copyright_not_found">No copyright notice was found for %1$s. Search the web for it?</string>
+    <string name="copyright_search">Search</string>
+    <string name="copyright_search_unavailable">No search app available</string>
     <string name="settings_header_about"></string>
     <string name="settings_title_rate">⭐</string>
     <string name="settings_title_website">@string/title_translation_management</string>
