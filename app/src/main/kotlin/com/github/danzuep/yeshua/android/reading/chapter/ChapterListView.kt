@@ -76,7 +76,8 @@ class ChapterListView : ExpandableListView {
         }
         lastExpandedGroup = groupToExpand
         expandGroup(groupToExpand)
-        setSelectedGroup(groupToExpand)
+        // Collapsing the old book removes rows above while the scroll position stays put, so bring the new book to the top once the list has laid out.
+        post { setSelectionFromTop(getFlatListPosition(getPackedPositionForGroup(groupToExpand)), 0) }
     }
 
     fun initialize(onViewEvent: (ChapterSelectionView.ViewEvent) -> Unit) {
