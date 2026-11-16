@@ -136,6 +136,8 @@
                 <data android:mimeType="text/usfm" />
                 <data android:mimeType="application/x-usfm" />
                 <data android:mimeType="text/x-usfm" />
+                <data android:mimeType="application/x-sfm" />
+                <data android:mimeType="text/sfm" />
                 <data android:mimeType="application/zip" />
                 <data android:mimeType="application/x-zip-compressed" />
                 <!-- File managers report unknown extensions like .usfm as this, often with an opaque content URI that has no extension to match. -->
