@@ -20,8 +20,10 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.content.pm.LabeledIntent
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.provider.Settings
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -128,7 +130,10 @@ class OpenFileTest {
     @Test
     fun chooserForUsfmListsThisApp() {
         val view = Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse("content://example.files/books/a.usfm"), "application/octet-stream")
-        context.startActivity(Intent.createChooser(view, "Open with").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        // The emulator has no other USFM handler and a lone match skips the chooser, so add a stand-in second choice.
+        val other = LabeledIntent(Intent(Settings.ACTION_SETTINGS), "android", "Another app", 0)
+        val chooser = Intent.createChooser(view, "Open with").putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(other)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(chooser)
         val label = context.applicationInfo.loadLabel(context.packageManager).toString()
         Thread.sleep(8_000)
         screenshot("usfm-open-with")
