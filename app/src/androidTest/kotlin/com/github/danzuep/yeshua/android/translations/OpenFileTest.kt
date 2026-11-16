@@ -130,8 +130,9 @@ class OpenFileTest {
         val view = Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse("content://example.files/books/a.usfm"), "application/octet-stream")
         context.startActivity(Intent.createChooser(view, "Open with").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         val label = context.applicationInfo.loadLabel(context.packageManager).toString()
-        await("this app in the chooser") { isShown(label) }
+        Thread.sleep(8_000)
         screenshot("usfm-open-with")
+        await("this app in the chooser") { isShown(label) }
         automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
     }
 }
