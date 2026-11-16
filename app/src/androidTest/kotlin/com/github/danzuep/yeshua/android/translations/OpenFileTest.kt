@@ -31,7 +31,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import com.github.danzuep.yeshua.android.core.repository.local.android.AndroidTranslationStorage
 import com.github.danzuep.yeshua.android.core.repository.local.android.db.AndroidDatabase
+import com.github.danzuep.yeshua.android.DebugEntryPoints
+import com.github.danzuep.yeshua.android.reading.ReadingActivity
 import com.github.danzuep.yeshua.android.ui.MarkdownActivity
+import dagger.hilt.android.EntryPointAccessors
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -49,6 +52,7 @@ class OpenFileTest {
     }
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
+    private val repository get() = EntryPointAccessors.fromApplication(context, DebugEntryPoints::class.java).bibleReadingRepository()
     private val automation get() = InstrumentationRegistry.getInstrumentation().uiAutomation
 
     private fun <T : Activity> open(activity: Class<T>, name: String, content: String): ActivityScenario<T> {
@@ -62,6 +66,12 @@ class OpenFileTest {
             listOf(this.text, contentDescription, hintText).any { it?.contains(text) == true } ||
                 (0 until childCount).any { getChild(it)?.contains() == true }
         return automation.rootInActiveWindow?.contains() == true
+    }
+
+    private fun click(text: String) {
+        fun AccessibilityNodeInfo.find(): AccessibilityNodeInfo? =
+            if (this.text?.toString().equals(text, ignoreCase = true)) this else (0 until childCount).firstNotNullOfOrNull { getChild(it)?.find() }
+        assertTrue(automation.rootInActiveWindow?.find()?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true, "no \"$text\" button to click")
     }
 
     private fun await(what: String, condition: () -> Boolean) {
@@ -139,5 +149,24 @@ class OpenFileTest {
         screenshot("usfm-open-with")
         await("this app in the chooser") { isShown(label) }
         automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
+    }
+
+    @Test
+    fun realHaggaiFileInstallsAndOpensInTheReader() {
+        val haggai = InstrumentationRegistry.getInstrumentation().context.assets.open("HAG.usfm").use { it.readBytes().decodeToString() }
+        // A real eBible book has no translation in its \id line, so the dialog asks for it (pre-filled from the file name).
+        open(TranslationsActivity::class.java, "HAG.usfm", haggai).use {
+            await("the import dialog") { isShown(DIALOG_TEXT) }
+            click("OK")
+            await("HAG to be installed or an error") { "HAG" in installed() || isShown("Failed") || isShown("Error") }
+            screenshot("hag-imported")
+            assertTrue("HAG" in installed(), "the import failed")
+        }
+        val shortName = installed().keys.single { it == "HAG" }
+        runBlocking { repository.saveCurrentTranslation(shortName) }
+        ActivityScenario.launch<ReadingActivity>(Intent(context, ReadingActivity::class.java).putExtra(ReadingActivity.KEY_OPEN_BOOK, 36)).use {
+            await("Haggai 1 in the reader") { isShown("Haggai") || isShown("second year") }
+            screenshot("hag-reader")
+        }
     }
 }
