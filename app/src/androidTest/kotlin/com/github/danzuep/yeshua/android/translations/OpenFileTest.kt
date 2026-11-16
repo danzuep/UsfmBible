@@ -176,6 +176,9 @@ class OpenFileTest {
         open(TranslationsActivity::class.java, "dup.usfm", usfm).use { await("DUP to be installed") { "DUP" in installed() } }
         // Importing the same abbreviation again fails.
         open(TranslationsActivity::class.java, "dup2.usfm", usfm).use {
+            // The installed list loads asynchronously, and the duplicate check needs it.
+            Thread.sleep(5_000)
+            screenshot("import-error-before")
             await("the error popup") { isShown("Technical details") }
             assertFalse(isShown("already installed"), "the details should start collapsed")
             click("Technical details")
