@@ -19,6 +19,7 @@ package com.github.danzuep.yeshua.android.translations
 
 import android.content.Intent
 import com.github.danzuep.yeshua.android.core.repository.remote.UsfmMetadata
+import com.github.danzuep.yeshua.android.core.repository.remote.cleanShortName
 import com.github.danzuep.yeshua.android.core.repository.remote.parseFileNameMetadata
 import android.net.Uri
 import android.os.Bundle
@@ -242,10 +243,10 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         val fileName = displayName(uri).orEmpty().substringBeforeLast('.')
         val guess = metadata ?: parseFileNameMetadata(fileName)
         form.uploadName.setText(guess?.name ?: fileName)
-        form.uploadShortName.setText(guess?.shortName ?: fileName.replace(Regex("[^A-Za-z0-9]"), "_"))
+        form.uploadShortName.setText(cleanShortName(guess?.shortName ?: fileName))
         form.uploadLanguage.setText(guess?.language ?: java.util.Locale.getDefault().language)
 
-        AlertDialog.Builder(this)
+        val uploadDialog = AlertDialog.Builder(this)
             .setTitle(R.string.dialog_title_upload_translation)
             .setView(form.root)
             .setPositiveButton(android.R.string.ok) { _, _ ->
@@ -259,6 +260,19 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+
+        form.uploadShortName.doAfterTextChanged { text ->
+            val typed = text.toString()
+            val cleaned = cleanShortName(typed)
+            if (cleaned != typed.trim() && typed.isNotEmpty()) {
+                form.uploadShortName.setText(cleaned)
+                form.uploadShortName.setSelection(cleaned.length)
+                return@doAfterTextChanged
+            }
+            form.uploadShortNameLayout.error = if (cleaned.isEmpty()) getString(R.string.error_upload_short_name) else null
+            uploadDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = cleaned.isNotEmpty()
+        }
+        uploadDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = form.uploadShortName.text?.isNotEmpty() == true
     }
 
     override fun onViewActionEmitted(viewAction: TranslationsViewModel.ViewAction) = when (viewAction) {
