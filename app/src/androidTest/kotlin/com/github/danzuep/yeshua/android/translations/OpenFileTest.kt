@@ -40,6 +40,7 @@ import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 /**
  * Opens files the way another app would (a VIEW intent with the file's URI) and checks what the app does with them.
@@ -77,7 +78,10 @@ class OpenFileTest {
     private fun await(what: String, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + TIMEOUT_MS
         while (!condition()) {
-            assertTrue(System.currentTimeMillis() < deadline, "Timed out waiting for ")
+            if (System.currentTimeMillis() >= deadline) {
+                screenshot("timeout")
+                fail("Timed out waiting for $what")
+            }
             Thread.sleep(250)
         }
     }
