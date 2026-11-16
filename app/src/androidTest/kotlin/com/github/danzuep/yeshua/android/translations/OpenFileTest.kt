@@ -124,4 +124,14 @@ class OpenFileTest {
             assertEquals(listOf("TranslationsActivity"), offeredFor(name, type), "$name as $type")
         }
     }
+
+    @Test
+    fun chooserForUsfmListsThisApp() {
+        val view = Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse("content://example.files/books/a.usfm"), "application/octet-stream")
+        context.startActivity(Intent.createChooser(view, "Open with").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val label = context.applicationInfo.loadLabel(context.packageManager).toString()
+        await("this app in the chooser") { isShown(label) }
+        screenshot("usfm-open-with")
+        automation.executeShellCommand("input keyevent KEYCODE_BACK").close()
+    }
 }
