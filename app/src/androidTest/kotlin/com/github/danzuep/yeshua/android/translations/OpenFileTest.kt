@@ -181,6 +181,8 @@ class OpenFileTest {
         // Importing the same abbreviation again fails; the file has no metadata, so the dialog (pre-filled with DUP) is confirmed after the list has loaded.
         open(TranslationsActivity::class.java, "DUP.usfm", "\\id GEN\n\\h Dup\n\\c 1\n\\p\n\\v 1 Dup verse\n").use {
             await("the import dialog") { isShown(DIALOG_TEXT) }
+            // The screen's installed list loads in the background and the duplicate check reads it.
+            Thread.sleep(5_000)
             click("OK")
             await("the error popup") { isShown("Technical details") }
             assertFalse(isShown("already installed"), "the details should start collapsed")
