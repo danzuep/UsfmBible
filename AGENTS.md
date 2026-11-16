@@ -25,7 +25,7 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
 ## Project map
 
 - The code namespace is `com.github.danzuep.yeshua`; the Android `applicationId` stays `com.github.danzuep.yeshua.android` so installed apps keep updating.
-- `app/` is the single Android module (Kotlin, Hilt, Room-less SQLite, coroutines). Source is under `app/src/main/kotlin/com/github/danzuep/yeshua/android/`:
+- `app/` is the single Android module (Kotlin, Hilt, Room-less SQLite, coroutines). Source is under `app/src/main/kotlin/com/github/danzuep/yeshua/`:
   - `core/` holds managers and repositories (`repository/local` for SQLite, `repository/remote` for downloads and USFM parsing).
   - Feature packages (`reading`, `search`, `translations`, `settings`, `annotated`, `progress`, `preview`) each have an Activity plus a `ViewModel` with a single `ViewState`, one-shot `ViewAction`s and a typed `Error`, on `infra/BaseViewModel` and `infra/BaseActivity`.
   - Strong's Numbers, cross references and the old JSON download flow were removed; translations now come from eBible.org USFM zips, with a redistributable catalog in `app/src/main/assets/translations.csv` refreshed monthly by `update-translation-catalog.yml`.
