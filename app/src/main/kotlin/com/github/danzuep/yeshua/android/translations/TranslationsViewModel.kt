@@ -20,6 +20,7 @@ package com.github.danzuep.yeshua.android.translations
 import android.app.Application
 import android.net.Uri
 import com.github.danzuep.yeshua.android.core.repository.remote.UsfmMetadata
+import com.github.danzuep.yeshua.android.core.repository.remote.cleanShortName
 import com.github.danzuep.yeshua.android.core.repository.remote.parseUsfmMetadata
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -275,10 +276,12 @@ class TranslationsViewModel @Inject constructor(
      * Installs the Bible in [uri] (a USFM book or a zip of them) as [shortName], listed under [language] (e.g. `en` or `cmn`).
      * Passes whether it succeeded to [onCompleted] on the main thread.
      */
-    fun uploadTranslation(uri: Uri, name: String, shortName: String, language: String, onCompleted: (Boolean, Throwable?) -> Unit) {
+    fun uploadTranslation(uri: Uri, name: String, rawShortName: String, language: String, onCompleted: (Boolean, Throwable?) -> Unit) {
+        val shortName = cleanShortName(rawShortName)
         val problem = when {
             name.isBlank() -> "The name is blank"
             language.isBlank() -> "The language is blank"
+            shortName.isEmpty() -> "The abbreviation \"$rawShortName\" needs at least one letter after any leading numbers"
             !Regex("[A-Za-z0-9_]+").matches(shortName) -> "The abbreviation \"$shortName\" must only contain letters, digits and underscores"
             loadedDownloadedTranslations.any { it.shortName == shortName } -> "A translation with the abbreviation \"$shortName\" is already installed"
             else -> null

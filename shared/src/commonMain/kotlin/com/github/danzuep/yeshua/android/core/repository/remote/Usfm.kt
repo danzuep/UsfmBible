@@ -95,6 +95,10 @@ private val FILE_NAME_SEPARATORS = charArrayOf('_', '-', ' ', '.')
 private val CAMEL_CASE_NAME = Regex("""([a-z]{2,3})([A-Za-z0-9]+)""")
 private val LOCALE_PART = Regex("""[A-Za-z]{2}|[A-Za-z]{4}|\d{3}""")
 
+/** Replaces characters a table name can't hold with underscores, then drops leading digits and underscores, e.g. "63_1JN" becomes "JN". */
+fun cleanShortName(shortName: String): String =
+    shortName.trim().replace(Regex("[^A-Za-z0-9_]"), "_").trimStart { it.isDigit() || it == '_' }
+
 /**
  * Guesses the language and abbreviation from a file name (without extension) such as `cmn_ncvt_zh-HK`, `cmn-ncvt` or
  * `engWebp`: the first part is the language code, an optional locale (`zh-HK`) may end the name, and what is between

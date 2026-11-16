@@ -57,6 +57,8 @@
     <string name="action_upload_translation">⬆</string>
     <string name="dialog_title_upload_translation">⬆ 📖</string>
     <string name="hint_upload_name">Name, e.g. King James Version</string>
+    <string name="helper_upload_short_name">Numbers at the start are removed because the abbreviation is used as a database table name, which can\'t begin with a digit.</string>
+    <string name="error_upload_short_name">Enter at least one letter, after any leading numbers.</string>
     <string name="hint_upload_short_name">Abbreviation, e.g. KJV</string>
     <string name="hint_upload_language">Language code, e.g. en, cmn, es</string>
     <string name="dialog_title_uploading">⬆ …</string>
