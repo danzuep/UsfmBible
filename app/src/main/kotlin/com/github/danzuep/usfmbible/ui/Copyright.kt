@@ -17,10 +17,11 @@
 
 package com.github.danzuep.usfmbible.ui
 
+import android.app.SearchManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
-import android.net.Uri
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.RelativeSizeSpan
@@ -29,6 +30,7 @@ import android.text.style.URLSpan
 import android.text.method.LinkMovementMethod
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.appcompat.app.AlertDialog
@@ -71,15 +73,34 @@ private fun List<CopyrightBlock>.toText(): CharSequence = SpannableStringBuilder
     }
 }
 
-/** Shows the copyright notice kept for [translationShortName], or opens eBible.org's page for translations that have none. */
+/** Shows the copyright notice kept for [translationShortName], or a placeholder that searches the web for translations that have none. */
 fun Context.showCopyright(translationShortName: String) {
     val file = copyrightFile(translationShortName)
     val blocks = if (file.exists()) parseCopyrightMarkdown(file.readText()) else emptyList()
     if (blocks.isEmpty()) {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://ebible.org/$translationShortName/copr.htm")))
+        showCopyrightSearch(translationShortName)
         return
     }
     showBlocks(blocks + CopyrightBlock(translationShortName))
+}
+
+/** Placeholder for a missing notice, offering a search with the default search provider. */
+private fun Context.showCopyrightSearch(translationShortName: String) {
+    AlertDialog.Builder(this)
+            .setTitle(translationShortName)
+            .setMessage(getString(R.string.copyright_not_found, translationShortName))
+            .setPositiveButton(R.string.copyright_search) { _, _ ->
+                val search = Intent(Intent.ACTION_WEB_SEARCH)
+                        .putExtra(SearchManager.QUERY, "${translationShortName.replace('_', '-')} Bible translation copyright")
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    startActivity(search)
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(this, R.string.copyright_search_unavailable, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
 }
 
 /** Shows [markdown] (headings, bullets, links and paragraphs) in a dialog, e.g. a licence file, and calls [onDismiss] when it closes. */
