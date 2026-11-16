@@ -136,14 +136,12 @@
                 <data android:mimeType="text/usfm" />
                 <data android:mimeType="application/x-usfm" />
                 <data android:mimeType="text/x-usfm" />
-                <data android:mimeType="application/x-sfm" />
-                <data android:mimeType="text/sfm" />
                 <data android:mimeType="application/zip" />
                 <data android:mimeType="application/x-zip-compressed" />
                 <!-- File managers report unknown extensions like .usfm as this, often with an opaque content URI that has no extension to match. -->
                 <data android:mimeType="application/octet-stream" />
-                <!-- Other file managers and Android's own extension map label unknown text files text/plain; the activity checks the extension. -->
-                <data android:mimeType="text/plain" />
+                <!-- Other file managers and Android's own extension map label unknown text files text/plain or another text type; the activity checks the extension. -->
+                <data android:mimeType="text/*" />
             </intent-filter>
         </activity>
 

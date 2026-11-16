@@ -27,7 +27,10 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.URLSpan
 import android.text.method.LinkMovementMethod
+import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.appcompat.app.AlertDialog
 import com.github.danzuep.yeshua.android.R
 import com.github.danzuep.yeshua.android.core.repository.remote.CopyrightBlock
@@ -83,14 +86,33 @@ fun Context.showCopyright(translationShortName: String) {
 fun Context.showMarkdown(markdown: String, onDismiss: () -> Unit = {}) =
         showBlocks(parseCopyrightMarkdown(markdown), onDismiss)
 
-private fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {}) {
-    val content = android.view.LayoutInflater.from(this).inflate(R.layout.dialog_translation_details, null)
-    content.findViewById<TextView>(R.id.details_text).apply {
-        text = blocks.toText()
-        movementMethod = LinkMovementMethod.getInstance()
+/** Shows [blocks] in a dialog that only lays out the blocks on screen, so documents of any length stay responsive. */
+fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {}) {
+    val padding = (24 * resources.displayMetrics.density).toInt()
+    val list = RecyclerView(this).apply {
+        layoutManager = LinearLayoutManager(context)
+        setPadding(padding, padding / 3, padding, 0)
+        clipToPadding = false
+        adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            override fun getItemCount() = blocks.size
+
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = object : RecyclerView.ViewHolder(
+                TextView(parent.context).apply {
+                    layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                    setTextAppearance(android.R.style.TextAppearance_Material_Medium)
+                    setPadding(0, 0, 0, padding / 2)
+                    setTextIsSelectable(true)
+                    movementMethod = LinkMovementMethod.getInstance()
+                }
+            ) {}
+
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                (holder.itemView as TextView).text = listOf(blocks[position]).toText()
+            }
+        }
     }
     AlertDialog.Builder(this)
-            .setView(content)
+            .setView(list)
             .setPositiveButton(android.R.string.ok, null)
             .setOnDismissListener { onDismiss() }
             .show()

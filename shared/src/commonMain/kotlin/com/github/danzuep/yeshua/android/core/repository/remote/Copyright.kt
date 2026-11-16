@@ -83,12 +83,32 @@ fun copyrightHtmlToMarkdown(html: String): String {
 }
 
 /** Reads the markdown made by [copyrightHtmlToMarkdown] back into blocks of text. */
-fun parseCopyrightMarkdown(markdown: String): List<CopyrightBlock> = markdown.lines().mapNotNull { line ->
+fun parseCopyrightMarkdown(markdown: String): List<CopyrightBlock> = parseCopyrightMarkdown(markdown.lineSequence())
+
+/** The longest text of a block; longer paragraphs are split so that no single view has to lay out a huge text. */
+const val MAX_BLOCK_LENGTH = 2000
+
+/** Reads [lines] one at a time, so large files never need to be held as a single string or laid out as a single view. */
+fun parseCopyrightMarkdown(lines: Sequence<String>): List<CopyrightBlock> = lines.flatMap { line ->
     val text = line.trim()
     when {
-        text.isEmpty() -> null
-        text.startsWith("#") -> CopyrightBlock(text.trimStart('#').trim(), heading = true)
-        text.startsWith("- ") -> CopyrightBlock("• ${text.drop(2)}")
-        else -> CopyrightBlock(text)
+        text.isEmpty() -> emptyList()
+        text.startsWith("#") -> splitBlock(text.trimStart('#').trim(), heading = true)
+        text.startsWith("- ") -> splitBlock("• ${text.drop(2)}", heading = false)
+        else -> splitBlock(text, heading = false)
     }
+}.toList()
+
+private fun splitBlock(text: String, heading: Boolean): List<CopyrightBlock> {
+    if (text.length <= MAX_BLOCK_LENGTH) return listOf(CopyrightBlock(text, heading))
+    val parts = mutableListOf<CopyrightBlock>()
+    var start = 0
+    while (start < text.length) {
+        var end = minOf(start + MAX_BLOCK_LENGTH, text.length)
+        // Break after a space if there is one, so words (and short links) stay whole.
+        if (end < text.length) text.lastIndexOf(' ', end).takeIf { it > start }?.let { end = it + 1 }
+        parts += CopyrightBlock(text.substring(start, end).trim(), heading)
+        start = end
+    }
+    return parts.filter { it.text.isNotEmpty() }
 }

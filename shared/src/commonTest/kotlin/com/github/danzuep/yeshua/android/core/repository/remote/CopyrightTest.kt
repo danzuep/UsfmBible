@@ -19,6 +19,7 @@ package com.github.danzuep.yeshua.android.core.repository.remote
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class CopyrightTest {
     private val html = """
@@ -69,5 +70,13 @@ class CopyrightTest {
             ),
             parseCopyrightMarkdown(markdown)
         )
+    }
+
+    @Test
+    fun `test parseCopyrightMarkdown() splits long paragraphs`() {
+        val blocks = parseCopyrightMarkdown("word ".repeat(5000))
+        assertTrue(blocks.size > 1)
+        assertTrue(blocks.all { it.text.length <= MAX_BLOCK_LENGTH })
+        assertEquals(5000, blocks.sumOf { it.text.split(' ').size })
     }
 }

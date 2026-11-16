@@ -19,33 +19,31 @@ package com.github.danzuep.yeshua.android.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.github.danzuep.yeshua.android.R
+import androidx.lifecycle.lifecycleScope
+import com.github.danzuep.yeshua.android.core.repository.remote.parseCopyrightMarkdown
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-/** Shows a markdown file opened from another app (e.g. a licence) in a dialog, without leaving that app's screen behind. */
+/**
+ * Shows a markdown file opened from another app (e.g. a licence) in a dialog, without leaving that app's screen behind.
+ * The file is read line by line off the main thread and shown as a list of short blocks, so its size is not limited.
+ */
 class MarkdownActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val markdown = runCatching {
-            // Read one byte past the limit to tell a file that is too big from one that is exactly at it.
-            intent.data?.let { uri -> contentResolver.openInputStream(uri)?.use { it.readNBytes(MAX_BYTES + 1) } }
-        }.getOrNull()
-        if (markdown != null && markdown.size > MAX_BYTES) {
-            toast(R.string.toast_file_too_large)
+        val uri = intent.data
+        if (uri == null) {
             finish()
             return
         }
-        showMarkdownOrFinish(markdown?.decodeToString())
-    }
-
-    private fun showMarkdownOrFinish(markdown: String?) {
-        if (markdown.isNullOrBlank()) {
-            finish()
-            return
+        lifecycleScope.launch {
+            val blocks = runCatching {
+                withContext(Dispatchers.IO) {
+                    contentResolver.openInputStream(uri)?.bufferedReader()?.use { parseCopyrightMarkdown(it.lineSequence()) }
+                }
+            }.getOrNull()
+            if (blocks.isNullOrEmpty()) finish() else showBlocks(blocks) { finish() }
         }
-        showMarkdown(markdown) { finish() }
-    }
-
-    private companion object {
-        const val MAX_BYTES = 1024 * 1024
     }
 }
