@@ -221,4 +221,11 @@ class UsfmTest {
         }
         assertEquals(null, parseFileNameMetadata("Bible"))
     }
+
+    @Test
+    fun cleanShortNameRemovesNumberPrefixAndInvalidCharacters() {
+        assertEquals("JN", cleanShortName("63_1JN"))
+        assertEquals("WEB_x", cleanShortName(" WEB-x "))
+        assertEquals("", cleanShortName("123"))
+    }
 }
