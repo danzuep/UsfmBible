@@ -14,9 +14,9 @@ Source and releases: https://github.com/danzuep/UsfmBible
 
 Issue tracker and maintainer contact: https://github.com/danzuep/UsfmBible/issues
 
-Application ID: `com.github.danzuep.yeshua.android`
+Application ID: `com.github.danzuep.usfmbible`
 
-The English store listing, icon, and a changelog are provided upstream in `fastlane/metadata/android/en-US/`. Screenshots are provided upstream in `fastlane/metadata/android/en-US/images/phoneScreenshots/`; attach them to this MR and add them to fdroiddata under `metadata/com.github.danzuep.yeshua.android/en-US/images/phoneScreenshots/`.
+The English store listing, icon, and a changelog are provided upstream in `fastlane/metadata/android/en-US/`. Screenshots are provided upstream in `fastlane/metadata/android/en-US/images/phoneScreenshots/`; attach them to this MR and add them to fdroiddata under `metadata/com.github.danzuep.usfmbible/en-US/images/phoneScreenshots/`.
 
 ### Background and distinguishing features
 
@@ -53,7 +53,7 @@ This is an inclusion request for the Apache-2.0-licensed USFM Bible fork under i
 
 ### Metadata
 
-* [x] Metadata must be put in `metadata/com.github.danzuep.yeshua.android.yml`. The upstream draft is in `docs/com.github.danzuep.yeshua.android.yml`; verify the final fdroiddata MR path.
+* [x] Metadata must be put in `metadata/com.github.danzuep.usfmbible.yml`. The upstream draft is in `docs/com.github.danzuep.usfmbible.yml`; verify the final fdroiddata MR path.
 * [x] Metadata must be a valid YAML file.
 * [x] Metadata must use LF as line ending.
 * [x] Don't add summary/description/changelog/images or anything that should be provided in upstream repo. Please check the Changes tab to make sure there is no other unrelated files added in the MR.

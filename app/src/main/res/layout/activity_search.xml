@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.github.danzuep.yeshua.ui.recyclerview.VerticalRecyclerView
+    <com.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerView
         android:id="@+id/search_result"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.github.danzuep.yeshua.search.SearchToolbar
+        <com.github.danzuep.usfmbible.search.SearchToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"

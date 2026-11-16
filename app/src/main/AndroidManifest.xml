@@ -28,9 +28,9 @@
             </intent-filter>
         </activity-alias>
 
-        <activity android:name="com.github.danzuep.yeshua.annotated.bookmarks.BookmarksActivity" />
-        <activity android:name="com.github.danzuep.yeshua.annotated.highlights.HighlightsActivity" />
-        <activity android:name="com.github.danzuep.yeshua.annotated.notes.NotesActivity" />
+        <activity android:name="com.github.danzuep.usfmbible.annotated.bookmarks.BookmarksActivity" />
+        <activity android:name="com.github.danzuep.usfmbible.annotated.highlights.HighlightsActivity" />
+        <activity android:name="com.github.danzuep.usfmbible.annotated.notes.NotesActivity" />
         <activity android:name=".progress.ReadingProgressActivity" />
         <activity android:name=".timeline.TimelineActivity" />
         <activity android:name=".reading.ReadingActivity" android:exported="true">
@@ -38,7 +38,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="bible" android:host="yeshua" />
+                <data android:scheme="bible" android:host="usfmbible" />
             </intent-filter>
         </activity>
         <activity
