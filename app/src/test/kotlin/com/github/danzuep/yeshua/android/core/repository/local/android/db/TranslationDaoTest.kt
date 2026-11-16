@@ -54,6 +54,14 @@ class TranslationDaoTest : BaseSqliteTest() {
                 androidDatabase.translationDao.read(MockContents.kjvShortName, 0, 0))
     }
 
+    @Test
+    fun testSaveThenReadWithNameStartingWithDigit() {
+        androidDatabase.translationDao.save("63_1JN", MockContents.kjvVerses.toMap())
+        assertEquals(MockContents.kjvVerses.size, androidDatabase.translationDao.read("63_1JN", 0, 0).size)
+        androidDatabase.translationDao.remove("63_1JN")
+        assertTrue(androidDatabase.translationDao.read("63_1JN", 0, 0).isEmpty())
+    }
+
     private fun saveKjv() {
         saveTranslation(MockContents.kjvShortName, MockContents.kjvVerses)
     }

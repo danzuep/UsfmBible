@@ -39,6 +39,10 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
         private const val COLUMN_TEXT = "text"
 
         private val TAG: String = TranslationDao::class.java.simpleName
+
+        /** A table name can't start with a digit (e.g. "63_1JN" from a file name), so those get a prefix; other names are unchanged so installed translations stay readable. */
+        internal fun tableName(translationShortName: String): String =
+            if (translationShortName.firstOrNull()?.isDigit() == true) "tr_$translationShortName" else translationShortName
     }
 
     private val db by lazy { sqliteHelper.writableDatabase }
@@ -47,7 +51,7 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
     fun read(translationShortName: String, bookIndex: Int, chapterIndex: Int): List<Verse> = db.withTransaction {
         if (!hasTableAndLogIfNoTable(translationShortName)) return@withTransaction emptyList()
 
-        select(translationShortName, COLUMN_TEXT) {
+        select(tableName(translationShortName), COLUMN_TEXT) {
             (COLUMN_BOOK_INDEX eq bookIndex) and (COLUMN_CHAPTER_INDEX eq chapterIndex)
         }.orderBy(COLUMN_VERSE_INDEX).toListIndexed { index, row ->
             Verse(VerseIndex(bookIndex, chapterIndex, index),
@@ -59,11 +63,11 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
     fun readBookIndicesWithVerses(translationShortName: String): Set<Int> = db.withTransaction {
         if (!hasTableAndLogIfNoTable(translationShortName)) return@withTransaction emptySet()
 
-        select(translationShortName, COLUMN_BOOK_INDEX) { noOp() }.toList { row -> row.getInt(COLUMN_BOOK_INDEX) }.toSet()
+        select(tableName(translationShortName), COLUMN_BOOK_INDEX) { noOp() }.toList { row -> row.getInt(COLUMN_BOOK_INDEX) }.toSet()
     }
 
     @WorkerThread
-    private fun SQLiteDatabase.hasTableAndLogIfNoTable(table: String): Boolean = hasTable(table)
+    private fun SQLiteDatabase.hasTableAndLogIfNoTable(table: String): Boolean = hasTable(tableName(table))
             .also { hasTable -> if (!hasTable) Logger.withTag(TAG).e { "Missing translation $table" } }
 
     @WorkerThread
@@ -99,7 +103,7 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
     private fun SQLiteDatabase.readVerseTexts(translation: String,
                                               bookIndex: Int, chapterIndex: Int): List<Verse.Text> =
             if (hasTableAndLogIfNoTable(translation)) {
-                select(translation, COLUMN_TEXT) {
+                select(tableName(translation), COLUMN_TEXT) {
                     (COLUMN_BOOK_INDEX eq bookIndex) and (COLUMN_CHAPTER_INDEX eq chapterIndex)
                 }.orderBy(COLUMN_VERSE_INDEX).toList { Verse.Text(translation, it.getString(COLUMN_TEXT).stripStructure()) }
             } else {
@@ -113,7 +117,7 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
         val verses = hashMapOf<VerseIndex, Verse>()
         // Work-around until https://github.com/xizzhu/ask/issues/8 is solved.
         verseIndexes.chunked(333).forEach { chunkedVerseIndexes ->
-            select(translationShortName) {
+            select(tableName(translationShortName)) {
                 var condition: Condition = noOp()
                 chunkedVerseIndexes.forEach { verseIndex ->
                     ((COLUMN_BOOK_INDEX eq verseIndex.bookIndex) and
@@ -139,7 +143,7 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
             return@withTransaction emptyList()
         }
 
-        select(query.translation) {
+        select(tableName(query.translation)) {
             (if (query.includeOldTestament && !query.includeNewTestament) {
                 // Old Testament only
                 COLUMN_BOOK_INDEX less Bible.OLD_TESTAMENT_COUNT
@@ -165,11 +169,11 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun save(translationShortName: String, verses: Map<Pair<Int, Int>, List<String>>) = db.withTransaction {
-        if (hasTable(translationShortName)) {
+        if (hasTable(tableName(translationShortName))) {
             Logger.withTag(TAG).e { "Translation $translationShortName already installed" }
             remove(translationShortName)
         }
-        createTable(translationShortName) {
+        createTable(tableName(translationShortName)) {
             it[COLUMN_BOOK_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
             it[COLUMN_CHAPTER_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
             it[COLUMN_VERSE_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
@@ -177,9 +181,9 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
         }
 
         // One compiled statement is reused for every verse, which is much cheaper than building a new insert each time.
-        val tableName = translationShortName.replace("\"", "\"\"")
+        val quotedTableName = tableName(translationShortName).replace("\"", "\"\"")
         db.compileStatement(
-            "INSERT OR REPLACE INTO \"$tableName\" ($COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX, $COLUMN_VERSE_INDEX, $COLUMN_TEXT) VALUES (?, ?, ?, ?)"
+            "INSERT OR REPLACE INTO \"$quotedTableName\" ($COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX, $COLUMN_VERSE_INDEX, $COLUMN_TEXT) VALUES (?, ?, ?, ?)"
         ).use { statement ->
             verses.forEach { (index, verseList) ->
                 verseList.forEachIndexed { verseIndex, verse ->
@@ -196,6 +200,6 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun remove(translationShortName: String) {
-        db.dropTable(translationShortName)
+        db.dropTable(tableName(translationShortName))
     }
 }
