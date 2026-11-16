@@ -89,7 +89,11 @@ android {
         getByName("debug") { java.setSrcDirs(setOf("src/debug/kotlin")) }
         getByName("release") { java.setSrcDirs(setOf("src/release/kotlin")) }
         getByName("test") { java.setSrcDirs(setOf("src/test/kotlin")) }
-        getByName("androidTest") { java.setSrcDirs(setOf("src/androidTest/kotlin")) }
+        getByName("androidTest") {
+            java.setSrcDirs(setOf("src/androidTest/kotlin"))
+            // Optional: directory with real USFM books (e.g. HAG.usfm from the full WEB) for the instrumented tests.
+            (findProperty("testAssetsDir") as String?)?.let { assets.srcDir(it) }
+        }
     }
 
     signingConfigs {
