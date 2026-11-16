@@ -43,12 +43,12 @@ Install the JDK (`keytool`) and GitHub CLI (`gh`), and authenticate with `gh aut
 bash .github/scripts/setup-release-secrets.sh
 ```
 
-Enter one password of at least 6 characters at the hidden prompt. The [setup script](../.github/scripts/setup-release-secrets.sh) detects the repository from the Git `origin` remote using `gh` (not the upstream or CLI default repository), derives `KEY_ALIAS` from its lowercase name (`Yeshua` becomes `yeshua`), and creates `../yeshua-release.keystore` in PKCS12 format if it does not exist. It uses the same password for `KEYSTORE_PASSWORD` and `KEY_PASSWORD`, generates `KEYSTORE_BASE64` directly into the upload without a temporary Base64 file, and sets all four secrets in the tag-only `release` environment. Passwords are not passed as command-line arguments.
+Enter one password of at least 6 characters at the hidden prompt. The [setup script](../.github/scripts/setup-release-secrets.sh) detects the repository from the Git `origin` remote using `gh` (not the upstream or CLI default repository), derives `KEY_ALIAS` from its lowercase name (`UsfmBible` becomes `usfmbible`), and creates `../usfmbible-release.keystore` in PKCS12 format if it does not exist. It uses the same password for `KEYSTORE_PASSWORD` and `KEY_PASSWORD`, generates `KEYSTORE_BASE64` directly into the upload without a temporary Base64 file, and sets all four secrets in the tag-only `release` environment. Passwords are not passed as command-line arguments.
 
 By default, an existing local keystore is reused, not replaced; it must contain the derived alias and use the same password for the keystore and key. Existing JKS keystores do not need conversion. To choose another repository or an existing keystore path:
 
 ```bash
-bash .github/scripts/setup-release-secrets.sh danzuep/Yeshua ../yeshua-release.keystore
+bash .github/scripts/setup-release-secrets.sh danzuep/UsfmBible ../usfmbible-release.keystore
 ```
 
 To deliberately generate a new signing key and overwrite the local keystore and all four CI secrets, add `--overwrite`:
@@ -68,10 +68,10 @@ More about app signing can be found [here](https://developer.android.com/studio/
 ## Automated releases
 
 - Merging a PR into `main` runs the *Auto Tag* workflow, which creates the next `vX.Y.Z` tag from the prefix of the PR title: `major: ...` bumps X, `minor: ...` bumps Y, `patch: ...` bumps Z. Any other title creates no tag and no release. After a tag is created it starts the *Release APK* workflow.
-- The release workflow stamps the tag into the app (`versionName` and `versionCode` via `-PappVersion`) and publishes two APKs: `Yeshua-vX.Y.Z.apk`, and `Yeshua-vX.Y.Z-with-WEB.apk`, which has the WEB Bible prepackaged (installed on first launch when no translation is present). The workflow parses the WEB USFM zip during the build with the `BundledDatabaseGenerator` unit test (`BUNDLE_DIR=<dir>` containing `list.tsv` and `translations/<id>.zip`), and builds with `-PbundledAssetsDir=<dir>` containing the resulting `bundled/bundled.db`, which the app copies into its database on first launch. As a fallback the app also accepts `bundled/list.tsv` (id, name and language separated by tabs) and `bundled/translations/<id>.zip` (USFM), which it parses on first launch.
+- The release workflow stamps the tag into the app (`versionName` and `versionCode` via `-PappVersion`) and publishes two APKs: `UsfmBible-vX.Y.Z.apk`, and `UsfmBible-vX.Y.Z-with-WEB.apk`, which has the WEB Bible prepackaged (installed on first launch when no translation is present). The workflow parses the WEB USFM zip during the build with the `BundledDatabaseGenerator` unit test (`BUNDLE_DIR=<dir>` containing `list.tsv` and `translations/<id>.zip`), and builds with `-PbundledAssetsDir=<dir>` containing the resulting `bundled/bundled.db`, which the app copies into its database on first launch. As a fallback the app also accepts `bundled/list.tsv` (id, name and language separated by tabs) and `bundled/translations/<id>.zip` (USFM), which it parses on first launch.
 
 
 F-Droid
 -------
 
-Store listing text, icon and changelogs live in `fastlane/metadata/android/en-US/`. Add `changelogs/<versionCode>.txt` (versionCode is `major*10000 + minor*100 + patch`, e.g. `2701` for v0.27.1) for each release. To get listed, open a merge request to [fdroiddata](https://gitlab.com/fdroid/fdroiddata) using `docs/com.github.danzuep.yeshua.android.yml` as the metadata file. The metadata requests upstream-signed publishing by referencing each regular GitHub release APK in its build entry and allowlisting its signing certificate. Once F-Droid verifies that its build matches the APK, it can publish it with the GitHub signing key, allowing updates between channels. Until that check passes, don't assume cross-channel updates will work.
+Store listing text, icon and changelogs live in `fastlane/metadata/android/en-US/`. Add `changelogs/<versionCode>.txt` (versionCode is `major*10000 + minor*100 + patch`, e.g. `2701` for v0.27.1) for each release. To get listed, open a merge request to [fdroiddata](https://gitlab.com/fdroid/fdroiddata) using `docs/com.github.danzuep.usfmbible.yml` as the metadata file. The metadata requests upstream-signed publishing by referencing each regular GitHub release APK in its build entry and allowlisting its signing certificate. Once F-Droid verifies that its build matches the APK, it can publish it with the GitHub signing key, allowing updates between channels. Until that check passes, don't assume cross-channel updates will work.

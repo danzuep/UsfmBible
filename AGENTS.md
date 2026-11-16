@@ -18,13 +18,14 @@ Don't spend time trying to work around this (no installing the SDK, mirrors or o
 | Emulator instrumented tests (`app/src/androidTest`, same workflow as the smoke test, separate `instrumented` job) | `gh workflow run smoke-test.yml --ref <branch>`. They run inside the app, so they can seed data with the shared `CoreVerse` builder and read the rendered views, against the minimal John 1-2 and Hebrews 1-2 translation. Artifact: `instrumented-results`. To position the reader, run `CoreReader` on a storage that saves through the app's singleton `BibleReadingRepository` (debug-only `DebugEntryPoints`, see `CoreReaderTest`), because the repository caches the position in memory and ignores writes made through a separate `AndroidDatabase`. |
 | Release APKs (plain and with WEB) | `gh workflow run release.yml --ref <branch>`. This is a dry run unless the ref is a `v*` tag. See [docs/RELEASING.md](docs/RELEASING.md). |
 
-A failed Android CI run uploads the `test-reports` artifact (`gh run download <id> -n test-reports`) alongside the log (`gh run view <id> --log-failed`). Check results with `gh run list --repo danzuep/Yeshua --branch <branch>`, `gh pr checks <n>`, and `gh run view <id> --log-failed`. Smoke-test artifacts (`logcat.txt`, `screen.png`, `ui.xml`) can be fetched with `gh run download <id> -n smoke-results`.
+A failed Android CI run uploads the `test-reports` artifact (`gh run download <id> -n test-reports`) alongside the log (`gh run view <id> --log-failed`). Check results with `gh run list --repo danzuep/UsfmBible --branch <branch>`, `gh pr checks <n>`, and `gh run view <id> --log-failed`. Smoke-test artifacts (`logcat.txt`, `screen.png`, `ui.xml`) can be fetched with `gh run download <id> -n smoke-results`.
 
 Before pushing, review Kotlin changes carefully (unresolved references, imports, scope), because each CI round trip costs minutes. Static checks that work locally: `git diff`, `grep`, and `bash -n` on shell scripts.
 
 ## Project map
 
-- `app/` is the single Android module (Kotlin, Hilt, Room-less SQLite, coroutines). Source is under `app/src/main/kotlin/com/github/danzuep/yeshua/android/`:
+- The code namespace is `com.github.danzuep.usfmbible`; the Android `applicationId` stays `com.github.danzuep.usfmbible` so installed apps keep updating.
+- `app/` is the single Android module (Kotlin, Hilt, Room-less SQLite, coroutines). Source is under `app/src/main/kotlin/com/github/danzuep/usfmbible/`:
   - `core/` holds managers and repositories (`repository/local` for SQLite, `repository/remote` for downloads and USFM parsing).
   - Feature packages (`reading`, `search`, `translations`, `settings`, `annotated`, `progress`, `preview`) each have an Activity plus a `ViewModel` with a single `ViewState`, one-shot `ViewAction`s and a typed `Error`, on `infra/BaseViewModel` and `infra/BaseActivity`.
   - Strong's Numbers, cross references and the old JSON download flow were removed; translations now come from eBible.org USFM zips, with a redistributable catalog in `app/src/main/assets/translations.csv` refreshed monthly by `update-translation-catalog.yml`.
@@ -43,7 +44,7 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
 - Merging a PR auto-tags the next version from the PR title prefix (`major:`, `minor:`, `patch:`; any other title creates no tag) and starts the release. See `.github/workflows/auto-tag.yml`.
 - Known-bad dependency versions that broke CI on JDK 25: Robolectric 4.17, Hilt 2.60.1, KSP 2.3.13. Keep Robolectric 4.16.1, Hilt 2.59.2, KSP 2.3.6 (`buildSrc/src/main/kotlin/Configurations.kt`).
 - Some unit tests can be flaky because of leftover coroutines. `BaseUnitTest.tearDown` cancels the shared test scope; cancel any view-model scope you create in a test too.
-- The reading screen accepts the launch extra `com.github.danzuep.yeshua.android.KEY_OPEN_BOOK` (0-based book index) to open a book directly, which the smoke test uses.
+- The reading screen accepts the launch extra `com.github.danzuep.usfmbible.KEY_OPEN_BOOK` (0-based book index) to open a book directly, which the smoke test uses.
 - Branches opened by other tools can be based on an old `main`, which shows up as unresolved references for code that merged later. Rebase onto `origin/main` before debugging a CI failure.
 - After a rebase, `git push --force-with-lease` is often rejected as "stale info". Use `git push --force-with-lease=<branch>:$(git ls-remote origin refs/heads/<branch> | cut -f1) origin <branch>`.
 - A PR whose base is another PR's branch merges into that branch, not `main`. Check `gh pr view <n> --json baseRefName` before assuming something reached `main`.
