@@ -105,4 +105,24 @@ class OpenFileTest {
             screenshot("markdown")
         }
     }
+
+    /** The app's activities that "Open with" offers for a VIEW intent; more than one makes the app appear twice in the chooser. */
+    private fun offeredFor(name: String, mimeType: String?): List<String> {
+        val uri = Uri.fromFile(File(context.filesDir, name))
+        val intent = Intent(Intent.ACTION_VIEW).setDataAndType(uri, mimeType).setPackage(context.packageName)
+        return context.packageManager.queryIntentActivities(intent, 0).map { it.activityInfo.name.substringAfterLast('.') }
+    }
+
+    @Test
+    fun markdownIsOfferedOnceAsMarkdown() {
+        assertEquals(listOf("MarkdownActivity"), offeredFor("a.md", "text/markdown"))
+        assertEquals(listOf("MarkdownActivity"), offeredFor("a.md", null))
+    }
+
+    @Test
+    fun usfmAndZipAreOfferedOnceAsTranslations() {
+        for ((name, type) in listOf("a.usfm" to "application/octet-stream", "a.usfm" to "text/plain", "a.sfm" to null, "a.zip" to "application/zip")) {
+            assertEquals(listOf("TranslationsActivity"), offeredFor(name, type), "$name as $type")
+        }
+    }
 }
