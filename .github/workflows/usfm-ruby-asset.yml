@@ -1,4 +1,4 @@
-name: Build USFM ruby asset
+name: USFM asset ruby annotations
 
 on:
   workflow_dispatch:
