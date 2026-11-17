@@ -48,4 +48,3 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
 - Branches opened by other tools can be based on an old `main`, which shows up as unresolved references for code that merged later. Rebase onto `origin/main` before debugging a CI failure.
 - After a rebase, `git push --force-with-lease` is often rejected as "stale info". Use `git push --force-with-lease=<branch>:$(git ls-remote origin refs/heads/<branch> | cut -f1) origin <branch>`.
 - A PR whose base is another PR's branch merges into that branch, not `main`. Check `gh pr view <n> --json baseRefName` before assuming something reached `main`.
-- Commits carry the trailer `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`.
