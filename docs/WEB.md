@@ -19,7 +19,7 @@ python3 -m http.server --directory web/build/site
 
 Pushes to `main` deploy the site. Enable it once under Settings > Pages > Source: GitHub Actions. Pull requests build the site and run `.github/scripts/web-smoke.mjs` (headless Chromium: John 1 renders, translation switching and the remembered position work) without deploying.
 
-A translation can read its zip from another URL with `id=<zip url>`, e.g. `-Ptranslations=engwebp,cmn-ncvt=https://github.com/<owner>/<repo>/releases/download/usfm-ruby/cmn-ncvt_zh-HK.zip` for ruby USFM built by a separate workflow. The manual workflow run has `ruby_zip` and `ruby_id` inputs for this.
+A translation can read its zip from another URL with `id=<zip url>`, e.g. `-Ptranslations=engwebp,cmn-ncvt=https://github.com/<owner>/<repo>/releases/download/usfm-ruby-assets/cmn_ncvt_zh-HK.zip` for ruby USFM built by the `usfm-ruby-asset.yml` workflow. The `usfm-macula-assets.yml` workflow publishes `grc_sbl-nt.zip` (SBL Greek NT) and `hbo_wlc-ot.zip` (WLC Hebrew OT) to the same release; re-running a workflow replaces only its own assets. The manual workflow run has `ruby_zip` and `ruby_id` inputs for this.
 
 ## Ruby
 
