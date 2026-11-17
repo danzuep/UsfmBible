@@ -30,7 +30,7 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
   - Feature packages (`reading`, `search`, `translations`, `settings`, `annotated`, `progress`, `preview`) each have an Activity plus a `ViewModel` with a single `ViewState`, one-shot `ViewAction`s and a typed `Error`, on `infra/BaseViewModel` and `infra/BaseActivity`.
   - Strong's Numbers, cross references and the old JSON download flow were removed; translations now come from eBible.org USFM zips, with a redistributable catalog in `app/src/main/assets/translations.csv` refreshed monthly by `update-translation-catalog.yml`.
 - `buildSrc/src/main/kotlin/Configurations.kt` pins plugin and library versions. The app version comes from the release tag (`-PappVersion`), not from this file.
-- `web/` is the GitHub Pages reader (Kotlin/JS) and the USFM-to-JSON converter, built by `pages.yml`; see [docs/WEB.md](docs/WEB.md). The Android-free core (managers, repositories, USFM parser) lives in `shared/src/commonMain`, with `expect`/`actual` helpers in `utils/Platform*.kt`.
+- `web/` is the GitHub Pages reader (Kotlin/JS) and the USFM-to-JSON converter, its Pages workflow was removed in favour of the F-Droid repo (`fdroid.yml`, [docs/FDROID.md](docs/FDROID.md)); see [docs/WEB.md](docs/WEB.md). The Android-free core (managers, repositories, USFM parser) lives in `shared/src/commonMain`, with `expect`/`actual` helpers in `utils/Platform*.kt`.
 - `docs/RELEASING.md` covers releases and signing; `.github/scripts/` holds the smoke-test helpers; `shared/src/commonMain/.../testing` has fluent builders (`CoreVerse`, `CoreSettings`) for JVM tests.
 
 ## Testing conventions

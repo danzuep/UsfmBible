@@ -1,6 +1,6 @@
 # Web site
 
-The `web` module builds a static reader (reading and switching translations) that is published to GitHub Pages by the `Web site` workflow (`.github/workflows/pages.yml`).
+The `web` module builds a static reader (reading and switching translations) that was published to GitHub Pages by the `Web site` workflow. That workflow is removed because Pages now serves the F-Droid repo (see [FDROID.md](FDROID.md)); restore `pages.yml` from git history to publish the reader again.
 
 - **Reuses the app core.** USFM parsing, the eBible catalog, and the verse structure helpers live in `shared/src/commonMain` and are compiled for Android, the JVM and Kotlin/JS.
 - **Static JSON.** eBible.org doesn't allow cross-origin downloads, so the build converts translations to `translations/<shortName>.json` plus `translations/index.json` (`web/src/jvmMain/.../Convert.kt`, format in `TranslationFiles.kt`).

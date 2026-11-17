@@ -1,0 +1,13 @@
+Categories:
+  - Reading
+License: Apache-2.0
+WebSite: https://danzuep.github.io/UsfmBible/
+SourceCode: https://github.com/danzuep/UsfmBible
+IssueTracker: https://github.com/danzuep/UsfmBible/issues
+Changelog: https://github.com/danzuep/UsfmBible/releases
+
+AutoName: UsfmBible
+Summary: Offline Bible reader for USFM translations from eBible.org
+Description: |-
+  Read, search and annotate Bible translations offline. Translations are
+  downloaded from eBible.org as USFM and stored on the device.
