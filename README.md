@@ -33,7 +33,7 @@ Not sure which translation to pick? These are good starting points, and you can 
 * NET Bible (engnet): Academically transparent Protestant translation praised for modern readability and exhaustive notes.
 * Open English Bible (engoebus / engoebcw): Open-source, modern English update of the Twentieth Century New Testament and critical source texts, tailored for contemporary readers.
 
-F-Droid packaging metadata is in `fastlane/` and [docs/RELEASING.md](docs/RELEASING.md#f-droid).
+Add the project's F-Droid repository directly: <https://danzuep.github.io/UsfmBible/fdroid/repo>. F-Droid packaging metadata is in `fastlane/` and [docs/RELEASING.md](docs/RELEASING.md#f-droid).
 
 ### Stay up to date with Obtainium
 
@@ -58,6 +58,8 @@ F-Droid packaging metadata is in `fastlane/` and [docs/RELEASING.md](docs/RELEAS
 Tap a verse to select it and bring up its actions (highlight, share, bookmark, copy), or long-press a verse for its notes, parallel translations and paratext. Notes are saved as you type.
 
 The other translations can be downloaded in the app from [eBible.org](https://ebible.org/download.php), or from download sites you add yourself. See the [full list](docs/TRANSLATIONS.md). The app interface is available in several languages, see [localization](docs/LOCALIZATION.md). Recent changes are in the [changelog](docs/CHANGELOG.md). Report bugs or request features on the [issue tracker](https://github.com/danzuep/UsfmBible/issues).
+
+To study the original texts, see [Macula Scripta](https://danzuep.github.io/MaculaScripta/), which shows the Bible in its original languages (Hebrew, Aramaic and Greek).
 
 ## Web
 
