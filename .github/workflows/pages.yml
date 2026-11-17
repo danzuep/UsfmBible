@@ -18,7 +18,7 @@ on:
         description: 'Comma separated eBible ids to publish'
         default: 'engwebp,cmn-ncvt'
       ruby_zip:
-        description: 'Optional USFM zip URL with ruby text (e.g. a usfm-ruby release asset) used instead of the eBible zip of ruby_id'
+        description: 'Optional USFM zip URL with ruby text (e.g. a usfm-ruby-assets release asset) used instead of the eBible zip of ruby_id'
         default: ''
       ruby_id:
         description: 'eBible id that ruby_zip replaces'
