@@ -37,9 +37,12 @@ F-Droid packaging metadata is in `fastlane/` and [docs/RELEASING.md](docs/RELEAS
 
 ### Install from F-Droid
 
+The app isn't in the main F-Droid repository yet, so add this project's repository as a custom repository:
+
 1. Install [F-Droid](https://f-droid.org/) (or another F-Droid client such as Neo Store or Droid-ify).
-2. On your phone, open [this link](https://fdroid.link/#https://danzuep.github.io/UsfmBible/fdroid/repo?fingerprint=251DB968637432563E19F7DA98CBE2994EB15E0F6AA194B4CFC99CBAC9948860) and choose to open it with F-Droid, which adds the repository. Or add the repository manually in **Settings → Repositories**: `https://danzuep.github.io/UsfmBible/fdroid/repo` with fingerprint `251DB968637432563E19F7DA98CBE2994EB15E0F6AA194B4CFC99CBAC9948860`.
-3. Refresh the repositories, then search for the app and tap **Install**. F-Droid will notify you of updates.
+2. Easiest: on your phone, open [this link](https://fdroid.link/#https://danzuep.github.io/UsfmBible/fdroid/repo?fingerprint=251DB968637432563E19F7DA98CBE2994EB15E0F6AA194B4CFC99CBAC9948860) and choose to open it with F-Droid, then confirm adding the repository.
+3. Or add it manually: in F-Droid open **Settings → Repositories → +** (the add button), enter the address `https://danzuep.github.io/UsfmBible/fdroid/repo` and the fingerprint `251DB968637432563E19F7DA98CBE2994EB15E0F6AA194B4CFC99CBAC9948860`, then tap **Add**.
+4. Wait for the repository to refresh (pull down on **Latest** to force it), then search for the app and tap **Install**. F-Droid will notify you of updates.
 
 <details>
 <summary>Stay up to date with Obtainium</summary>
