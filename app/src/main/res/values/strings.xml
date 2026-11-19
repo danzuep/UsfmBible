@@ -56,8 +56,15 @@
     <string name="action_play">▶</string>
     <string name="action_stop">⏹</string>
     <string name="action_speech_language">🔊 🌐</string>
+    <string name="action_speech_settings">🔊 ⚙</string>
     <string name="speech_language_automatic">🔊 🌐 ✓</string>
     <string name="toast_speech_language_unavailable">🔊 🚫 %1$s</string>
+    <string name="speech_notification_playing">Playing</string>
+    <string name="speech_notification_paused">Paused</string>
+    <string name="speech_notification_title">%1$s %2$d:%3$d</string>
+    <string name="speech_notification_channel">Bible reading</string>
+    <string name="speech_notification_pause">Pause reading aloud</string>
+    <string name="speech_notification_play">Resume reading aloud</string>
 
     <string name="dialog_title_no_translation_downloaded">🚫 🌐</string>
     <string name="action_download_sites">🌐 ⬇</string>

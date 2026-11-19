@@ -17,13 +17,21 @@
 
 package com.github.danzuep.usfmbible.reading
 
+import android.Manifest
 import android.app.SearchManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.PopupMenu
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.annotation.StringRes
@@ -54,6 +62,7 @@ import com.github.danzuep.usfmbible.reading.detail.VerseDetailViewLayout
 import com.github.danzuep.usfmbible.reading.detail.VerseTextItem
 import com.github.danzuep.usfmbible.reading.toolbar.ReadingToolbarFragment
 import com.github.danzuep.usfmbible.reading.speech.ChapterSpeaker
+import com.github.danzuep.usfmbible.reading.speech.SpeechNotification
 import com.github.danzuep.usfmbible.reading.verse.ParagraphItem
 import com.github.danzuep.usfmbible.reading.verse.VersePagerAdapter
 import com.github.danzuep.usfmbible.reading.verse.toBookIndex
@@ -102,9 +111,31 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private var spokenVerses = emptyList<VerseIndex>()
     private var spokenHighlight: VerseIndex? = null
     private var speechRequest = 0
+    private var speechWordsByVerse = emptyMap<VerseIndex, Int>()
+    private var speechTotalWords = 0
+    private var speechVerseStartedAt = 0L
+    private var speechTimerVerse = VerseIndex.INVALID
+    private var speechPausedFraction = 0f
+    private var speechMillisecondsPerWord = 400f
+    private var notificationPermissionRequested = false
+    private val speechProgressHandler = Handler(Looper.getMainLooper())
+    private val speechProgressTick = object : Runnable {
+        override fun run() {
+            updateSpeechProgress()
+            if (speech == Speech.PLAYING) speechProgressHandler.postDelayed(this, 100)
+        }
+    }
+    private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) updateSpeechNotification()
+    }
+    private val speechNotificationDelegate = lazy(LazyThreadSafetyMode.NONE) {
+        SpeechNotification(this, { resumeSpeech() }, ::pauseSpeech, ::stopSpeech)
+    }
+    private val speechNotification by speechNotificationDelegate
     private val speakerDelegate = lazy(LazyThreadSafetyMode.NONE) {
         ChapterSpeaker(this, object : ChapterSpeaker.Listener {
             override fun onVerseStarted(verseIndex: VerseIndex) = followSpokenVerse(verseIndex)
+            override fun onVerseFinished(verseIndex: VerseIndex) = finishSpokenVerse(verseIndex)
             override fun onChapterFinished() = speakNextChapter()
             override fun onLanguageUnavailable(language: String) {
                 pauseSpeech()
@@ -208,6 +239,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (handleSpeechIntent(intent)) return
         val openBook = intent.getIntExtra(KEY_OPEN_BOOK, -1)
         if (openBook in 0 until Bible.BOOK_COUNT) viewModel.openBook(openBook)
         openDeepLink(intent)
@@ -245,6 +277,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         super.onCreate(savedInstanceState)
 
         savedInstanceState?.getIntArray(KEY_SPEECH_VERSE)?.takeIf { it.size == 3 }?.let(::restoreSpeech)
+        handleSpeechIntent(intent)
         val openBook = intent.getIntExtra(KEY_OPEN_BOOK, -1)
         if (savedInstanceState == null && openBook in 0 until Bible.BOOK_COUNT) viewModel.openBook(openBook)
         if (savedInstanceState == null) openDeepLink(intent)
@@ -277,10 +310,27 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         drawerToggle = ActionBarDrawerToggle(this@ReadingActivity, drawerLayout, toolbarFragment.getFragment<ReadingToolbarFragment>().toolbar, 0, 0)
         drawerLayout.addDrawerListener(drawerToggle)
         speechBar.speechPlayPause.setOnClickListener {
-            if (speech == Speech.PLAYING) pauseSpeech() else startSpeech(spokenVerse)
+            if (speech == Speech.PLAYING) pauseSpeech() else resumeSpeech()
         }
         speechBar.speechStop.setOnClickListener { stopSpeech() }
-        toolbarFragment.getFragment<ReadingToolbarFragment>().onSpeechLanguageClicked = ::selectSpeechLanguage
+        speechBar.speechProgress.setOnClickListener {
+            if (speech == Speech.PLAYING) pauseSpeech() else resumeSpeech()
+        }
+        speechBar.root.setOnClickListener {
+            if (speech == Speech.PLAYING) pauseSpeech() else resumeSpeech()
+        }
+        speechBar.speechMenu.setOnClickListener { anchor ->
+            PopupMenu(this@ReadingActivity, anchor).apply {
+                inflate(R.menu.menu_speech)
+                setOnMenuItemClickListener { item ->
+                    if (item.itemId == R.id.action_speech_language) {
+                        selectSpeechLanguage()
+                        true
+                    } else false
+                }
+                show()
+            }
+        }
         toolbarFragment.getFragment<ReadingToolbarFragment>().onTitleClicked = {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.closeDrawer(GravityCompat.START)
             else drawerLayout.openDrawer(GravityCompat.START)
@@ -311,7 +361,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         verseViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrollStateChanged(state: Int) {
                 when (state) {
-                    ViewPager2.SCROLL_STATE_DRAGGING -> userSwipingPager = true
+                    ViewPager2.SCROLL_STATE_DRAGGING -> {
+                        userSwipingPager = true
+                        if (speech == Speech.PLAYING) pauseSpeech()
+                    }
                     ViewPager2.SCROLL_STATE_IDLE -> userSwipingPager = false
                 }
             }
@@ -345,6 +398,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
                     versePagerAdapter.scrollToChapterStart(position)
                     appBar.setExpanded(true, true)
                     viewModel.selectChapter(bookIndex, chapterIndex)
+                    return
+                }
+                if (speech == Speech.PLAYING) {
+                    viewModel.selectVerse(spokenVerse)
                     return
                 }
                 lifecycleScope.launch {
@@ -395,6 +452,9 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private fun startSpeech(from: VerseIndex) {
         speech = Speech.PLAYING
         spokenVerse = from
+        speechTimerVerse = VerseIndex.INVALID
+        speechVerseStartedAt = 0L
+        speechPausedFraction = 0f
         val request = ++speechRequest
         updateSpeechBar()
         lifecycleScope.launch {
@@ -406,14 +466,25 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
                 return@launch
             }
             spokenVerses = chapter.verses.map { it.verseIndex }
+            speechWordsByVerse = chapter.verses.associate { it.verseIndex to countSpeechWords(it.text.text) }
+            speechTotalWords = speechWordsByVerse.values.sum().coerceAtLeast(1)
             updateSpeechBar()
             val verses = chapter.verses.filter { it.verseIndex.verseIndex >= from.verseIndex }
             speaker.speak(verses.map { it.verseIndex to it.text.text }, chapter.language)
         }
     }
 
+    private fun resumeSpeech() {
+        if (spokenVerse.isValid()) {
+            startSpeech(spokenVerse)
+        } else {
+            lifecycleScope.launch { startSpeech(viewModel.currentVerseIndex()) }
+        }
+    }
+
     private fun pauseSpeech() {
         if (speech == Speech.OFF) return
+        speechPausedFraction = currentSpeechVerseFraction()
         speech = Speech.PAUSED
         speechRequest++
         if (speakerDelegate.isInitialized()) speaker.stop()
@@ -425,14 +496,32 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechRequest++
         if (speakerDelegate.isInitialized()) speaker.stop()
         highlightSpokenVerse(null)
+        speechWordsByVerse = emptyMap()
+        speechTotalWords = 0
+        speechVerseStartedAt = 0L
         updateSpeechBar()
     }
 
-    /** Selects the verse to read from; playback restarts there if it is playing. */
+    /** A user-selected verse becomes the resume point, but pauses playback so the change is noticeable. */
     private fun moveSpeech(verseIndex: VerseIndex) {
+        if (verseIndex == spokenVerse) return
+        if (speech == Speech.PLAYING) pauseSpeech()
         spokenVerse = verseIndex
+        speechTimerVerse = VerseIndex.INVALID
+        speechPausedFraction = 0f
         highlightSpokenVerse(verseIndex)
-        if (speech == Speech.PLAYING) startSpeech(verseIndex) else updateSpeechBar()
+        updateSpeechBar()
+        if (verseIndex !in spokenVerses) {
+            val request = ++speechRequest
+            lifecycleScope.launch {
+                val chapter = runCatching { viewModel.speechChapter(verseIndex.bookIndex, verseIndex.chapterIndex) }.getOrNull()
+                if (request != speechRequest || speech != Speech.PAUSED || spokenVerse != verseIndex || chapter == null) return@launch
+                spokenVerses = chapter.verses.map { it.verseIndex }
+                speechWordsByVerse = chapter.verses.associate { it.verseIndex to countSpeechWords(it.text.text) }
+                speechTotalWords = speechWordsByVerse.values.sum().coerceAtLeast(1)
+                updateSpeechBar()
+            }
+        }
     }
 
     private fun highlightSpokenVerse(verseIndex: VerseIndex?) {
@@ -455,15 +544,66 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     private fun followSpokenVerse(verseIndex: VerseIndex) {
         if (speech != Speech.PLAYING) return
-        spokenVerse = verseIndex
-        highlightSpokenVerse(verseIndex)
-        updateSpeechBar()
-        val current = currentReadingStatus?.currentVerseIndex
-        // The reading position is saved as the verse changes, so it survives a rotation.
-        viewModel.selectVerse(verseIndex)
-        if (current != null && current.bookIndex == verseIndex.bookIndex && current.chapterIndex == verseIndex.chapterIndex) {
-            versePagerAdapter.scrollToVerse(verseIndex)
+        if (speechTimerVerse != verseIndex) {
+            speechTimerVerse = verseIndex
+            speechVerseStartedAt = SystemClock.elapsedRealtime()
+            speechPausedFraction = 0f
         }
+        val changed = spokenVerse != verseIndex
+        spokenVerse = verseIndex
+        if (changed) highlightSpokenVerse(verseIndex)
+        updateSpeechBar()
+        if (changed) {
+            // The reading position is saved as the verse changes, so it survives a rotation.
+            viewModel.selectVerse(verseIndex)
+            revealSpokenVerse(verseIndex)
+        }
+    }
+
+    private fun finishSpokenVerse(verseIndex: VerseIndex) {
+        if (speechTimerVerse != verseIndex || speechVerseStartedAt == 0L) return
+        val words = speechWordsByVerse[verseIndex] ?: return
+        val elapsed = SystemClock.elapsedRealtime() - speechVerseStartedAt
+        val observedRate = (elapsed.toFloat() / words).coerceIn(80f, 1500f)
+        speechMillisecondsPerWord = (speechMillisecondsPerWord * 3f + observedRate) / 4f
+    }
+
+    private fun revealSpokenVerse(verseIndex: VerseIndex) {
+        val page = verseIndex.toPagePosition()
+        if (viewBinding.verseViewPager.currentItem != page) viewBinding.verseViewPager.setCurrentItem(page, false)
+        fun retry(remaining: Int) {
+            if (spokenVerse != verseIndex || speech == Speech.OFF) return
+            viewBinding.verseViewPager.post {
+                if (versePagerAdapter.scrollToVerse(verseIndex)) {
+                    versePagerAdapter.selectVerse(verseIndex)
+                } else if (remaining > 0) {
+                    viewBinding.verseViewPager.postDelayed({ retry(remaining - 1) }, 100)
+                }
+            }
+        }
+        retry(10)
+    }
+
+    private fun countSpeechWords(text: String): Int =
+        Regex("[\\p{L}\\p{N}]+").findAll(text).count().coerceAtLeast(1)
+
+    private fun currentSpeechVerseFraction(): Float {
+        if (speechTimerVerse != spokenVerse || speechVerseStartedAt == 0L) return speechPausedFraction
+        val duration = (speechWordsByVerse[spokenVerse] ?: return 0) * speechMillisecondsPerWord
+        return ((SystemClock.elapsedRealtime() - speechVerseStartedAt) / duration).coerceIn(0f, 1f)
+    }
+
+    private fun updateSpeechProgress() {
+        if (spokenVerses.isEmpty()) {
+            viewBinding.speechBar.speechProgress.progress = 0
+            return
+        }
+        val versePosition = spokenVerses.indexOf(spokenVerse).coerceAtLeast(0)
+        val wordsBefore = spokenVerses.take(versePosition).sumOf { speechWordsByVerse[it] ?: 1 }
+        val currentWords = speechWordsByVerse[spokenVerse] ?: 1
+        val fraction = if (speech == Speech.PLAYING) currentSpeechVerseFraction() else speechPausedFraction
+        val progress = ((wordsBefore + currentWords * fraction) / speechTotalWords.coerceAtLeast(1).toFloat() * 1000).toInt()
+        viewBinding.speechBar.speechProgress.progress = progress.coerceIn(0, 1000)
     }
 
     private fun updateSpeechBar() = with(viewBinding.speechBar) {
@@ -472,10 +612,54 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
         speechPlayPause.contentDescription = getString(if (playing) R.string.action_pause else R.string.action_play)
         speechStop.visibility = if (speech == Speech.PAUSED) View.VISIBLE else View.GONE
-        speechProgress.max = spokenVerses.size.coerceAtLeast(1)
-        speechProgress.progress = (spokenVerses.indexOf(spokenVerse) + 1).coerceAtLeast(0)
+        speechProgress.max = 1000
+        updateSpeechProgress()
+        speechProgressHandler.removeCallbacks(speechProgressTick)
+        if (playing) speechProgressHandler.post(speechProgressTick)
         window.decorView.keepScreenOn = playing || settings?.keepScreenOn == true
         if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.hideSearchButton != true) viewBinding.search.show()
+        updateSpeechNotification()
+    }
+
+    private fun updateSpeechNotification() {
+        if (speech == Speech.OFF) {
+            if (speechNotificationDelegate.isInitialized()) speechNotification.hide()
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (speech == Speech.PLAYING && !notificationPermissionRequested) {
+                notificationPermissionRequested = true
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            return
+        }
+        val book = currentReadingStatus?.bookNames?.getOrNull(spokenVerse.bookIndex).orEmpty().ifEmpty { getString(R.string.text_bible) }
+        val title = getString(
+            R.string.speech_notification_title,
+            book,
+            spokenVerse.chapterIndex + 1,
+            spokenVerse.verseIndex + 1
+        )
+        speechNotification.update(title, speech == Speech.PLAYING)
+    }
+
+    private fun handleSpeechIntent(intent: Intent): Boolean = when (intent.action) {
+        SpeechNotification.ACTION_OPEN -> {
+            intent.action = null
+            true
+        }
+        SpeechNotification.ACTION_PLAY -> {
+            intent.action = null
+            resumeSpeech()
+            true
+        }
+        SpeechNotification.ACTION_PAUSE -> {
+            intent.action = null
+            pauseSpeech()
+            true
+        }
+        else -> false
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -490,11 +674,17 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         val verse = VerseIndex(saved[0], saved[1], saved[2])
         speech = Speech.PAUSED
         spokenVerse = verse
+        speechTimerVerse = VerseIndex.INVALID
+        speechPausedFraction = 0f
+        highlightSpokenVerse(verse)
         updateSpeechBar()
+        revealSpokenVerse(verse)
         lifecycleScope.launch {
             val chapter = runCatching { viewModel.speechChapter(verse.bookIndex, verse.chapterIndex) }.getOrNull() ?: return@launch
             if (speech == Speech.PAUSED && spokenVerse == verse) {
                 spokenVerses = chapter.verses.map { it.verseIndex }
+                speechWordsByVerse = chapter.verses.associate { it.verseIndex to countSpeechWords(it.text.text) }
+                speechTotalWords = speechWordsByVerse.values.sum().coerceAtLeast(1)
                 updateSpeechBar()
             }
         }
@@ -688,7 +878,9 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
 
     override fun onDestroy() {
+        speechProgressHandler.removeCallbacks(speechProgressTick)
         if (speakerDelegate.isInitialized()) speaker.shutdown()
+        if (speechNotificationDelegate.isInitialized()) speechNotification.release()
         installingDialog?.dismiss()
         installingDialog = null
         super.onDestroy()
@@ -711,7 +903,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     override fun onVerseClicked(verse: Verse) {
         if (speech != Speech.OFF && actionMode == null) {
-            moveSpeech(verse.verseIndex)
+            if (verse.verseIndex != spokenVerse) moveSpeech(verse.verseIndex)
             return
         }
         if (actionMode == null) {

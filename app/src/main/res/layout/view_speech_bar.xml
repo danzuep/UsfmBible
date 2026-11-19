@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="?attr/actionBarSize"
     android:layout_gravity="bottom"
     android:background="?attr/colorSurface"
-    android:elevation="6dp"
+    android:elevation="10dp"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:visibility="gone">
@@ -13,23 +12,32 @@
     <ImageButton
         android:id="@+id/speech_play_pause"
         style="@style/Widget.AppCompat.ActionButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="?attr/actionBarSize"
+        android:layout_height="match_parent"
         android:contentDescription="@string/action_pause"
         android:src="@drawable/ic_pause" />
 
-    <com.google.android.material.progressindicator.LinearProgressIndicator
+    <ProgressBar
         android:id="@+id/speech_progress"
+        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1" />
 
     <ImageButton
         android:id="@+id/speech_stop"
         style="@style/Widget.AppCompat.ActionButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="?attr/actionBarSize"
+        android:layout_height="match_parent"
         android:contentDescription="@string/action_stop"
         android:src="@drawable/ic_stop"
         android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/speech_menu"
+        style="@style/Widget.AppCompat.ActionButton"
+        android:layout_width="?attr/actionBarSize"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/action_speech_settings"
+        android:src="@drawable/ic_more_vert" />
 </LinearLayout>
