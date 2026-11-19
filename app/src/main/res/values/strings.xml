@@ -66,6 +66,8 @@
     <string name="speech_notification_channel">Bible reading</string>
     <string name="speech_notification_pause">Pause reading aloud</string>
     <string name="speech_notification_play">Resume reading aloud</string>
+    <string name="speech_notification_previous">Previous chapter</string>
+    <string name="speech_notification_next">Next chapter</string>
     <string name="speech_speed_025">0.25x</string>
     <string name="speech_speed_050">0.5x</string>
     <string name="speech_speed_075">0.75x</string>
@@ -73,6 +75,8 @@
     <string name="speech_speed_150">1.5x</string>
     <string name="speech_speed_175">1.75x</string>
     <string name="speech_speed_200">2x</string>
+    <string name="speech_speed_250">2.5x</string>
+    <string name="speech_speed_300">3x</string>
 
     <string name="dialog_title_no_translation_downloaded">🚫 🌐</string>
     <string name="action_download_sites">🌐 ⬇</string>

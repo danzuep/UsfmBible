@@ -21,21 +21,27 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.github.danzuep.usfmbible.core.Bible
 import com.github.danzuep.usfmbible.core.Settings
 import com.github.danzuep.usfmbible.core.VerseIndex
+import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.databinding.PageVerseBinding
 import com.github.danzuep.usfmbible.reading.VerseUpdate
 import com.github.danzuep.usfmbible.ui.fadeIn
 import com.github.danzuep.usfmbible.ui.fadeOut
 import com.github.danzuep.usfmbible.ui.recyclerview.BaseItem
 
+internal fun verseRevealScroll(top: Int, bottom: Int, visibleTop: Int, visibleBottom: Int): Int =
+    if (top < visibleTop || bottom > visibleBottom) top - visibleTop else 0
+
 class VersePagerAdapter(
     context: Context,
     private val loadVerses: (Int, Int) -> Unit,
+    private val onUserScroll: () -> Unit = {},
     private val updateCurrentVerse: (pagePosition: Int, firstVerse: VerseIndex, middleVerse: VerseIndex) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val inflater = LayoutInflater.from(context)
@@ -119,6 +125,12 @@ class VersePagerAdapter(
         return scrolled
     }
 
+    /** Follows speech within the currently displayed page, including its loaded neighbouring chapters. */
+    fun revealVerse(verseIndex: VerseIndex): Boolean {
+        val page = attachedRecyclerView?.findViewHolderForAdapterPosition(currentPagePosition) as? Page ?: return false
+        return page.revealVerse(verseIndex)
+    }
+
     private fun forEachAttachedPage(action: (Page) -> Unit) {
         attachedRecyclerView?.let { recyclerView ->
             for (index in 0 until recyclerView.childCount) {
@@ -172,7 +184,7 @@ class VersePagerAdapter(
         if (currentVerseIndex.isValid() && currentTranslation.isNotEmpty() && settings != null) Bible.TOTAL_CHAPTER_COUNT else 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
-        Page(inflater, parent, ::getChapter, ::loadChapter, updateCurrentVerse)
+        Page(inflater, parent, ::getChapter, ::loadChapter, onUserScroll, updateCurrentVerse)
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         (holder as? Page)?.let(livePages::remove)
@@ -205,6 +217,7 @@ private class Page(
     container: ViewGroup,
     private val getChapter: (Int) -> List<BaseItem>?,
     private val loadChapter: (Int) -> Unit,
+    private val onUserScroll: () -> Unit,
     updateCurrentVerse: (pagePosition: Int, firstVerse: VerseIndex, middleVerse: VerseIndex) -> Unit
 ) : RecyclerView.ViewHolder(PageVerseBinding.inflate(inflater, container, false).root) {
     private val chapters = sortedMapOf<Int, List<BaseItem>>()
@@ -218,6 +231,7 @@ private class Page(
     private val viewBinding = PageVerseBinding.bind(itemView).apply {
         verseList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) onUserScroll()
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     firstVisibleVerse(recyclerView)?.let { first ->
                         updateCurrentVerse(pagePosition, first, middleVisibleVerse(recyclerView) ?: first)
@@ -353,6 +367,35 @@ private class Page(
         }
         scrollToPosition(target, 0)
         pendingVerseScroll = null
+        return true
+    }
+
+    fun revealVerse(verseIndex: VerseIndex): Boolean {
+        val chapterPosition = verseIndex.toPagePosition()
+        if (!hasRendered || !chapters.containsKey(chapterPosition)) return false
+        val target = renderedItems.positionOfVerse(verseIndex)
+        // Empty verses in a bridge have no separate rendered segment.
+        if (target < 0) return true
+        val list = viewBinding.verseList
+        if (list.isLayoutRequested || list.height == 0) return false
+        val layoutManager = list.layoutManager as LinearLayoutManager
+        val view = layoutManager.findViewByPosition(target)
+        if (view == null) {
+            scrollToPosition(target, 0)
+            return false
+        }
+        val textView = view.findViewById<TextView>(R.id.text) ?: return false
+        if (textView.isLayoutRequested) return false
+        val layout = textView.layout ?: return false
+        val offset = (renderedItems[target] as ParagraphItem).verseStart(verseIndex) ?: return false
+        val line = layout.getLineForOffset(offset.coerceIn(0, textView.text.length))
+        val textTop = view.top + (if (view === textView) 0 else textView.top) + textView.totalPaddingTop
+        val top = textTop + layout.getLineTop(line)
+        val bottom = textTop + layout.getLineBottom(line)
+        val visibleTop = list.paddingTop
+        val visibleBottom = list.height - list.paddingBottom
+        val scroll = verseRevealScroll(top, bottom, visibleTop, visibleBottom)
+        if (scroll != 0) list.scrollBy(0, scroll)
         return true
     }
 

@@ -52,6 +52,23 @@ class ParagraphItemTest : BaseUnitTest() {
     }
 
     @Test
+    fun `verse starts identify the rendered segment within a paragraph`() {
+        val item = paragraph()
+        val text = item.textForDisplay().toString()
+        val offset = item.verseStart(verses[2].verseIndex)!!
+        assertEquals(verses[2], item.verseAt(offset))
+        assertTrue(text.substring(offset).contains("Verse 2"))
+        assertEquals(null, item.verseStart(VerseIndex(57, 0, 9)))
+    }
+
+    @Test
+    fun `following a verse only scrolls when its line is outside the viewport`() {
+        assertEquals(0, verseRevealScroll(30, 50, 20, 200))
+        assertEquals(-10, verseRevealScroll(10, 30, 20, 200))
+        assertEquals(170, verseRevealScroll(190, 210, 20, 200))
+    }
+
+    @Test
     fun `test bookmark is added and removed live`() {
         val item = paragraph()
         assertEquals(0, bookmarkCount(item))

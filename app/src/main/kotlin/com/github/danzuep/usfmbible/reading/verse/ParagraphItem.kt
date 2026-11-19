@@ -114,6 +114,9 @@ class ParagraphItem(
 
     fun verseAt(offset: Int): Verse? = ranges.lastOrNull { offset >= it.start && offset <= it.end }?.verse
 
+    internal fun verseStart(verseIndex: VerseIndex): Int? =
+        ranges.firstOrNull { it.verse.verseIndex == verseIndex }?.start
+
     fun update(update: VerseUpdate) {
         val verseIndex = update.verseIndex.verseIndex
         when (update.operation) {
