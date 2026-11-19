@@ -455,6 +455,9 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechTimerVerse = VerseIndex.INVALID
         speechVerseStartedAt = 0L
         speechPausedFraction = 0f
+        highlightSpokenVerse(from)
+        viewModel.selectVerse(from)
+        revealSpokenVerse(from)
         val request = ++speechRequest
         updateSpeechBar()
         lifecycleScope.launch {
@@ -538,7 +541,6 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             current.bookIndex + 1 < Bible.BOOK_COUNT -> VerseIndex(current.bookIndex + 1, 0, 0)
             else -> return stopSpeech()
         }
-        viewModel.selectChapter(next.bookIndex, next.chapterIndex)
         startSpeech(next)
     }
 
