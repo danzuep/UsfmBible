@@ -34,6 +34,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
+import java.util.Locale
 import co.touchlab.kermit.Logger
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,6 +53,7 @@ import com.github.danzuep.usfmbible.search.SearchActivity
 import com.github.danzuep.usfmbible.reading.detail.VerseDetailViewLayout
 import com.github.danzuep.usfmbible.reading.detail.VerseTextItem
 import com.github.danzuep.usfmbible.reading.toolbar.ReadingToolbarFragment
+import com.github.danzuep.usfmbible.reading.speech.ChapterSpeaker
 import com.github.danzuep.usfmbible.reading.verse.ParagraphItem
 import com.github.danzuep.usfmbible.reading.verse.VersePagerAdapter
 import com.github.danzuep.usfmbible.reading.verse.toBookIndex
@@ -63,6 +65,7 @@ import com.github.danzuep.usfmbible.ui.highlightSwatch
 import com.github.danzuep.usfmbible.ui.dialog
 import com.github.danzuep.usfmbible.ui.indeterminateProgressDialog
 import com.github.danzuep.usfmbible.ui.listDialog
+import com.github.danzuep.usfmbible.ui.languageDisplayNameWithNative
 import com.github.danzuep.usfmbible.ui.makeLessSensitive
 import com.github.danzuep.usfmbible.ui.toast
 import com.github.danzuep.usfmbible.utils.copyToClipBoard
@@ -90,6 +93,23 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private var currentReadingStatus: ReadingViewModel.ViewState.CurrentReadingStatus? = null
 
     private var actionMode: ActionMode? = null
+    private var listening = false
+    private var spokenChapter = VerseIndex.INVALID
+    private val speakerDelegate = lazy(LazyThreadSafetyMode.NONE) {
+        ChapterSpeaker(this, object : ChapterSpeaker.Listener {
+            override fun onVerseStarted(verseIndex: VerseIndex) = followSpokenVerse(verseIndex)
+            override fun onChapterFinished() = speakNextChapter()
+            override fun onLanguageUnavailable(language: String) {
+                setListening(false)
+                toast(getString(R.string.toast_speech_language_unavailable, languageDisplayNameWithNative(language)))
+            }
+            override fun onError() {
+                setListening(false)
+                toast(R.string.toast_unknown_error)
+            }
+        })
+    }
+    private val speaker by speakerDelegate
     private var installingDialog: AlertDialog? = null
     private val actionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -247,6 +267,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     override fun initializeView() = with(viewBinding) {
         drawerToggle = ActionBarDrawerToggle(this@ReadingActivity, drawerLayout, toolbarFragment.getFragment<ReadingToolbarFragment>().toolbar, 0, 0)
         drawerLayout.addDrawerListener(drawerToggle)
+        toolbarFragment.getFragment<ReadingToolbarFragment>().onListenClicked = {
+            if (listening) setListening(false) else lifecycleScope.launch { startListening(viewModel.currentVerseIndex()) }
+        }
+        toolbarFragment.getFragment<ReadingToolbarFragment>().onSpeechLanguageClicked = ::selectSpeechLanguage
         toolbarFragment.getFragment<ReadingToolbarFragment>().onTitleClicked = {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.closeDrawer(GravityCompat.START)
             else drawerLayout.openDrawer(GravityCompat.START)
@@ -348,6 +372,62 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         )
         if (openNoteWhenCreated) {
             lifecycleScope.launch { showVerseDetail(viewModel.currentVerseIndex(), VerseDetailViewLayout.VERSE_DETAIL_NOTE) }
+        }
+    }
+
+    private fun setListening(listening: Boolean) {
+        this.listening = listening
+        if (!listening) speaker.stop()
+        toolbarFragment().setListening(listening)
+    }
+
+    private fun toolbarFragment() = viewBinding.toolbarFragment.getFragment<ReadingToolbarFragment>()
+
+    /** Reads aloud from [from] to the end of its chapter, then carries on through the following chapters. */
+    private fun startListening(from: VerseIndex) {
+        setListening(true)
+        spokenChapter = from
+        lifecycleScope.launch {
+            val chapter = runCatching { viewModel.speechChapter(from.bookIndex, from.chapterIndex) }.getOrNull()
+            if (!listening || spokenChapter != from) return@launch
+            if (chapter == null) {
+                setListening(false)
+                toast(R.string.toast_unknown_error)
+                return@launch
+            }
+            val verses = chapter.verses.filter { it.verseIndex.verseIndex >= from.verseIndex }
+            speaker.speak(verses.map { it.verseIndex to it.text.text }, chapter.language)
+        }
+    }
+
+    private fun speakNextChapter() {
+        if (!listening) return
+        val current = spokenChapter
+        val next = when {
+            current.chapterIndex + 1 < Bible.getChapterCount(current.bookIndex) -> VerseIndex(current.bookIndex, current.chapterIndex + 1, 0)
+            current.bookIndex + 1 < Bible.BOOK_COUNT -> VerseIndex(current.bookIndex + 1, 0, 0)
+            else -> return setListening(false)
+        }
+        viewModel.selectChapter(next.bookIndex, next.chapterIndex)
+        startListening(next)
+    }
+
+    private fun followSpokenVerse(verseIndex: VerseIndex) {
+        val current = currentReadingStatus?.currentVerseIndex
+        viewModel.selectVerse(verseIndex)
+        if (current != null && current.bookIndex == verseIndex.bookIndex && current.chapterIndex == verseIndex.chapterIndex) {
+            versePagerAdapter.scrollToVerse(verseIndex)
+        }
+    }
+
+    private fun selectSpeechLanguage() {
+        speaker.availableLanguages { locales ->
+            val tags = listOf<String?>(null) + locales.map(Locale::toLanguageTag)
+            val names = listOf(getString(R.string.speech_language_automatic)) + locales.map { it.displayName }
+            listDialog(R.string.action_speech_language, names.toTypedArray(), tags.indexOf(speaker.selectedLanguage).coerceAtLeast(0), { which ->
+                speaker.selectedLanguage = tags[which]
+                if (listening) lifecycleScope.launch { startListening(viewModel.currentVerseIndex()) }
+            })
         }
     }
 
@@ -533,6 +613,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
 
     override fun onDestroy() {
+        if (speakerDelegate.isInitialized()) speaker.shutdown()
         installingDialog?.dismiss()
         installingDialog = null
         super.onDestroy()

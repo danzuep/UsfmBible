@@ -32,6 +32,8 @@ class ReadingToolbar : MaterialToolbar {
         object OpenBookmarks : ViewEvent()
         object OpenHighlights : ViewEvent()
         object OpenNotes : ViewEvent()
+        object ToggleListening : ViewEvent()
+        object SelectSpeechLanguage : ViewEvent()
         object OpenReadingProgress : ViewEvent()
         object OpenSearch : ViewEvent()
         object OpenSettings : ViewEvent()
@@ -87,6 +89,14 @@ class ReadingToolbar : MaterialToolbar {
                     currentTranslationShortName?.let { onViewEvent(ViewEvent.OpenCopyright(it)) }
                     true
                 }
+                R.id.action_listen -> {
+                    onViewEvent(ViewEvent.ToggleListening)
+                    true
+                }
+                R.id.action_speech_language -> {
+                    onViewEvent(ViewEvent.SelectSpeechLanguage)
+                    true
+                }
                 R.id.action_reading_progress -> {
                     onViewEvent(ViewEvent.OpenReadingProgress)
                     true
@@ -118,6 +128,10 @@ class ReadingToolbar : MaterialToolbar {
                 else -> false
             }
         }
+    }
+
+    fun setListening(listening: Boolean) {
+        menu.findItem(R.id.action_listen).setTitle(if (listening) R.string.action_stop_listening else R.string.action_listen)
     }
 
     private fun spinner(): Spinner = menu.findItem(R.id.action_translations).actionView as Spinner

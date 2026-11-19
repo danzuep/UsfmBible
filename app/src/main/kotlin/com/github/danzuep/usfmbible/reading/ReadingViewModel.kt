@@ -283,6 +283,16 @@ class ReadingViewModel @Inject constructor(
             .filter { it.verseIndex.verseIndex in start.verseIndex..endVerse && it.text.text.isNotEmpty() }
     }
 
+    /** The text of a chapter to read aloud, with the language of the current translation. */
+    suspend fun speechChapter(bookIndex: Int, chapterIndex: Int): SpeechChapter {
+        val translation = bibleReadingManager.currentTranslation().firstNotEmpty()
+        val language = translationManager.downloadedTranslations().first().firstOrNull { it.shortName == translation }?.language.orEmpty()
+        val verses = bibleReadingManager.readVerses(translation, bookIndex, chapterIndex).filter { it.text.text.isNotBlank() }
+        return SpeechChapter(language, verses)
+    }
+
+    class SpeechChapter(val language: String, val verses: List<Verse>)
+
     fun loadVerses(bookIndex: Int, chapterIndex: Int) {
         viewModelScope.launch {
             runCatching {
