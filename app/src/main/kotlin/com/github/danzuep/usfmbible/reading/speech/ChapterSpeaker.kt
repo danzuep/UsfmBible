@@ -104,6 +104,13 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
             preferences.edit().apply { if (value == null) remove(KEY_LANGUAGE) else putString(KEY_LANGUAGE, value) }.apply()
         }
 
+    var playbackSpeed: Float
+        get() = preferences.getFloat(KEY_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+        set(value) {
+            require(value in PLAYBACK_SPEEDS) { "Unsupported playback speed: $value" }
+            preferences.edit().putFloat(KEY_PLAYBACK_SPEED, value).apply()
+        }
+
     /** Speaks [verses] in order, stopping anything already being spoken, then calls [Listener.onChapterFinished]. */
     fun speak(verses: List<Pair<VerseIndex, String>>, translationLanguage: String) {
         val request = ++generation
@@ -160,7 +167,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         val queued = pendingSegments.getOrNull(nextSegmentIndex) ?: return
         val segment = queued.segment
         // Rate and pitch are engine-wide, so speak one segment at a time to keep modifiers local.
-        if (engine.setSpeechRate(segment.rate) == TextToSpeech.ERROR ||
+        if (engine.setSpeechRate(segment.rate * playbackSpeed) == TextToSpeech.ERROR ||
             engine.setPitch(segment.pitch) == TextToSpeech.ERROR) {
             pendingSegments = emptyList()
             finalUtteranceId = null
@@ -273,6 +280,9 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private companion object {
         const val PREFERENCES = "speech"
         const val KEY_LANGUAGE = "language"
+        const val KEY_PLAYBACK_SPEED = "playback_speed"
+        const val DEFAULT_PLAYBACK_SPEED = 1f
+        val PLAYBACK_SPEEDS = setOf(0.25f, 0.5f, 0.75f, 1f, 1.5f, 1.75f, 2f)
         const val PSALMS = 18
         const val HABAKKUK = 34
         const val PSALM_9_CHAPTER_INDEX = 8

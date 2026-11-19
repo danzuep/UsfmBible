@@ -322,11 +322,31 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechBar.speechMenu.setOnClickListener { anchor ->
             PopupMenu(this@ReadingActivity, anchor).apply {
                 inflate(R.menu.menu_speech)
+                val speeds = mapOf(
+                    R.id.speech_speed_025 to 0.25f,
+                    R.id.speech_speed_050 to 0.5f,
+                    R.id.speech_speed_075 to 0.75f,
+                    R.id.speech_speed_100 to 1f,
+                    R.id.speech_speed_150 to 1.5f,
+                    R.id.speech_speed_175 to 1.75f,
+                    R.id.speech_speed_200 to 2f
+                )
+                speeds.forEach { (id, speed) ->
+                    menu.findItem(id)?.isChecked = speaker.playbackSpeed == speed
+                }
                 setOnMenuItemClickListener { item ->
-                    if (item.itemId == R.id.action_speech_language) {
-                        selectSpeechLanguage()
-                        true
-                    } else false
+                    when (item.itemId) {
+                        R.id.action_speech_language -> {
+                            selectSpeechLanguage()
+                            true
+                        }
+                        in speeds -> {
+                            speaker.playbackSpeed = speeds.getValue(item.itemId)
+                            if (speech == Speech.PLAYING) startSpeech(spokenVerse)
+                            true
+                        }
+                        else -> false
+                    }
                 }
                 show()
             }

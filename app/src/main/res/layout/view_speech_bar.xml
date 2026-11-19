@@ -22,7 +22,9 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:progressTint="?attr/colorPrimary"
+        android:indeterminateTint="?attr/colorPrimary" />
 
     <ImageButton
         android:id="@+id/speech_stop"
