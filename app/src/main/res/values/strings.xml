@@ -51,6 +51,13 @@
     <string name="action_bookmark_verse">@string/title_bookmarks</string>
     <string name="action_highlight_verse">@string/title_highlights</string>
     <string name="action_settings">@string/title_settings</string>
+    <string name="action_listen">🔊</string>
+    <string name="action_pause">⏸</string>
+    <string name="action_play">▶</string>
+    <string name="action_stop">⏹</string>
+    <string name="action_speech_language">🔊 🌐</string>
+    <string name="speech_language_automatic">🔊 🌐 ✓</string>
+    <string name="toast_speech_language_unavailable">🔊 🚫 %1$s</string>
 
     <string name="dialog_title_no_translation_downloaded">🚫 🌐</string>
     <string name="action_download_sites">🌐 ⬇</string>

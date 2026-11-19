@@ -8,6 +8,12 @@
     android:orientation="horizontal">
 
     <ImageButton
+        android:id="@+id/action_listen"
+        style="@style/ReadingActionModeButton"
+        android:contentDescription="@string/action_listen"
+        android:src="@drawable/ic_listen" />
+
+    <ImageButton
         android:id="@+id/action_highlight_verse"
         style="@style/ReadingActionModeButton"
         android:contentDescription="@string/action_highlight_verse"

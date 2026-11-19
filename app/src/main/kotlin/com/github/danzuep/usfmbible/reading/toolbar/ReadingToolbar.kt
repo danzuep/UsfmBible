@@ -32,6 +32,7 @@ class ReadingToolbar : MaterialToolbar {
         object OpenBookmarks : ViewEvent()
         object OpenHighlights : ViewEvent()
         object OpenNotes : ViewEvent()
+        object SelectSpeechLanguage : ViewEvent()
         object OpenReadingProgress : ViewEvent()
         object OpenSearch : ViewEvent()
         object OpenSettings : ViewEvent()
@@ -85,6 +86,10 @@ class ReadingToolbar : MaterialToolbar {
             when (menuItem.itemId) {
                 R.id.action_translation_copyright -> {
                     currentTranslationShortName?.let { onViewEvent(ViewEvent.OpenCopyright(it)) }
+                    true
+                }
+                R.id.action_speech_language -> {
+                    onViewEvent(ViewEvent.SelectSpeechLanguage)
                     true
                 }
                 R.id.action_reading_progress -> {

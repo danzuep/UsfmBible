@@ -15,6 +15,11 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/action_speech_language"
+        android:title="@string/action_speech_language"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_reading_progress"
         android:title="@string/action_reading_progress"
         app:showAsAction="never" />

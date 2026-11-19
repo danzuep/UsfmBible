@@ -46,6 +46,10 @@
                 app:layout_scrollFlags="scroll|enterAlways" />
         </com.google.android.material.appbar.AppBarLayout>
 
+        <include
+            android:id="@+id/speech_bar"
+            layout="@layout/view_speech_bar" />
+
         <com.github.danzuep.usfmbible.reading.detail.VerseDetailViewLayout
             android:id="@+id/verse_detail_view"
             android:layout_width="match_parent"
