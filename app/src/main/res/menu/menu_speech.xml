@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/action_speech_speed"
+        android:title="@string/action_speech_speed">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/speech_speed_050" android:title="@string/speech_speed_050" />
+                <item android:id="@+id/speech_speed_075" android:title="@string/speech_speed_075" />
+                <item android:id="@+id/speech_speed_100" android:title="@string/speech_speed_100" />
+                <item android:id="@+id/speech_speed_025" android:title="@string/speech_speed_025" />
+                <item android:id="@+id/speech_speed_150" android:title="@string/speech_speed_150" />
+                <item android:id="@+id/speech_speed_175" android:title="@string/speech_speed_175" />
+                <item android:id="@+id/speech_speed_200" android:title="@string/speech_speed_200" />
+            </group>
+        </menu>
+    </item>
+    <item
         android:id="@+id/action_speech_language"
         android:title="@string/action_speech_language" />
 </menu>
