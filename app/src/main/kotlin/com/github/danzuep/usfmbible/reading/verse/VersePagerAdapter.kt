@@ -113,8 +113,10 @@ class VersePagerAdapter(
         forEachAttachedPage { it.scrollToChapterStart(position) }
     }
 
-    fun scrollToVerse(verseIndex: VerseIndex) {
-        forEachAttachedPage { it.scrollToVerse(verseIndex) }
+    fun scrollToVerse(verseIndex: VerseIndex): Boolean {
+        var scrolled = false
+        forEachAttachedPage { if (it.scrollToVerse(verseIndex)) scrolled = true }
+        return scrolled
     }
 
     private fun forEachAttachedPage(action: (Page) -> Unit) {
@@ -210,6 +212,7 @@ private class Page(
     private var pagePosition = RecyclerView.NO_POSITION
     private var currentVerseIndex = VerseIndex.INVALID
     private var hasRendered = false
+    private var pendingVerseScroll: VerseIndex? = null
     private var renderedItems = emptyList<BaseItem>()
 
     private val viewBinding = PageVerseBinding.bind(itemView).apply {
@@ -239,6 +242,7 @@ private class Page(
         pagePosition = position
         this.currentVerseIndex = currentVerseIndex
         hasRendered = false
+        pendingVerseScroll = null
         renderedItems = emptyList()
         chapters.clear()
         requestedPositions.clear()
@@ -291,10 +295,14 @@ private class Page(
 
         if (!hasRendered) {
             hasRendered = true
-            val targetVerse = currentVerseIndex.takeIf { it.toPagePosition() == pagePosition }
+            val targetVerse = pendingVerseScroll?.takeIf { it.toPagePosition() == pagePosition }
+                ?: currentVerseIndex.takeIf { it.toPagePosition() == pagePosition }
             val target = targetVerse?.let { renderedItems.positionOfVerse(it) }
                 ?: renderedItems.positionOfChapter(pagePosition)
-            if (target >= 0) scrollToPosition(target, 0)
+            if (target >= 0) {
+                scrollToPosition(target, 0)
+                pendingVerseScroll = null
+            }
         } else if (anchor != null) {
             val target = renderedItems.positionOfVerse(anchor.verseIndex)
             if (target >= 0) scrollToPosition(target, anchor.offset)
@@ -330,11 +338,22 @@ private class Page(
 
 
     /** A page reused from RecyclerView's cache is not rebound, so it keeps the scroll position of its last visit. */
-    fun scrollToVerse(verseIndex: VerseIndex) {
-        val chapterPosition = runCatching { verseIndex.toPagePosition() }.getOrNull() ?: return
-        if (chapterPosition != pagePosition || !hasRendered) return
+    fun scrollToVerse(verseIndex: VerseIndex): Boolean {
+        val chapterPosition = runCatching { verseIndex.toPagePosition() }.getOrNull() ?: return false
+        if (chapterPosition != pagePosition) return false
+        if (!hasRendered) {
+            pendingVerseScroll = verseIndex
+            ensureChapter(chapterPosition)
+            return false
+        }
         val target = renderedItems.positionOfVerse(verseIndex).takeIf { it >= 0 } ?: renderedItems.positionOfChapter(chapterPosition)
-        if (target >= 0) scrollToPosition(target, 0)
+        if (target < 0) {
+            pendingVerseScroll = verseIndex
+            return false
+        }
+        scrollToPosition(target, 0)
+        pendingVerseScroll = null
+        return true
     }
 
     fun containsChapter(position: Int): Boolean = chapters.containsKey(position)
