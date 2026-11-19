@@ -44,7 +44,9 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private var failed = false
     private val whenReady = mutableListOf<() -> Unit>()
     private var generation = 0
-    private var lastUtteranceId: String? = null
+    private var pendingSegments = emptyList<QueuedSegment>()
+    private var nextSegmentIndex = 0
+    private var finalUtteranceId: String? = null
     private var closed = false
 
     private val engine = TextToSpeech(context.applicationContext) { status ->
@@ -70,14 +72,27 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 main.post {
                     if (closed || parsed.generation != generation) return@post
                     if (parsed.lastForVerse) listener.onVerseFinished(parsed.verseIndex)
-                    if (id == lastUtteranceId) listener.onChapterFinished()
+                    if (id == finalUtteranceId) {
+                        pendingSegments = emptyList()
+                        finalUtteranceId = null
+                        listener.onChapterFinished()
+                    } else {
+                        speakNextSegment(parsed.generation, TextToSpeech.QUEUE_ADD)
+                    }
                 }
             }
 
             @Deprecated("Deprecated in Java")
             override fun onError(utteranceId: String?) {
                 val id = utteranceId?.let(::parse) ?: return
-                main.post { if (!closed && id.generation == generation) listener.onError() }
+                main.post {
+                    if (!closed && id.generation == generation) {
+                        pendingSegments = emptyList()
+                        finalUtteranceId = null
+                        generation++
+                        listener.onError()
+                    }
+                }
             }
         })
     }
@@ -92,7 +107,9 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     /** Speaks [verses] in order, stopping anything already being spoken, then calls [Listener.onChapterFinished]. */
     fun speak(verses: List<Pair<VerseIndex, String>>, translationLanguage: String) {
         val request = ++generation
-        lastUtteranceId = null
+        pendingSegments = emptyList()
+        finalUtteranceId = null
+        nextSegmentIndex = 0
         if (ready) engine.stop()
         whenEngineReady {
             if (closed || request != generation) return@whenEngineReady
@@ -106,28 +123,21 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 return@whenEngineReady
             }
             val segments = verses.flatMap { (verseIndex, text) -> segmentsForVerse(verseIndex, text) }
-            segments.forEachIndexed { position, segment ->
-                val (verseIndex, text, volume, rate, pitch) = segment
-                val id = utteranceId(request, verseIndex, position, position == segments.lastIndex ||
-                    segments.getOrNull(position + 1)?.verseIndex != verseIndex)
-                lastUtteranceId = id
-                val mode = if (position == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-                val params = Bundle().apply {
-                    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
-                    putFloat(TextToSpeech.Engine.KEY_PARAM_RATE, rate)
-                    putFloat(TextToSpeech.Engine.KEY_PARAM_PITCH, pitch)
-                }
-                if (engine.speak(text, mode, params, id) == TextToSpeech.ERROR) {
-                    listener.onError()
-                    return@whenEngineReady
-                }
+            pendingSegments = segments.mapIndexed { position, segment ->
+                val id = utteranceId(request, segment.verseIndex, position, position == segments.lastIndex ||
+                    segments.getOrNull(position + 1)?.verseIndex != segment.verseIndex)
+                QueuedSegment(id, segment)
             }
+            finalUtteranceId = pendingSegments.lastOrNull()?.id
+            speakNextSegment(request, TextToSpeech.QUEUE_FLUSH)
         }
     }
 
     fun stop() {
         generation++
-        lastUtteranceId = null
+        pendingSegments = emptyList()
+        finalUtteranceId = null
+        nextSegmentIndex = 0
         if (ready) engine.stop()
     }
 
@@ -139,8 +149,33 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     fun shutdown() {
         closed = true
         whenReady.clear()
+        pendingSegments = emptyList()
+        finalUtteranceId = null
         if (ready) engine.stop()
         engine.shutdown()
+    }
+
+    private fun speakNextSegment(request: Int, queueMode: Int) {
+        if (closed || request != generation) return
+        val queued = pendingSegments.getOrNull(nextSegmentIndex) ?: return
+        val segment = queued.segment
+        // Rate and pitch are engine-wide, so speak one segment at a time to keep modifiers local.
+        if (engine.setSpeechRate(segment.rate) == TextToSpeech.ERROR ||
+            engine.setPitch(segment.pitch) == TextToSpeech.ERROR) {
+            pendingSegments = emptyList()
+            finalUtteranceId = null
+            generation++
+            listener.onError()
+            return
+        }
+        val params = Bundle().apply { putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, segment.volume) }
+        nextSegmentIndex++
+        if (engine.speak(segment.text, queueMode, params, queued.id) == TextToSpeech.ERROR) {
+            pendingSegments = emptyList()
+            finalUtteranceId = null
+            generation++
+            listener.onError()
+        }
     }
 
     private fun whenEngineReady(action: () -> Unit) {
@@ -232,6 +267,8 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         val rate: Float = NORMAL_RATE,
         val pitch: Float = NORMAL_PITCH
     )
+
+    private data class QueuedSegment(val id: String, val segment: SpeechSegment)
 
     private companion object {
         const val PREFERENCES = "speech"
