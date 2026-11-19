@@ -105,20 +105,18 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 listener.onChapterFinished()
                 return@whenEngineReady
             }
-            val segments = verses.flatMap { (verseIndex, text) ->
-                val words = if (verseIndex.bookIndex == PSALMS || verseIndex.bookIndex == HABAKKUK) {
-                    splitSelah(text)
-                } else {
-                    listOf(text to NORMAL_VOLUME)
-                }
-                words.map { (text, volume) -> Triple(verseIndex, text, volume) }
-            }
-            segments.forEachIndexed { position, (verseIndex, text, volume) ->
+            val segments = verses.flatMap { (verseIndex, text) -> segmentsForVerse(verseIndex, text) }
+            segments.forEachIndexed { position, segment ->
+                val (verseIndex, text, volume, rate, pitch) = segment
                 val id = utteranceId(request, verseIndex, position, position == segments.lastIndex ||
-                    segments.getOrNull(position + 1)?.first != verseIndex)
+                    segments.getOrNull(position + 1)?.verseIndex != verseIndex)
                 lastUtteranceId = id
                 val mode = if (position == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
-                val params = Bundle().apply { putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume) }
+                val params = Bundle().apply {
+                    putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
+                    putFloat(TextToSpeech.Engine.KEY_PARAM_RATE, rate)
+                    putFloat(TextToSpeech.Engine.KEY_PARAM_PITCH, pitch)
+                }
                 if (engine.speak(text, mode, params, id) == TextToSpeech.ERROR) {
                     listener.onError()
                     return@whenEngineReady
@@ -191,12 +189,64 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         return result
     }
 
+    private fun segmentsForVerse(verseIndex: VerseIndex, text: String): List<SpeechSegment> {
+        if (verseIndex.bookIndex == PSALMS && verseIndex.chapterIndex == PSALM_9_CHAPTER_INDEX &&
+            verseIndex.verseIndex == PSALM_9_16_VERSE_INDEX) {
+            val words = Regex("\\S+").findAll(text).toList()
+            if (words.size >= 2) {
+                val higgaion = words[words.lastIndex - 1]
+                val selah = words.last()
+                return buildList {
+                    if (higgaion.range.first > 0) add(SpeechSegment(verseIndex, text.substring(0, higgaion.range.first)))
+                    add(
+                        SpeechSegment(
+                            verseIndex,
+                            text.substring(higgaion.range.first, selah.range.first),
+                            volume = HIGGAION_VOLUME,
+                            pitch = HIGGAION_PITCH
+                        )
+                    )
+                    add(
+                        SpeechSegment(
+                            verseIndex,
+                            text.substring(selah.range.first),
+                            volume = PSALM_9_SELAH_VOLUME,
+                            rate = PSALM_9_SELAH_RATE
+                        )
+                    )
+                }
+            }
+        }
+        val pieces = if (verseIndex.bookIndex == PSALMS || verseIndex.bookIndex == HABAKKUK) {
+            splitSelah(text).map { (piece, volume) -> SpeechSegment(verseIndex, piece, volume) }
+        } else {
+            listOf(SpeechSegment(verseIndex, text))
+        }
+        return pieces
+    }
+
+    private data class SpeechSegment(
+        val verseIndex: VerseIndex,
+        val text: String,
+        val volume: Float = NORMAL_VOLUME,
+        val rate: Float = NORMAL_RATE,
+        val pitch: Float = NORMAL_PITCH
+    )
+
     private companion object {
         const val PREFERENCES = "speech"
         const val KEY_LANGUAGE = "language"
         const val PSALMS = 18
         const val HABAKKUK = 34
+        const val PSALM_9_CHAPTER_INDEX = 8
+        const val PSALM_9_16_VERSE_INDEX = 15
         const val NORMAL_VOLUME = 1f
+        const val NORMAL_RATE = 1f
+        const val NORMAL_PITCH = 1f
         const val SELAH_VOLUME = 0.18f
+        const val HIGGAION_VOLUME = 0.18f
+        const val HIGGAION_PITCH = 0.75f
+        const val PSALM_9_SELAH_VOLUME = 0.05f
+        const val PSALM_9_SELAH_RATE = 0.55f
     }
 }

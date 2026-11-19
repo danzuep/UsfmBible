@@ -591,7 +591,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     private fun currentSpeechVerseFraction(): Float {
         if (speechTimerVerse != spokenVerse || speechVerseStartedAt == 0L) return speechPausedFraction
-        val duration = (speechWordsByVerse[spokenVerse] ?: return 0) * speechMillisecondsPerWord
+        val duration = (speechWordsByVerse[spokenVerse] ?: return 0f) * speechMillisecondsPerWord
         return ((SystemClock.elapsedRealtime() - speechVerseStartedAt) / duration).coerceIn(0f, 1f)
     }
 
