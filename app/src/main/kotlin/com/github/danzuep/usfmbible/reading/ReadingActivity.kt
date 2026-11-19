@@ -208,7 +208,6 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        savedInstanceState?.getIntArray(KEY_SPEECH_VERSE)?.takeIf { it.size == 3 }?.let(::restoreSpeech)
         val openBook = intent.getIntExtra(KEY_OPEN_BOOK, -1)
         if (openBook in 0 until Bible.BOOK_COUNT) viewModel.openBook(openBook)
         openDeepLink(intent)
@@ -245,6 +244,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        savedInstanceState?.getIntArray(KEY_SPEECH_VERSE)?.takeIf { it.size == 3 }?.let(::restoreSpeech)
         val openBook = intent.getIntExtra(KEY_OPEN_BOOK, -1)
         if (savedInstanceState == null && openBook in 0 until Bible.BOOK_COUNT) viewModel.openBook(openBook)
         if (savedInstanceState == null) openDeepLink(intent)
