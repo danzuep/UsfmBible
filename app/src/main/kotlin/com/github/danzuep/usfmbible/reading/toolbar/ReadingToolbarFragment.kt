@@ -35,10 +35,7 @@ class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, Readi
     fun showReadingChapter(firstVerse: VerseIndex, middleVerse: VerseIndex) = viewModel.showReadingChapter(firstVerse, middleVerse)
 
     var onTitleClicked: (() -> Unit)? = null
-    var onListenClicked: (() -> Unit)? = null
     var onSpeechLanguageClicked: (() -> Unit)? = null
-
-    fun setListening(listening: Boolean) = viewBinding.toolbar.setListening(listening)
 
     override val viewModel: ReadingToolbarViewModel by viewModels()
 
@@ -47,7 +44,6 @@ class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, Readi
     override fun initializeView() {
         viewBinding.toolbar.initialize { viewEvent ->
             when (viewEvent) {
-                is ReadingToolbar.ViewEvent.ToggleListening -> onListenClicked?.invoke()
                 is ReadingToolbar.ViewEvent.SelectSpeechLanguage -> onSpeechLanguageClicked?.invoke()
                 is ReadingToolbar.ViewEvent.OpenCopyright -> requireContext().showCopyright(viewEvent.translationShortName)
                 is ReadingToolbar.ViewEvent.OpenTimeline -> navigator.navigate(requireActivity(), Navigator.SCREEN_TIMELINE)

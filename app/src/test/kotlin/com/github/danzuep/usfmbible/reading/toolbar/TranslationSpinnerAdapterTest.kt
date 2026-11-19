@@ -90,6 +90,7 @@ class TranslationSpinnerAdapterTest : BaseUnitTest() {
                 is ReadingToolbar.ViewEvent.OpenReadingProgress -> fail()
                 is ReadingToolbar.ViewEvent.OpenSearch -> fail()
                 is ReadingToolbar.ViewEvent.OpenSettings -> fail()
+                is ReadingToolbar.ViewEvent.SelectSpeechLanguage -> fail()
                 is ReadingToolbar.ViewEvent.OpenTranslations -> fail()
                 is ReadingToolbar.ViewEvent.RemoveParallelTranslation -> fail()
                 is ReadingToolbar.ViewEvent.RequestParallelTranslation -> {
@@ -162,6 +163,7 @@ class TranslationSpinnerAdapterTest : BaseUnitTest() {
                 is ReadingToolbar.ViewEvent.OpenReadingProgress -> fail()
                 is ReadingToolbar.ViewEvent.OpenSearch -> fail()
                 is ReadingToolbar.ViewEvent.OpenSettings -> fail()
+                is ReadingToolbar.ViewEvent.SelectSpeechLanguage -> fail()
                 is ReadingToolbar.ViewEvent.OpenTranslations -> fail()
                 is ReadingToolbar.ViewEvent.RemoveParallelTranslation -> {
                     assertEquals("MSG", viewEvent.translationToRemove)

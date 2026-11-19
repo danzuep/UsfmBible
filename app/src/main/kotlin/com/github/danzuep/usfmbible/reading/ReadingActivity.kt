@@ -79,6 +79,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
         /** Optional launch extra: the 0-based index of the book to open (e.g. 42 for John) instead of the last reading position. */
         const val KEY_SELECT_VERSE = "com.github.danzuep.usfmbible.KEY_SELECT_VERSE"
+        private const val KEY_SPEECH_VERSE = "com.github.danzuep.usfmbible.KEY_SPEECH_VERSE"
         const val KEY_OPEN_BOOK = "com.github.danzuep.usfmbible.KEY_OPEN_BOOK"
 
         fun bundleForOpenNote(): Bundle = Bundle().apply { putBoolean(KEY_OPEN_NOTE, true) }
@@ -93,18 +94,24 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private var currentReadingStatus: ReadingViewModel.ViewState.CurrentReadingStatus? = null
 
     private var actionMode: ActionMode? = null
-    private var listening = false
-    private var spokenChapter = VerseIndex.INVALID
+    private enum class Speech { OFF, PLAYING, PAUSED }
+
+    private var speech = Speech.OFF
+    // The verse being read, or the one to resume from while paused.
+    private var spokenVerse = VerseIndex.INVALID
+    private var spokenVerses = emptyList<VerseIndex>()
+    private var spokenHighlight: VerseIndex? = null
+    private var speechRequest = 0
     private val speakerDelegate = lazy(LazyThreadSafetyMode.NONE) {
         ChapterSpeaker(this, object : ChapterSpeaker.Listener {
             override fun onVerseStarted(verseIndex: VerseIndex) = followSpokenVerse(verseIndex)
             override fun onChapterFinished() = speakNextChapter()
             override fun onLanguageUnavailable(language: String) {
-                setListening(false)
+                pauseSpeech()
                 toast(getString(R.string.toast_speech_language_unavailable, languageDisplayNameWithNative(language)))
             }
             override fun onError() {
-                setListening(false)
+                pauseSpeech()
                 toast(R.string.toast_unknown_error)
             }
         })
@@ -114,7 +121,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private val actionModeCallback = object : ActionMode.Callback {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             val actions = layoutInflater.inflate(R.layout.view_reading_action_mode, null)
-            intArrayOf(R.id.action_highlight_verse, R.id.action_copy, R.id.action_share, R.id.action_bookmark_verse).forEach { id ->
+            intArrayOf(R.id.action_listen, R.id.action_highlight_verse, R.id.action_copy, R.id.action_share, R.id.action_bookmark_verse).forEach { id ->
                 actions.findViewById<View>(id).setOnClickListener { onVerseActionClicked(id) }
             }
             mode.customView = actions
@@ -134,6 +141,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     private fun onVerseActionClicked(actionId: Int) {
         when (actionId) {
+            R.id.action_listen -> listenFromSelection()
             R.id.action_highlight_verse -> highlightSelectedVerses()
             R.id.action_copy -> copy()
             R.id.action_share -> share()
@@ -200,6 +208,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        savedInstanceState?.getIntArray(KEY_SPEECH_VERSE)?.takeIf { it.size == 3 }?.let(::restoreSpeech)
         val openBook = intent.getIntExtra(KEY_OPEN_BOOK, -1)
         if (openBook in 0 until Bible.BOOK_COUNT) viewModel.openBook(openBook)
         openDeepLink(intent)
@@ -267,9 +276,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     override fun initializeView() = with(viewBinding) {
         drawerToggle = ActionBarDrawerToggle(this@ReadingActivity, drawerLayout, toolbarFragment.getFragment<ReadingToolbarFragment>().toolbar, 0, 0)
         drawerLayout.addDrawerListener(drawerToggle)
-        toolbarFragment.getFragment<ReadingToolbarFragment>().onListenClicked = {
-            if (listening) setListening(false) else lifecycleScope.launch { startListening(viewModel.currentVerseIndex()) }
+        speechBar.speechPlayPause.setOnClickListener {
+            if (speech == Speech.PLAYING) pauseSpeech() else startSpeech(spokenVerse)
         }
+        speechBar.speechStop.setOnClickListener { stopSpeech() }
         toolbarFragment.getFragment<ReadingToolbarFragment>().onSpeechLanguageClicked = ::selectSpeechLanguage
         toolbarFragment.getFragment<ReadingToolbarFragment>().onTitleClicked = {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) drawerLayout.closeDrawer(GravityCompat.START)
@@ -375,48 +385,118 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         }
     }
 
-    private fun setListening(listening: Boolean) {
-        this.listening = listening
-        if (!listening) speaker.stop()
-        toolbarFragment().setListening(listening)
+    private fun listenFromSelection() {
+        val first = selectedVerses.minByOrNull { it.verseIndex.verseIndex }?.verseIndex ?: return
+        actionMode?.finish()
+        startSpeech(first)
     }
 
-    private fun toolbarFragment() = viewBinding.toolbarFragment.getFragment<ReadingToolbarFragment>()
-
     /** Reads aloud from [from] to the end of its chapter, then carries on through the following chapters. */
-    private fun startListening(from: VerseIndex) {
-        setListening(true)
-        spokenChapter = from
+    private fun startSpeech(from: VerseIndex) {
+        speech = Speech.PLAYING
+        spokenVerse = from
+        val request = ++speechRequest
+        updateSpeechBar()
         lifecycleScope.launch {
             val chapter = runCatching { viewModel.speechChapter(from.bookIndex, from.chapterIndex) }.getOrNull()
-            if (!listening || spokenChapter != from) return@launch
+            if (request != speechRequest) return@launch
             if (chapter == null) {
-                setListening(false)
+                pauseSpeech()
                 toast(R.string.toast_unknown_error)
                 return@launch
             }
+            spokenVerses = chapter.verses.map { it.verseIndex }
+            updateSpeechBar()
             val verses = chapter.verses.filter { it.verseIndex.verseIndex >= from.verseIndex }
             speaker.speak(verses.map { it.verseIndex to it.text.text }, chapter.language)
         }
     }
 
+    private fun pauseSpeech() {
+        if (speech == Speech.OFF) return
+        speech = Speech.PAUSED
+        speechRequest++
+        if (speakerDelegate.isInitialized()) speaker.stop()
+        updateSpeechBar()
+    }
+
+    private fun stopSpeech() {
+        speech = Speech.OFF
+        speechRequest++
+        if (speakerDelegate.isInitialized()) speaker.stop()
+        highlightSpokenVerse(null)
+        updateSpeechBar()
+    }
+
+    /** Selects the verse to read from; playback restarts there if it is playing. */
+    private fun moveSpeech(verseIndex: VerseIndex) {
+        spokenVerse = verseIndex
+        highlightSpokenVerse(verseIndex)
+        if (speech == Speech.PLAYING) startSpeech(verseIndex) else updateSpeechBar()
+    }
+
+    private fun highlightSpokenVerse(verseIndex: VerseIndex?) {
+        spokenHighlight?.let(versePagerAdapter::deselectVerse)
+        spokenHighlight = verseIndex
+        verseIndex?.let(versePagerAdapter::selectVerse)
+    }
+
     private fun speakNextChapter() {
-        if (!listening) return
-        val current = spokenChapter
+        if (speech != Speech.PLAYING) return
+        val current = spokenVerse
         val next = when {
             current.chapterIndex + 1 < Bible.getChapterCount(current.bookIndex) -> VerseIndex(current.bookIndex, current.chapterIndex + 1, 0)
             current.bookIndex + 1 < Bible.BOOK_COUNT -> VerseIndex(current.bookIndex + 1, 0, 0)
-            else -> return setListening(false)
+            else -> return stopSpeech()
         }
         viewModel.selectChapter(next.bookIndex, next.chapterIndex)
-        startListening(next)
+        startSpeech(next)
     }
 
     private fun followSpokenVerse(verseIndex: VerseIndex) {
+        if (speech != Speech.PLAYING) return
+        spokenVerse = verseIndex
+        highlightSpokenVerse(verseIndex)
+        updateSpeechBar()
         val current = currentReadingStatus?.currentVerseIndex
+        // The reading position is saved as the verse changes, so it survives a rotation.
         viewModel.selectVerse(verseIndex)
         if (current != null && current.bookIndex == verseIndex.bookIndex && current.chapterIndex == verseIndex.chapterIndex) {
             versePagerAdapter.scrollToVerse(verseIndex)
+        }
+    }
+
+    private fun updateSpeechBar() = with(viewBinding.speechBar) {
+        root.visibility = if (speech == Speech.OFF) View.GONE else View.VISIBLE
+        val playing = speech == Speech.PLAYING
+        speechPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
+        speechPlayPause.contentDescription = getString(if (playing) R.string.action_pause else R.string.action_play)
+        speechStop.visibility = if (speech == Speech.PAUSED) View.VISIBLE else View.GONE
+        speechProgress.max = spokenVerses.size.coerceAtLeast(1)
+        speechProgress.progress = (spokenVerses.indexOf(spokenVerse) + 1).coerceAtLeast(0)
+        window.decorView.keepScreenOn = playing || settings?.keepScreenOn == true
+        if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.hideSearchButton != true) viewBinding.search.show()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (speech != Speech.OFF && spokenVerse.isValid()) {
+            outState.putIntArray(KEY_SPEECH_VERSE, intArrayOf(spokenVerse.bookIndex, spokenVerse.chapterIndex, spokenVerse.verseIndex))
+        }
+    }
+
+    // After a rotation the reader is where the speech got to, paused so the user can press play again.
+    private fun restoreSpeech(saved: IntArray) {
+        val verse = VerseIndex(saved[0], saved[1], saved[2])
+        speech = Speech.PAUSED
+        spokenVerse = verse
+        updateSpeechBar()
+        lifecycleScope.launch {
+            val chapter = runCatching { viewModel.speechChapter(verse.bookIndex, verse.chapterIndex) }.getOrNull() ?: return@launch
+            if (speech == Speech.PAUSED && spokenVerse == verse) {
+                spokenVerses = chapter.verses.map { it.verseIndex }
+                updateSpeechBar()
+            }
         }
     }
 
@@ -426,7 +506,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             val names = listOf(getString(R.string.speech_language_automatic)) + locales.map { it.displayName }
             listDialog(R.string.action_speech_language, names.toTypedArray(), tags.indexOf(speaker.selectedLanguage).coerceAtLeast(0), { which ->
                 speaker.selectedLanguage = tags[which]
-                if (listening) lifecycleScope.launch { startListening(viewModel.currentVerseIndex()) }
+                if (speech == Speech.PLAYING) startSpeech(spokenVerse)
             })
         }
     }
@@ -479,12 +559,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private fun applySettings(settings: Settings) {
         this.settings = settings
 
-        window.decorView.keepScreenOn = settings.keepScreenOn
-        if (settings.hideSearchButton) {
-            viewBinding.search.hide()
-        } else {
-            viewBinding.search.show()
-        }
+        updateSpeechBar()
 
         versePagerAdapter.settings = settings
         viewBinding.verseDetailView.setSettings(settings)
@@ -635,6 +710,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
 
     override fun onVerseClicked(verse: Verse) {
+        if (speech != Speech.OFF && actionMode == null) {
+            moveSpeech(verse.verseIndex)
+            return
+        }
         if (actionMode == null) {
             actionMode = startSupportActionMode(actionModeCallback)
         }
