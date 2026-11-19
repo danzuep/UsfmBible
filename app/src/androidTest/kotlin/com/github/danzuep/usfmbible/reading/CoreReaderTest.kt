@@ -19,16 +19,21 @@ package com.github.danzuep.usfmbible.reading
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import com.github.danzuep.usfmbible.DebugEntryPoints
+import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.VerseIndex
+import com.github.danzuep.usfmbible.reading.verse.VersePagerAdapter
 import com.github.danzuep.usfmbible.core.repository.BibleReadingRepository
 import com.github.danzuep.usfmbible.core.repository.local.LocalReadingStorage
 import com.github.danzuep.usfmbible.core.repository.local.android.AndroidReadingStorage
@@ -146,6 +151,41 @@ class CoreReaderTest {
                 }
                 fail("John 1:29 not visible: bound=$bound firstText='$shown' stored=${runBlocking { storage.readCurrentVerseIndex() }}")
             }
+        }
+    }
+
+    @Test
+    fun followingAnOffscreenVerseRevealsItsText() {
+        val translation = runBlocking { storage.readCurrentTranslation() }
+        runBlocking {
+            CoreReader(AppReadingStorage(repository, storage)).toTranslation(translation).toBook(JOHN).toChapter(0).toVerse(0)
+        }
+        ActivityScenario.launch<ReadingActivity>(Intent(context, ReadingActivity::class.java)).use { scenario ->
+            awaitParagraph(scenario, "In the beginning was the Word")
+            val deadline = System.currentTimeMillis() + TIMEOUT_MS
+            var visible = false
+            while (!visible && System.currentTimeMillis() < deadline) {
+                scenario.onActivity { activity ->
+                    val pager = activity.findViewById<ViewPager2>(R.id.verse_view_pager)
+                    (pager.adapter as VersePagerAdapter).revealVerse(VerseIndex(JOHN, 0, 28))
+                    val page = (pager.getChildAt(0) as RecyclerView).findViewHolderForAdapterPosition(pager.currentItem)?.itemView
+                    val text = page?.let { find(it, VERSE_29) }
+                    val layout = text?.layout
+                    if (text != null && layout != null) {
+                        val offset = text.text.toString().indexOf(VERSE_29)
+                        val line = layout.getLineForOffset(offset)
+                        val location = IntArray(2)
+                        text.getLocationOnScreen(location)
+                        val lineTop = location[1] + text.totalPaddingTop + layout.getLineTop(line)
+                        val lineBottom = location[1] + text.totalPaddingTop + layout.getLineBottom(line)
+                        val visibleRect = Rect()
+                        visible = text.getGlobalVisibleRect(visibleRect) &&
+                            lineTop >= visibleRect.top && lineBottom <= visibleRect.bottom
+                    }
+                }
+                if (!visible) Thread.sleep(100)
+            }
+            if (!visible) fail("John 1:29's text was not scrolled into view")
         }
     }
 }

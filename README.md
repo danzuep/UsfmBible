@@ -69,6 +69,8 @@ The app isn't in the main F-Droid repository yet, so add this project's reposito
 
 Tap a verse to select it and bring up its actions (highlight, share, bookmark, copy), or long-press a verse for its notes, parallel translations and paratext. Notes are saved as you type.
 
+Select a verse and choose Listen to read aloud, following the highlighted verse as playback continues. The speech menu offers speeds up to 3x; media controls can pause or move between chapters. The chapter progress bar is an estimate, not a seek control.
+
 The other translations can be downloaded in the app from [eBible.org](https://ebible.org/download.php), or from download sites you add yourself. See the [full list](docs/TRANSLATIONS.md). The app interface is available in several languages, see [localization](docs/LOCALIZATION.md). Recent changes are in the [changelog](docs/CHANGELOG.md). Report bugs or request features on the [issue tracker](https://github.com/danzuep/UsfmBible/issues).
 
 To study the original texts, see [Macula Scripta](https://danzuep.github.io/MaculaScripta/), which shows the Bible in its original languages (Hebrew, Aramaic and Greek).
