@@ -35,6 +35,9 @@
     <string name="action_clear_search_history">Delete search history</string>
     <string name="action_bookmark_verse">Bookmark</string>
     <string name="action_highlight_verse">Highlight</string>
+    <string name="action_speech_language">Text-to-speech language</string>
+    <string name="action_speech_settings">Text-to-speech settings</string>
+    <string name="action_speech_speed">Playback speed</string>
 
     <string name="dialog_title_no_translation_downloaded">No translation</string>
     <string name="action_download_sites">Download sites</string>

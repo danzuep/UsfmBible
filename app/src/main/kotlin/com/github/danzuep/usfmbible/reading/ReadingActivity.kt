@@ -27,6 +27,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -322,27 +326,15 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechBar.speechMenu.setOnClickListener { anchor ->
             PopupMenu(this@ReadingActivity, anchor).apply {
                 inflate(R.menu.menu_speech)
-                val speeds = mapOf(
-                    R.id.speech_speed_025 to 0.25f,
-                    R.id.speech_speed_050 to 0.5f,
-                    R.id.speech_speed_075 to 0.75f,
-                    R.id.speech_speed_100 to 1f,
-                    R.id.speech_speed_150 to 1.5f,
-                    R.id.speech_speed_175 to 1.75f,
-                    R.id.speech_speed_200 to 2f
-                )
-                speeds.forEach { (id, speed) ->
-                    menu.findItem(id)?.isChecked = speaker.playbackSpeed == speed
-                }
+                menu.findItem(R.id.action_speech_speed).title = primaryColoredSpeechSpeedTitle()
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         R.id.action_speech_language -> {
                             selectSpeechLanguage()
                             true
                         }
-                        in speeds -> {
-                            speaker.playbackSpeed = speeds.getValue(item.itemId)
-                            if (speech == Speech.PLAYING) startSpeech(spokenVerse)
+                        R.id.action_speech_speed -> {
+                            selectSpeechSpeed()
                             true
                         }
                         else -> false
@@ -460,6 +452,36 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         if (openNoteWhenCreated) {
             lifecycleScope.launch { showVerseDetail(viewModel.currentVerseIndex(), VerseDetailViewLayout.VERSE_DETAIL_NOTE) }
         }
+    }
+
+    private fun selectSpeechSpeed() {
+        val speeds = listOf(0.5f, 0.75f, 1f, 0.25f, 1.5f, 1.75f, 2f)
+        val labels = arrayOf(
+            getString(R.string.speech_speed_050),
+            getString(R.string.speech_speed_075),
+            getString(R.string.speech_speed_100),
+            getString(R.string.speech_speed_025),
+            getString(R.string.speech_speed_150),
+            getString(R.string.speech_speed_175),
+            getString(R.string.speech_speed_200)
+        )
+        val selected = speeds.indexOf(speaker.playbackSpeed).takeIf { it >= 0 } ?: speeds.indexOf(1f)
+        MaterialAlertDialogBuilder(this)
+            .setTitle(primaryColoredSpeechSpeedTitle())
+            .setSingleChoiceItems(labels, selected) { dialog, which ->
+                speaker.playbackSpeed = speeds[which]
+                dialog.dismiss()
+                if (speech == Speech.PLAYING) startSpeech(spokenVerse)
+            }
+            .show()
+    }
+
+    private fun primaryColoredSpeechSpeedTitle(): CharSequence {
+        val title = SpannableString(getText(R.string.action_speech_speed))
+        val value = TypedValue()
+        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, value, true)
+        title.setSpan(ForegroundColorSpan(value.data), 0, title.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        return title
     }
 
     private fun listenFromSelection() {

@@ -280,7 +280,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private companion object {
         const val PREFERENCES = "speech"
         const val KEY_LANGUAGE = "language"
-        const val KEY_PLAYBACK_SPEED = "playback_speed"
+        const val KEY_PLAYBACK_SPEED = "playback_speed_v2"
         const val DEFAULT_PLAYBACK_SPEED = 1f
         val PLAYBACK_SPEEDS = setOf(0.25f, 0.5f, 0.75f, 1f, 1.5f, 1.75f, 2f)
         const val PSALMS = 18
