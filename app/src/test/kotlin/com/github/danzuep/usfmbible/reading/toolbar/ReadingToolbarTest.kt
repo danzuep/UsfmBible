@@ -68,7 +68,6 @@ class ReadingToolbarTest : BaseUnitTest() {
                 is ReadingToolbar.ViewEvent.OpenReadingProgress -> openReadingProgressCalled++
                 is ReadingToolbar.ViewEvent.OpenSearch -> openSearchCalled++
                 is ReadingToolbar.ViewEvent.OpenSettings -> openSettingsCalled++
-                is ReadingToolbar.ViewEvent.SelectSpeechLanguage -> fail()
                 is ReadingToolbar.ViewEvent.OpenTranslations -> fail()
                 is ReadingToolbar.ViewEvent.RemoveParallelTranslation -> fail()
                 is ReadingToolbar.ViewEvent.RequestParallelTranslation -> fail()
@@ -167,7 +166,6 @@ class ReadingToolbarTest : BaseUnitTest() {
                 is ReadingToolbar.ViewEvent.OpenReadingProgress -> fail()
                 is ReadingToolbar.ViewEvent.OpenSearch -> fail()
                 is ReadingToolbar.ViewEvent.OpenSettings -> fail()
-                is ReadingToolbar.ViewEvent.SelectSpeechLanguage -> fail()
                 is ReadingToolbar.ViewEvent.OpenTranslations -> openTranslationsCalled++
                 is ReadingToolbar.ViewEvent.RemoveParallelTranslation -> {
                     removeParallelTranslationCalled++
