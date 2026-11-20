@@ -96,6 +96,10 @@ class BibleReadingManager(
     /** The reader's history, most recent first, limited to [timelineLimit]. */
     suspend fun readTimeline(): List<VerseIndex> = bibleReadingRepository.readTimeline().take(timelineLimit())
 
+    suspend fun removeTimelineVerses(verses: Set<VerseIndex>) {
+        bibleReadingRepository.removeTimelineVerses(verses)
+    }
+
     suspend fun timelineLimit(): Int = bibleReadingRepository.readTimelineLimit()
 
     suspend fun saveTimelineLimit(limit: Int) {

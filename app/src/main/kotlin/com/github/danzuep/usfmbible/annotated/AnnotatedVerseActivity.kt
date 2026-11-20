@@ -56,6 +56,7 @@ abstract class AnnotatedVerseActivity<V : VerseAnnotation, VM : AnnotatedVerseVi
             when (viewEvent) {
                 is AnnotatedVerseAdapter.ViewEvent.OpenVerse -> viewModel.openVerse(viewEvent.verseToOpen)
                 is AnnotatedVerseAdapter.ViewEvent.ShowPreview -> viewModel.loadPreview(viewEvent.verseToPreview)
+                is AnnotatedVerseAdapter.ViewEvent.SelectionChanged -> Unit
             }
         }
         verseList.adapter = adapter

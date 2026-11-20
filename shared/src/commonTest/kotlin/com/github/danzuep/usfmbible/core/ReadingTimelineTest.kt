@@ -23,6 +23,13 @@ import kotlin.test.assertTrue
 
 class ReadingTimelineTest {
     @Test
+    fun timelineLimitDefaultsTo50AndOffersTheRequestedOptions() {
+        assertEquals(50, ReadingTimeline.DEFAULT_LIMIT)
+        assertEquals(listOf(20, 50, 100, 200, 500), ReadingTimeline.LIMIT_OPTIONS)
+        assertEquals(500, ReadingTimeline.MAX_LIMIT)
+    }
+
+    @Test
     fun isJump_sameChapter_returnsFalse() {
         assertFalse(ReadingTimeline.isJump(VerseIndex(42, 0, 3), VerseIndex(42, 0, 9)))
     }

@@ -24,7 +24,9 @@ import kotlinx.coroutines.asExecutor
 import com.github.danzuep.usfmbible.Navigator
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.annotated.AnnotatedVerseAdapter
+import com.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
 import com.github.danzuep.usfmbible.core.ReadingTimeline
+import com.github.danzuep.usfmbible.core.VerseIndex
 import com.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import com.github.danzuep.usfmbible.databinding.ActivityTimelineBinding
 import com.github.danzuep.usfmbible.infra.BaseActivity
@@ -40,6 +42,9 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
 
     private lateinit var adapter: AnnotatedVerseAdapter
     private var limit = ReadingTimeline.DEFAULT_LIMIT
+    private var timelineItems = emptyList<AnnotatedVerseItem>()
+    private val selectedVerses = linkedSetOf<VerseIndex>()
+    private var selectionMode = false
 
     override val viewModel: TimelineViewModel by viewModels()
 
@@ -49,6 +54,14 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
         toolbar.setNavigationOnClickListener { navigator.goBack(this@TimelineActivity) }
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
+                R.id.action_timeline_select_all -> {
+                    toggleSelectAll()
+                    true
+                }
+                R.id.action_timeline_delete -> {
+                    deleteSelectedVerses()
+                    true
+                }
                 R.id.action_timeline_limit -> {
                     showLimitDialog()
                     true
@@ -63,10 +76,12 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
         ) { viewEvent ->
             when (viewEvent) {
                 is AnnotatedVerseAdapter.ViewEvent.OpenVerse -> viewModel.openVerse(viewEvent.verseToOpen)
-                is AnnotatedVerseAdapter.ViewEvent.ShowPreview -> viewModel.openVerse(viewEvent.verseToPreview)
+                is AnnotatedVerseAdapter.ViewEvent.ShowPreview -> onVerseLongPressed(viewEvent.verseToPreview)
+                is AnnotatedVerseAdapter.ViewEvent.SelectionChanged -> updateVerseSelection(viewEvent.verseIndex, viewEvent.selected)
             }
         }
         verseList.adapter = adapter
+        updateSelectionMenu()
     }
 
     override fun onViewActionEmitted(viewAction: TimelineViewModel.ViewAction) = when (viewAction) {
@@ -77,6 +92,15 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
         limit = viewState.limit
         toolbar.menu.findItem(R.id.action_timeline_limit).title = viewState.limit.localized()
 
+        if (!viewState.loading) {
+            timelineItems = viewState.items
+            selectedVerses.retainAll(timelineVerseIndexes())
+            if (timelineVerseIndexes().isEmpty()) {
+                selectionMode = false
+                selectedVerses.clear()
+            }
+        }
+
         if (viewState.loading) {
             loadingSpinner.fadeIn()
             verseList.isVisible = false
@@ -85,7 +109,8 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
             verseList.fadeIn()
         }
 
-        adapter.submitList(viewState.items)
+        adapter.submitList(displayTimelineItems())
+        updateSelectionMenu()
 
         viewState.error?.handle()
     }
@@ -93,7 +118,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     private fun showLimitDialog() {
         if (isDestroyed) return
 
-        val options = (ReadingTimeline.LIMIT_OPTIONS + limit).distinct().sorted()
+        val options = ReadingTimeline.LIMIT_OPTIONS
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.action_timeline_limit)
             .setSingleChoiceItems(options.map { it.localized() }.toTypedArray(), options.indexOf(limit)) { dialog, which ->
@@ -102,6 +127,72 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun onVerseLongPressed(verseIndex: VerseIndex) {
+        if (selectionMode) {
+            updateVerseSelection(verseIndex, verseIndex !in selectedVerses)
+        } else {
+            selectionMode = true
+            selectedVerses.clear()
+            selectedVerses.add(verseIndex)
+            renderTimelineSelection()
+        }
+    }
+
+    private fun updateVerseSelection(verseIndex: VerseIndex, selected: Boolean) {
+        if (!selectionMode) return
+        if (selected) selectedVerses.add(verseIndex) else selectedVerses.remove(verseIndex)
+        renderTimelineSelection()
+    }
+
+    private fun toggleSelectAll() {
+        if (!selectionMode) return
+        val verses = timelineVerseIndexes()
+        if (selectedVerses.containsAll(verses)) {
+            selectedVerses.clear()
+        } else {
+            selectedVerses.addAll(verses)
+        }
+        renderTimelineSelection()
+    }
+
+    private fun deleteSelectedVerses() {
+        val verses = selectedVerses.toSet()
+        if (verses.isEmpty()) return
+        selectionMode = false
+        selectedVerses.clear()
+        renderTimelineSelection()
+        viewModel.deleteTimelineVerses(verses)
+    }
+
+    private fun timelineVerseIndexes(): Set<VerseIndex> =
+        timelineItems.filterIsInstance<AnnotatedVerseItem.Bookmark>().mapTo(linkedSetOf()) { it.verseIndex }
+
+    private fun displayTimelineItems(): List<AnnotatedVerseItem> = timelineItems.map { item ->
+        if (item is AnnotatedVerseItem.Bookmark) {
+            item.copy(selectionMode = selectionMode, selected = selectionMode && item.verseIndex in selectedVerses)
+        } else {
+            item
+        }
+    }
+
+    private fun renderTimelineSelection() {
+        adapter.submitList(displayTimelineItems())
+        updateSelectionMenu()
+    }
+
+    private fun updateSelectionMenu() {
+        val menu = viewBinding.toolbar.menu
+        menu.findItem(R.id.action_timeline_limit).isVisible = !selectionMode
+        menu.findItem(R.id.action_timeline_select_all).isVisible = selectionMode
+        menu.findItem(R.id.action_timeline_delete).apply {
+            isVisible = selectionMode
+            isEnabled = selectedVerses.isNotEmpty()
+        }
+        val allSelected = timelineVerseIndexes().let { it.isNotEmpty() && selectedVerses.containsAll(it) }
+        menu.findItem(R.id.action_timeline_select_all).title =
+            getString(if (allSelected) R.string.action_deselect_all else R.string.action_select_all)
     }
 
     private fun TimelineViewModel.ViewState.Error.handle() = when (this) {
@@ -121,6 +212,15 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
                 title = R.string.dialog_title_error,
                 message = R.string.dialog_message_failed_to_save_sort_order,
                 onPositive = { _, _ -> viewModel.saveLimit(limit) },
+                onDismiss = { viewModel.markErrorAsShown(this) }
+            )
+        }
+        is TimelineViewModel.ViewState.Error.TimelineDeletingError -> {
+            dialog(
+                cancelable = true,
+                title = R.string.dialog_title_error,
+                message = R.string.dialog_message_failed_to_delete_timeline,
+                onPositive = { _, _ -> viewModel.deleteTimelineVerses(verses) },
                 onDismiss = { viewModel.markErrorAsShown(this) }
             )
         }
