@@ -70,7 +70,7 @@ class SpeechNotification(
         updatePosition(playing, position)
         mediaSession.isActive = true
 
-        val notificationKey = listOf(title, playing, hasPrevious, hasNext)
+        val notificationKey = listOf(title, playing, duration, hasPrevious, hasNext)
         if (lastNotification == notificationKey) return
         lastNotification = notificationKey
         val actionTitle = appContext.getString(if (playing) R.string.speech_notification_pause else R.string.speech_notification_play)

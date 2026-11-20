@@ -41,3 +41,42 @@ internal fun chapterSpeechFraction(
     val before = verses.take(position).sumOf { words[it] ?: 1 }
     return ((before + (words[current] ?: 1) * verseFraction.coerceIn(0f, 1f)) / total).coerceIn(0f, 1f)
 }
+
+/** Starts on submission as a fallback for engines that omit onStart, and corrects for startup delay when they do report it. */
+internal class SpeechVerseTimer {
+    private var verse = VerseIndex.INVALID
+    private var startedAt: Long? = null
+    private var confirmed = false
+
+    fun reset() {
+        verse = VerseIndex.INVALID
+        startedAt = null
+        confirmed = false
+    }
+
+    fun queued(index: VerseIndex, now: Long) {
+        if (verse != index) {
+            verse = index
+            startedAt = now
+            confirmed = false
+        }
+    }
+
+    fun started(index: VerseIndex, now: Long) {
+        if (verse != index) queued(index, now)
+        if (!confirmed) {
+            startedAt = now
+            confirmed = true
+        }
+    }
+
+    fun elapsed(index: VerseIndex, now: Long): Long? =
+        startedAt?.takeIf { verse == index }?.let { (now - it).coerceAtLeast(0L) }
+
+    fun fraction(index: VerseIndex, now: Long, words: Int, millisecondsPerWord: Float): Float {
+        val elapsed = elapsed(index, now) ?: return 0f
+        return (elapsed / (words * millisecondsPerWord)).coerceIn(0f, 1f)
+    }
+}
+
+internal val speechPlaybackSpeeds = listOf(0.5f, 0.75f, 1f, 0.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f)

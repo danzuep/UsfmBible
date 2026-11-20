@@ -43,4 +43,37 @@ class SpeechProgressTest {
         assertEquals(0f, chapterSpeechFraction(verses, words, VerseIndex(42, 1, 0), 0.5f))
         assertEquals(0f, chapterSpeechFraction(emptyList(), emptyMap(), verses[0], 0f))
     }
+
+    @Test
+    fun `first verse progresses before callback and later verses start fresh`() {
+        val first = VerseIndex(42, 0, 0)
+        val second = VerseIndex(42, 0, 1)
+        val verses = listOf(first, second)
+        val words = mapOf(first to 10, second to 10)
+        val timer = SpeechVerseTimer()
+        timer.queued(first, 0)
+        val firstFraction = timer.fraction(first, 1000, 10, 400f)
+        assertEquals(0.125f, chapterSpeechFraction(verses, words, first, firstFraction))
+        timer.started(first, 1000)
+        assertEquals(0f, timer.fraction(first, 1000, 10, 400f))
+        timer.queued(first, 2000)
+        timer.started(first, 2000)
+        assertEquals(0.25f, timer.fraction(first, 2000, 10, 400f))
+        timer.queued(second, 5000)
+        assertEquals(0.5f, chapterSpeechFraction(verses, words, second, timer.fraction(second, 5000, 10, 400f)))
+        assertNull(timer.elapsed(first, 5000))
+        timer.reset()
+        assertNull(timer.elapsed(second, 6000))
+    }
+
+    @Test
+    fun `timer is bounded and rate changes affect the estimate`() {
+        val verse = VerseIndex(42, 0, 0)
+        val timer = SpeechVerseTimer()
+        timer.queued(verse, 100)
+        assertEquals(0f, timer.fraction(verse, 0, 10, 400f))
+        assertEquals(0.25f, timer.fraction(verse, 1100, 10, 400f))
+        assertEquals(0.5f, timer.fraction(verse, 1100, 10, 200f))
+        assertEquals(1f, timer.fraction(verse, 10000, 10, 400f))
+    }
 }
