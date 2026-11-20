@@ -17,8 +17,8 @@
 package com.github.danzuep.usfmbible.core
 
 /**
- * The verses the reader has jumped away from, most recent first. The verse in view is the current position, so a verse
- * is only added to the timeline when the reader moves to a different chapter.
+ * The reader's history, most recent first. Entries are added when the reader moves to a different chapter or explicitly
+ * selects a verse.
  */
 object ReadingTimeline {
     const val DEFAULT_LIMIT = 10

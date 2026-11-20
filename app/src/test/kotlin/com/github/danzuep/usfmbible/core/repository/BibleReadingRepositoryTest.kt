@@ -92,6 +92,22 @@ class BibleReadingRepositoryTest : BaseUnitTest() {
     }
 
     @Test
+    fun `recording a user selected verse adds it without a chapter change`() = runTest {
+        coEvery { localReadingStorage.readCurrentVerseIndex() } returns VerseIndex(1, 2, 3)
+        coEvery { localReadingStorage.readCurrentTranslation() } returns MockContents.kjvShortName
+        coEvery { localReadingStorage.readParallelTranslations() } returns emptyList()
+        coEvery { localReadingStorage.readTimeline() } returns emptyList()
+        coEvery { localReadingStorage.saveTimeline(any()) } returns Unit
+
+        val bibleReadingRepository = BibleReadingRepository(localReadingStorage, testScope)
+        bibleReadingRepository.currentVerseIndex.first()
+        bibleReadingRepository.addToTimeline(VerseIndex(1, 2, 4))
+
+        assertEquals(listOf(VerseIndex(1, 2, 4)), bibleReadingRepository.readTimeline())
+        coVerify(exactly = 1) { localReadingStorage.saveTimeline(listOf(VerseIndex(1, 2, 4))) }
+    }
+
+    @Test
     fun `test currentTranslation from constructor`() = runTest {
         coEvery { localReadingStorage.readCurrentVerseIndex() } returns VerseIndex(1, 2, 3)
         coEvery { localReadingStorage.readCurrentTranslation() } returns MockContents.kjvShortName

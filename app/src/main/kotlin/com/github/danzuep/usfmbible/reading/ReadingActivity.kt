@@ -1036,7 +1036,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     override fun onVerseClicked(verse: Verse) {
         if (speech != Speech.OFF && actionMode == null) {
-            if (verse.verseIndex != spokenVerse) moveSpeech(verse.verseIndex)
+            if (verse.verseIndex != spokenVerse) {
+                viewModel.recordUserSelectedVerse(verse.verseIndex)
+                moveSpeech(verse.verseIndex)
+            }
             return
         }
         if (actionMode == null) {
@@ -1055,6 +1058,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             // select the verse
             selectedVerses.add(verse)
             versePagerAdapter.selectVerse(verse.verseIndex)
+            viewModel.recordUserSelectedVerse(verse.verseIndex)
         }
     }
 
@@ -1068,6 +1072,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
                 verses.forEach { verse ->
                     selectedVerses.add(verse)
                     versePagerAdapter.selectVerse(verse.verseIndex)
+                    viewModel.recordUserSelectedVerse(verse.verseIndex)
                 }
             } catch (e: Exception) {
                 Logger.withTag(tag).e(e) { "Failed to select the referenced verses" }

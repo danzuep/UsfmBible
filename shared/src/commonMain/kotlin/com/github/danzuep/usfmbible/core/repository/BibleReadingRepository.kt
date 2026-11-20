@@ -88,7 +88,8 @@ class BibleReadingRepository(private val localReadingStorage: LocalReadingStorag
     }
 
     // The timeline is a convenience, so it must never stop the reader from navigating.
-    private suspend fun addToTimeline(verseIndex: VerseIndex) {
+    suspend fun addToTimeline(verseIndex: VerseIndex) {
+        if (!verseIndex.isValid()) return
         try {
             timelineMutex.withLock {
                 val updated = ReadingTimeline.push(timeline ?: localReadingStorage.readTimeline(), verseIndex)
