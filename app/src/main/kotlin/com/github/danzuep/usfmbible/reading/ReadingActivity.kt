@@ -30,6 +30,7 @@ import android.os.SystemClock
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.text.format.DateUtils
 import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
@@ -67,8 +68,10 @@ import com.github.danzuep.usfmbible.reading.detail.VerseTextItem
 import com.github.danzuep.usfmbible.reading.toolbar.ReadingToolbarFragment
 import com.github.danzuep.usfmbible.reading.speech.ChapterSpeaker
 import com.github.danzuep.usfmbible.reading.speech.SpeechNotification
+import com.github.danzuep.usfmbible.reading.speech.SpeechVerseTimer
 import com.github.danzuep.usfmbible.reading.speech.adjacentSpeechChapter
 import com.github.danzuep.usfmbible.reading.speech.chapterSpeechFraction
+import com.github.danzuep.usfmbible.reading.speech.speechPlaybackSpeeds
 import com.github.danzuep.usfmbible.reading.verse.ParagraphItem
 import com.github.danzuep.usfmbible.reading.verse.VersePagerAdapter
 import com.github.danzuep.usfmbible.reading.verse.toBookIndex
@@ -119,12 +122,13 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private var speechRequest = 0
     private var speechWordsByVerse = emptyMap<VerseIndex, Int>()
     private var speechTotalWords = 0
-    private var speechVerseStartedAt = 0L
-    private var speechTimerVerse = VerseIndex.INVALID
+    private val speechVerseTimer = SpeechVerseTimer()
     private var speechPausedFraction = 0f
     private var speechMillisecondsPerWord = 400f
     private var speechRateInitialized = false
-    private var speechChapterDuration = 0L
+    private val speechChapterDuration: Long
+        get() = if (speechTotalWords == 0) 0L else (speechTotalWords * speechMillisecondsPerWord).toLong().coerceAtLeast(1L)
+    private var speechTimeMenuItem: MenuItem? = null
     private var lastMediaProgressUpdate = 0L
     private var speechRevealRequest = 0
     private var speechRevealPending = false
@@ -152,6 +156,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private val speechNotification by speechNotificationDelegate
     private val speakerDelegate = lazy(LazyThreadSafetyMode.NONE) {
         ChapterSpeaker(this, object : ChapterSpeaker.Listener {
+            override fun onVerseQueued(verseIndex: VerseIndex) = followSpokenVerse(verseIndex, false)
             override fun onVerseStarted(verseIndex: VerseIndex) = followSpokenVerse(verseIndex)
             override fun onVerseFinished(verseIndex: VerseIndex) = finishSpokenVerse(verseIndex)
             override fun onChapterFinished() = speakNextChapter()
@@ -341,6 +346,9 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             PopupMenu(this@ReadingActivity, anchor).apply {
                 inflate(R.menu.menu_speech)
                 menu.findItem(R.id.action_speech_speed).title = primaryColoredSpeechSpeedTitle()
+                speechTimeMenuItem = menu.findItem(R.id.action_speech_time)
+                updateSpeechTime()
+                setOnDismissListener { speechTimeMenuItem = null }
                 setOnMenuItemClickListener { item ->
                     when (item.itemId) {
                         R.id.action_speech_language -> {
@@ -474,7 +482,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
 
     private fun selectSpeechSpeed() {
-        val speeds = listOf(0.5f, 0.75f, 1f, 0.25f, 1.5f, 1.75f, 2f, 2.5f, 3f)
+        val speeds = speechPlaybackSpeeds
         val labels = arrayOf(
             getString(R.string.speech_speed_050),
             getString(R.string.speech_speed_075),
@@ -484,16 +492,19 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             getString(R.string.speech_speed_175),
             getString(R.string.speech_speed_200),
             getString(R.string.speech_speed_250),
-            getString(R.string.speech_speed_300)
+            getString(R.string.speech_speed_300),
+            getString(R.string.speech_speed_400),
+            getString(R.string.speech_speed_500)
         )
         val selected = speeds.indexOf(speaker.playbackSpeed).takeIf { it >= 0 } ?: speeds.indexOf(1f)
         MaterialAlertDialogBuilder(this)
             .setTitle(primaryColoredSpeechSpeedTitle())
             .setSingleChoiceItems(labels, selected) { dialog, which ->
-                if (speechRateInitialized) speechMillisecondsPerWord *= speaker.playbackSpeed / speeds[which]
+                initializeSpeechRate()
+                speechMillisecondsPerWord *= speaker.playbackSpeed / speeds[which]
                 speaker.playbackSpeed = speeds[which]
                 dialog.dismiss()
-                if (speech == Speech.PLAYING) startSpeech(spokenVerse)
+                if (speech == Speech.PLAYING) startSpeech(spokenVerse) else updateSpeechBar()
             }
             .show()
     }
@@ -514,15 +525,11 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     /** Reads aloud from [from] to the end of its chapter, then carries on through the following chapters. */
     private fun startSpeech(from: VerseIndex) {
-        if (!speechRateInitialized) {
-            speechMillisecondsPerWord /= speaker.playbackSpeed
-            speechRateInitialized = true
-        }
+        initializeSpeechRate()
         speaker.stop()
         speech = Speech.PLAYING
         spokenVerse = from
-        speechTimerVerse = VerseIndex.INVALID
-        speechVerseStartedAt = 0L
+        speechVerseTimer.reset()
         speechPausedFraction = 0f
         if (from !in spokenVerses) clearSpeechChapter()
         highlightSpokenVerse(from)
@@ -571,7 +578,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         clearSpeechChapter()
         speechRevealRequest++
         speechRevealPending = false
-        speechVerseStartedAt = 0L
+        speechVerseTimer.reset()
         updateSpeechBar()
     }
 
@@ -580,7 +587,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         if (verseIndex == spokenVerse) return
         if (speech == Speech.PLAYING) pauseSpeech()
         spokenVerse = verseIndex
-        speechTimerVerse = VerseIndex.INVALID
+        speechVerseTimer.reset()
         speechPausedFraction = 0f
         highlightSpokenVerse(verseIndex)
         if (verseIndex !in spokenVerses) clearSpeechChapter()
@@ -620,13 +627,13 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         }
     }
 
-    private fun followSpokenVerse(verseIndex: VerseIndex) {
+    private fun followSpokenVerse(verseIndex: VerseIndex, started: Boolean = true) {
         if (speech != Speech.PLAYING) return
-        if (speechTimerVerse != verseIndex) {
-            speechTimerVerse = verseIndex
-            speechVerseStartedAt = SystemClock.elapsedRealtime()
+        val now = SystemClock.elapsedRealtime()
+        if (spokenVerse != verseIndex) {
             speechPausedFraction = 0f
         }
+        if (started) speechVerseTimer.started(verseIndex, now) else speechVerseTimer.queued(verseIndex, now)
         val changed = spokenVerse != verseIndex
         spokenVerse = verseIndex
         if (changed) highlightSpokenVerse(verseIndex)
@@ -639,9 +646,8 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
 
     private fun finishSpokenVerse(verseIndex: VerseIndex) {
-        if (speechTimerVerse != verseIndex || speechVerseStartedAt == 0L) return
+        val elapsed = speechVerseTimer.elapsed(verseIndex, SystemClock.elapsedRealtime()) ?: return
         val words = speechWordsByVerse[verseIndex] ?: return
-        val elapsed = SystemClock.elapsedRealtime() - speechVerseStartedAt
         val observedRate = (elapsed.toFloat() / words).coerceIn(80f, 1500f)
         speechMillisecondsPerWord = (speechMillisecondsPerWord * 3f + observedRate) / 4f
     }
@@ -674,24 +680,40 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         spokenVerses = emptyList()
         speechWordsByVerse = emptyMap()
         speechTotalWords = 0
-        speechChapterDuration = 0L
     }
 
     private fun setSpeechChapter(verses: List<Verse>) {
+        initializeSpeechRate()
         spokenVerses = verses.map { it.verseIndex }
         speechWordsByVerse = verses.associate { it.verseIndex to countSpeechWords(it.text.text) }
-        speechTotalWords = speechWordsByVerse.values.sum().coerceAtLeast(1)
-        speechChapterDuration = (speechTotalWords * speechMillisecondsPerWord).toLong().coerceAtLeast(1L)
+        speechTotalWords = speechWordsByVerse.values.sum()
+    }
+
+    private fun initializeSpeechRate() {
+        if (!speechRateInitialized) {
+            speechMillisecondsPerWord /= speaker.playbackSpeed
+            speechRateInitialized = true
+        }
     }
 
     private fun currentSpeechVerseFraction(): Float {
-        if (speechTimerVerse != spokenVerse || speechVerseStartedAt == 0L) return speechPausedFraction
-        val duration = (speechWordsByVerse[spokenVerse] ?: return 0f) * speechMillisecondsPerWord
-        return ((SystemClock.elapsedRealtime() - speechVerseStartedAt) / duration).coerceIn(0f, 1f)
+        val words = speechWordsByVerse[spokenVerse] ?: return speechPausedFraction
+        return speechVerseTimer.fraction(spokenVerse, SystemClock.elapsedRealtime(), words, speechMillisecondsPerWord)
     }
 
     private fun updateSpeechProgress() {
         viewBinding.speechBar.speechProgress.progress = (speechFraction() * 1000).toInt()
+        updateSpeechTime()
+    }
+
+    private fun updateSpeechTime() {
+        speechTimeMenuItem?.title = if (speechChapterDuration == 0L) {
+            getString(R.string.speech_time_unknown)
+        } else {
+            getString(R.string.speech_time_estimate,
+                DateUtils.formatElapsedTime(speechPosition() / 1000),
+                DateUtils.formatElapsedTime(speechChapterDuration / 1000))
+        }
     }
 
     private fun speechFraction(): Float = chapterSpeechFraction(
@@ -781,7 +803,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         val verse = VerseIndex(saved[0], saved[1], saved[2])
         speech = Speech.PAUSED
         spokenVerse = verse
-        speechTimerVerse = VerseIndex.INVALID
+        speechVerseTimer.reset()
         speechPausedFraction = 0f
         highlightSpokenVerse(verse)
         updateSpeechBar()
