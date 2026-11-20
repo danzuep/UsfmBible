@@ -265,6 +265,12 @@ class ReadingViewModel @Inject constructor(
         }
     }
 
+    fun recordUserSelectedVerse(verseIndex: VerseIndex) {
+        viewModelScope.launch {
+            bibleReadingManager.recordUserSelectedVerse(verseIndex)
+        }
+    }
+
     fun updateCurrentVerse(verseIndex: VerseIndex) {
         viewModelScope.launch {
             runCatching { bibleReadingManager.saveCurrentVerseIndex(verseIndex) }

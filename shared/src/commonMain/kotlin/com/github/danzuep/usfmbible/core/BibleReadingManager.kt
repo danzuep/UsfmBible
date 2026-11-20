@@ -88,7 +88,12 @@ class BibleReadingManager(
         bibleReadingRepository.saveCurrentVerseIndex(verseIndex)
     }
 
-    /** The verses the reader jumped away from, most recent first, limited to [timelineLimit]. */
+    /** Adds a verse explicitly selected by the user to history, independently of the current reading position. */
+    suspend fun recordUserSelectedVerse(verseIndex: VerseIndex) {
+        bibleReadingRepository.addToTimeline(verseIndex)
+    }
+
+    /** The reader's history, most recent first, limited to [timelineLimit]. */
     suspend fun readTimeline(): List<VerseIndex> = bibleReadingRepository.readTimeline().take(timelineLimit())
 
     suspend fun timelineLimit(): Int = bibleReadingRepository.readTimelineLimit()
