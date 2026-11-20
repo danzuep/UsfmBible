@@ -18,9 +18,11 @@
 package com.github.danzuep.usfmbible.annotated
 
 import android.content.Context
+import android.view.View
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.test.core.app.ApplicationProvider
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.Constants
 import com.github.danzuep.usfmbible.core.Settings
@@ -37,6 +39,7 @@ import kotlin.test.assertEquals
 class AnnotatedVerseAdapterTest : BaseUnitTest() {
     private lateinit var context: Context
     private lateinit var adapter: AnnotatedVerseAdapter
+    private val viewEvents = mutableListOf<AnnotatedVerseAdapter.ViewEvent>()
 
     @BeforeTest
     override fun setup() {
@@ -46,7 +49,7 @@ class AnnotatedVerseAdapterTest : BaseUnitTest() {
         adapter = AnnotatedVerseAdapter(
             inflater = LayoutInflater.from(context),
             executor = TestExecutor()
-        ) {}
+        ) { viewEvents += it }
     }
 
     @Test
@@ -77,5 +80,27 @@ class AnnotatedVerseAdapterTest : BaseUnitTest() {
         adapter.onCreateViewHolder(FrameLayout(context), AnnotatedVerseItem.Bookmark.VIEW_TYPE) as AnnotatedVerseViewHolder.Bookmark
         adapter.onCreateViewHolder(FrameLayout(context), AnnotatedVerseItem.Highlight.VIEW_TYPE) as AnnotatedVerseViewHolder.Highlight
         adapter.onCreateViewHolder(FrameLayout(context), AnnotatedVerseItem.Note.VIEW_TYPE) as AnnotatedVerseViewHolder.Note
+    }
+
+    @Test
+    fun `bookmark checkbox reports selection changes`() {
+        val verseIndex = VerseIndex(1, 2, 3)
+        val item = AnnotatedVerseItem.Bookmark(
+            Settings.DEFAULT,
+            verseIndex,
+            "Book",
+            "Bk",
+            "Text",
+            Constants.DEFAULT_SORT_ORDER,
+            selectionMode = true
+        )
+        val holder = adapter.onCreateViewHolder(FrameLayout(context), AnnotatedVerseItem.Bookmark.VIEW_TYPE)
+        holder.bindData(item)
+
+        val checkbox = holder.itemView.findViewById<MaterialCheckBox>(R.id.selection_checkbox)
+        assertEquals(View.VISIBLE, checkbox.visibility)
+        checkbox.isChecked = true
+
+        assertEquals(AnnotatedVerseAdapter.ViewEvent.SelectionChanged(verseIndex, true), viewEvents.single())
     }
 }

@@ -61,6 +61,7 @@ class TimelineViewModel @Inject constructor(
         sealed class Error {
             object TimelineLoadingError : Error()
             data class LimitSavingError(val limit: Int) : Error()
+            data class TimelineDeletingError(val verses: Set<VerseIndex>) : Error()
             data class VerseOpeningError(val verseToOpen: VerseIndex) : Error()
         }
     }
@@ -108,6 +109,19 @@ class TimelineViewModel @Inject constructor(
             }.onFailure { e ->
                 Logger.withTag(tag).e(e) { "Failed to save the reading timeline limit" }
                 updateViewState { it.copy(error = ViewState.Error.LimitSavingError(limit)) }
+            }
+        }
+    }
+
+    fun deleteTimelineVerses(verses: Set<VerseIndex>) {
+        if (verses.isEmpty()) return
+        viewModelScope.launch(coroutineDispatcherProvider.default) {
+            runCatching {
+                bibleReadingManager.removeTimelineVerses(verses)
+                loadTimeline()
+            }.onFailure { e ->
+                Logger.withTag(tag).e(e) { "Failed to delete verses from the reading timeline" }
+                updateViewState { it.copy(error = ViewState.Error.TimelineDeletingError(verses)) }
             }
         }
     }

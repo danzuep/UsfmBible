@@ -35,6 +35,11 @@
     <string name="title_timeline">🕘</string>
     <string name="action_timeline">@string/title_timeline</string>
     <string name="action_timeline_limit">#</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_deselect_all">Deselect all</string>
+    <string name="action_delete_selected_history">Delete selected history</string>
+    <string name="action_select_verse">Select verse</string>
+    <string name="dialog_message_failed_to_delete_timeline">Could not delete the selected reading history. Retry?</string>
     <string name="text_no_timeline">∅</string>
     <string name="action_bookmarks">@string/title_bookmarks</string>
     <string name="action_highlights">@string/title_highlights</string>

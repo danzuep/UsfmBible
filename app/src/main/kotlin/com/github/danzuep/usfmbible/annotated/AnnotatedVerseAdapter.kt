@@ -56,6 +56,7 @@ class AnnotatedVerseAdapter(
     sealed class ViewEvent {
         data class OpenVerse(val verseToOpen: VerseIndex) : ViewEvent()
         data class ShowPreview(val verseToPreview: VerseIndex) : ViewEvent()
+        data class SelectionChanged(val verseIndex: VerseIndex, val selected: Boolean) : ViewEvent()
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -102,7 +103,9 @@ sealed class AnnotatedVerseItem(viewType: Int) : VerticalRecyclerViewItem(viewTy
         private val bookName: String,
         private val bookShortName: String,
         private val verseText: String,
-        @Constants.SortOrder private val sortOrder: Int
+        @Constants.SortOrder private val sortOrder: Int,
+        val selectionMode: Boolean = false,
+        val selected: Boolean = false
     ) : AnnotatedVerseItem(VIEW_TYPE) {
         companion object {
             @JvmField val VIEW_TYPE = R.layout.item_annotated_verse_bookmark
@@ -209,13 +212,19 @@ sealed class AnnotatedVerseViewHolder<Item : AnnotatedVerseItem, VB : ViewBindin
         }
     }
 
-    class Bookmark(inflater: LayoutInflater, parent: ViewGroup, onViewEvent: (AnnotatedVerseAdapter.ViewEvent) -> Unit)
+    class Bookmark(inflater: LayoutInflater, parent: ViewGroup, private val onViewEvent: (AnnotatedVerseAdapter.ViewEvent) -> Unit)
         : AnnotatedVerseViewHolder<AnnotatedVerseItem.Bookmark, ItemAnnotatedVerseBookmarkBinding>(
         ItemAnnotatedVerseBookmarkBinding.inflate(inflater, parent, false)
     ) {
         init {
             itemView.setOnClickListener {
-                item?.let { onViewEvent(AnnotatedVerseAdapter.ViewEvent.OpenVerse(it.verseIndex)) }
+                item?.let {
+                    if (it.selectionMode) {
+                        onViewEvent(AnnotatedVerseAdapter.ViewEvent.SelectionChanged(it.verseIndex, !it.selected))
+                    } else {
+                        onViewEvent(AnnotatedVerseAdapter.ViewEvent.OpenVerse(it.verseIndex))
+                    }
+                }
             }
             itemView.setOnLongClickListener {
                 item?.let { onViewEvent(AnnotatedVerseAdapter.ViewEvent.ShowPreview(it.verseIndex)) }
@@ -223,9 +232,17 @@ sealed class AnnotatedVerseViewHolder<Item : AnnotatedVerseItem, VB : ViewBindin
             }
         }
 
-        override fun bind(item: AnnotatedVerseItem.Bookmark, payloads: List<Any>) = with(viewBinding.text) {
-            setPrimaryTextSize(item.settings)
-            text = item.textForDisplay
+        override fun bind(item: AnnotatedVerseItem.Bookmark, payloads: List<Any>) = with(viewBinding) {
+            text.setPrimaryTextSize(item.settings)
+            text.text = item.textForDisplay
+            selectionCheckbox.setOnCheckedChangeListener(null)
+            selectionCheckbox.isVisible = item.selectionMode
+            selectionCheckbox.isChecked = item.selected
+            selectionCheckbox.setOnCheckedChangeListener { _, selected ->
+                if (item.selectionMode && selected != item.selected) {
+                    onViewEvent(AnnotatedVerseAdapter.ViewEvent.SelectionChanged(item.verseIndex, selected))
+                }
+            }
         }
     }
 

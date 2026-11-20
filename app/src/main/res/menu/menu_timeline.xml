@@ -3,6 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_timeline_select_all"
+        android:title="@string/action_select_all"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_timeline_delete"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/action_delete_selected_history"
+        android:visible="false"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_timeline_limit"
         android:title="@string/action_timeline_limit"
         app:showAsAction="always" />

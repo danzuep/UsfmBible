@@ -108,6 +108,28 @@ class BibleReadingRepositoryTest : BaseUnitTest() {
     }
 
     @Test
+    fun `removeTimelineVerses persists the remaining history`() = runTest {
+        val history = listOf(VerseIndex(0, 0, 1), VerseIndex(0, 1, 3), VerseIndex(1, 0, 2))
+        coEvery { localReadingStorage.readTimeline() } returns history
+        coEvery { localReadingStorage.saveTimeline(any()) } returns Unit
+
+        val bibleReadingRepository = BibleReadingRepository(localReadingStorage, testScope)
+        bibleReadingRepository.removeTimelineVerses(setOf(history[0], history[2]))
+
+        assertEquals(listOf(history[1]), bibleReadingRepository.readTimeline())
+        coVerify(exactly = 1) { localReadingStorage.saveTimeline(listOf(history[1])) }
+    }
+
+    @Test
+    fun `legacy timeline limit falls back to the new default`() = runTest {
+        coEvery { localReadingStorage.readTimelineLimit() } returns 10
+
+        val bibleReadingRepository = BibleReadingRepository(localReadingStorage, testScope)
+
+        assertEquals(50, bibleReadingRepository.readTimelineLimit())
+    }
+
+    @Test
     fun `test currentTranslation from constructor`() = runTest {
         coEvery { localReadingStorage.readCurrentVerseIndex() } returns VerseIndex(1, 2, 3)
         coEvery { localReadingStorage.readCurrentTranslation() } returns MockContents.kjvShortName

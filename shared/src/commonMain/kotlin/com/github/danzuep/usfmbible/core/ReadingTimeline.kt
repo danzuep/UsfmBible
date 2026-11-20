@@ -21,10 +21,10 @@ package com.github.danzuep.usfmbible.core
  * selects a verse.
  */
 object ReadingTimeline {
-    const val DEFAULT_LIMIT = 10
+    const val DEFAULT_LIMIT = 50
     const val MIN_LIMIT = 1
-    const val MAX_LIMIT = 50
-    val LIMIT_OPTIONS = listOf(5, 10, 15, 20, 30, MAX_LIMIT)
+    const val MAX_LIMIT = 500
+    val LIMIT_OPTIONS = listOf(20, 50, 100, 200, MAX_LIMIT)
 
     fun isJump(from: VerseIndex, to: VerseIndex): Boolean =
             from.isValid() && to.isValid() && (from.bookIndex != to.bookIndex || from.chapterIndex != to.chapterIndex)

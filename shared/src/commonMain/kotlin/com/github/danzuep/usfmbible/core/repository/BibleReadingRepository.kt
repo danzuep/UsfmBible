@@ -105,7 +105,17 @@ class BibleReadingRepository(private val localReadingStorage: LocalReadingStorag
         timeline ?: localReadingStorage.readTimeline().also { timeline = it }
     }
 
-    suspend fun readTimelineLimit(): Int = localReadingStorage.readTimelineLimit()
+    suspend fun removeTimelineVerses(verses: Set<VerseIndex>) {
+        if (verses.isEmpty()) return
+        timelineMutex.withLock {
+            val updated = (timeline ?: localReadingStorage.readTimeline()).filterNot { it in verses }
+            localReadingStorage.saveTimeline(updated)
+            timeline = updated
+        }
+    }
+
+    suspend fun readTimelineLimit(): Int =
+        localReadingStorage.readTimelineLimit().takeIf { it in ReadingTimeline.LIMIT_OPTIONS } ?: ReadingTimeline.DEFAULT_LIMIT
 
     suspend fun saveTimelineLimit(limit: Int) {
         localReadingStorage.saveTimelineLimit(limit.coerceIn(ReadingTimeline.MIN_LIMIT, ReadingTimeline.MAX_LIMIT))
