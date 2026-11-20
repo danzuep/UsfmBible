@@ -85,6 +85,7 @@ class AnnotatedVerseViewHolderTest : BaseUnitTest() {
                     assertEquals(VerseIndex(0, 0, 0), viewEvent.verseToPreview)
                     showPreviewCalled++
                 }
+                is AnnotatedVerseAdapter.ViewEvent.SelectionChanged -> Unit
             }
         }
         assertTrue(viewHolder.itemView.findViewById<TextView>(R.id.text).text.isEmpty())
@@ -139,6 +140,7 @@ class AnnotatedVerseViewHolderTest : BaseUnitTest() {
                     assertEquals(VerseIndex(0, 0, 0), viewEvent.verseToPreview)
                     showPreviewCalled++
                 }
+                is AnnotatedVerseAdapter.ViewEvent.SelectionChanged -> Unit
             }
         }
         assertTrue(viewHolder.itemView.findViewById<TextView>(R.id.text).text.isEmpty())
@@ -194,6 +196,7 @@ class AnnotatedVerseViewHolderTest : BaseUnitTest() {
                     assertEquals(VerseIndex(0, 0, 0), viewEvent.verseToPreview)
                     showPreviewCalled++
                 }
+                is AnnotatedVerseAdapter.ViewEvent.SelectionChanged -> Unit
             }
         }
         assertTrue(viewHolder.itemView.findViewById<TextView>(R.id.text).text.isEmpty())

@@ -101,6 +101,6 @@ class AnnotatedVerseAdapterTest : BaseUnitTest() {
         assertEquals(View.VISIBLE, checkbox.visibility)
         checkbox.isChecked = true
 
-        assertEquals(listOf(AnnotatedVerseAdapter.ViewEvent.SelectionChanged(verseIndex, true)), viewEvents)
+        assertEquals(AnnotatedVerseAdapter.ViewEvent.SelectionChanged(verseIndex, true), viewEvents.single())
     }
 }
