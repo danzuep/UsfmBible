@@ -18,12 +18,16 @@
 package com.github.danzuep.usfmbible.ui
 
 import android.os.Bundle
+import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.github.danzuep.usfmbible.core.repository.remote.CopyrightBlock
+import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.repository.remote.parseCopyrightMarkdown
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.appbar.MaterialToolbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,40 +40,36 @@ class MarkdownActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val translation = intent.getStringExtra(KEY_COPYRIGHT)
-        if (translation != null) {
-            lifecycleScope.launch {
-                val blocks = withContext(Dispatchers.IO) { copyrightBlocks(translation) }
-                if (blocks.isEmpty()) finish() else show(blocks)
-            }
-            return
-        }
         val uri = intent.data
-        if (uri == null) {
+        if (translation == null && uri == null) {
             finish()
             return
         }
+        setContentView(R.layout.activity_markdown)
+        val root = findViewById<View>(R.id.root)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+        findViewById<MaterialToolbar>(R.id.toolbar).apply {
+            title = translation ?: uri?.lastPathSegment?.substringAfterLast('/')
+            setNavigationOnClickListener { finish() }
+        }
+        val list = findViewById<RecyclerView>(R.id.blocks).apply { layoutManager = LinearLayoutManager(context) }
         lifecycleScope.launch {
             val blocks = runCatching {
                 withContext(Dispatchers.IO) {
-                    contentResolver.openInputStream(uri)?.bufferedReader()?.use { parseCopyrightMarkdown(it.lineSequence()) }
+                    if (translation != null) copyrightBlocks(translation)
+                    else contentResolver.openInputStream(uri!!)?.bufferedReader()?.use { parseCopyrightMarkdown(it.lineSequence()) }
                 }
             }.getOrNull()
-            if (blocks.isNullOrEmpty()) finish() else show(blocks)
+            if (blocks.isNullOrEmpty()) finish() else list.adapter = blocksAdapter(blocks)
         }
     }
 
     companion object {
         /** Short name of a translation whose kept copyright notice is shown instead of a file. */
         const val KEY_COPYRIGHT = "com.github.danzuep.usfmbible.KEY_COPYRIGHT"
-    }
-
-    private fun show(blocks: List<CopyrightBlock>) {
-        val list = blocksView(blocks)
-        ViewCompat.setOnApplyWindowInsetsListener(list) { view, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-            view.setPadding(view.paddingLeft, bars.top, view.paddingRight, bars.bottom)
-            insets
-        }
-        setContentView(list)
     }
 }

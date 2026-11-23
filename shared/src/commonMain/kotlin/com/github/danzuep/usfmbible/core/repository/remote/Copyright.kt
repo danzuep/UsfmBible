@@ -19,14 +19,14 @@ package com.github.danzuep.usfmbible.core.repository.remote
 
 /**
  * A block of a markdown document: a paragraph, a heading of [level] when [heading] is set, a list item, a [code] block or a [rule].
- * [indent] is the list nesting depth and [quote] marks block quote text. Inline markup (emphasis, code, links) stays as markdown.
+ * [indent] is the list nesting depth and [quote] the block quote depth. Inline markup (emphasis, code, links) stays as markdown.
  */
 data class CopyrightBlock(
     val text: String,
     val heading: Boolean = false,
     val level: Int = 1,
     val indent: Int = 0,
-    val quote: Boolean = false,
+    val quote: Int = 0,
     val code: Boolean = false,
     val rule: Boolean = false
 )
@@ -104,12 +104,15 @@ private val CODE_FENCE = Regex("""^ {0,3}(`{3,}|~{3,})""")
 private val THEMATIC_BREAK = Regex("""^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$""")
 private val SETEXT_UNDERLINE = Regex("""^ {0,3}(=+|-+)[ \t]*$""")
 private val LIST_ITEM_START = Regex("""^( *)([-*+]|\d{1,9}[.)])[ \t]+(\S.*)$""")
+private val TASK_ITEM = Regex("""^\[([ xX])\] +(.*)$""")
+private val TABLE_DELIMITER = Regex("""^\|(?:[ \t]*:?-+:?[ \t]*\|)+$""")
 private val QUOTE_MARKER = Regex("""^ {0,3}> ?""")
 
 /**
  * Reads [lines] one at a time, so large files never need to be held as a single string or laid out as a single view.
  * Covers the everyday CommonMark blocks: ATX and setext headings, paragraphs (lines are joined), bullet and numbered
- * lists, block quotes, fenced code and thematic breaks. Indented code, tables, HTML and reference definitions are left as text.
+ * lists (with task checkboxes), nested block quotes, fenced code and thematic breaks. Table rows become one line each
+ * with cells separated by "│". Indented code, HTML and reference definitions are left as text.
  */
 fun parseCopyrightMarkdown(lines: Sequence<String>): List<CopyrightBlock> {
     val blocks = mutableListOf<CopyrightBlock>()
@@ -145,11 +148,11 @@ fun parseCopyrightMarkdown(lines: Sequence<String>): List<CopyrightBlock> {
             continue
         }
         var content = line
-        var quote = false
+        var quote = 0
         while (true) {
             val marker = QUOTE_MARKER.find(content) ?: break
             content = content.substring(marker.range.last + 1)
-            quote = true
+            quote++
         }
         if (content.isBlank()) {
             flush()
@@ -178,12 +181,25 @@ fun parseCopyrightMarkdown(lines: Sequence<String>): List<CopyrightBlock> {
                 flush()
                 blocks += CopyrightBlock("", rule = true, quote = quote)
             }
+            trimmed.length > 1 && trimmed.startsWith("|") && trimmed.endsWith("|") -> {
+                flush()
+                if (!TABLE_DELIMITER.matches(trimmed)) {
+                    val cells = trimmed.trim('|').split('|').joinToString(" │ ") { it.trim() }
+                    blocks += splitBlock(cells, CopyrightBlock("", quote = quote))
+                }
+            }
             list != null -> {
                 flush()
                 val marker = list.groupValues[2]
                 val indent = minOf(list.groupValues[1].length / 2, MAX_INDENT)
-                val bullet = if (marker[0].isDigit()) "$marker " else if (indent == 0) "• " else "◦ "
-                text = StringBuilder(bullet).append(list.groupValues[3].trim())
+                val task = TASK_ITEM.find(list.groupValues[3].trim())
+                val bullet = when {
+                    task != null -> if (task.groupValues[1] == " ") "☐ " else "☑ "
+                    marker[0].isDigit() -> "$marker "
+                    indent == 0 -> "• "
+                    else -> "◦ "
+                }
+                text = StringBuilder(bullet).append(task?.groupValues?.get(2) ?: list.groupValues[3].trim())
                 template = CopyrightBlock("", indent = indent, quote = quote)
                 plainParagraph = false
             }

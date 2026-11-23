@@ -29,15 +29,14 @@ import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.QuoteSpan
 import android.text.style.RelativeSizeSpan
+import android.text.style.StrikethroughSpan
 import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
 import android.text.style.URLSpan
 import android.text.method.LinkMovementMethod
-import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.appcompat.app.AlertDialog
 import com.github.danzuep.usfmbible.R
@@ -57,10 +56,10 @@ fun Context.deleteCopyright(translationShortName: String) {
     copyrightFile(translationShortName).delete()
 }
 
-// Escapes, code, images and links, autolinks, then strong and emphasis; groups 8-11 are the strong and emphasis texts.
+// Escapes, code, images and links, autolinks, then strong and emphasis; groups 8-13 are the bold italic, strong, emphasis and strikethrough texts.
 private val INLINE_MARKDOWN = Regex(
     """\\([!-/:-@\[-`{-~])|(`+)(.+?)\2|(!?)\[([^\]]*)]\(\s*<?([^)\s>]*)>?(?:\s+"[^"]*")?\s*\)|<((?:https?|mailto):[^>\s]+)>""" +
-        """|\*\*(?=\S)(.+?)(?<=\S)\*\*|(?<!\w)__(?=\S)(.+?)(?<=\S)__(?!\w)|\*(?=\S)(.+?)(?<=\S)\*|(?<!\w)_(?=\S)(.+?)(?<=\S)_(?!\w)""",
+        """|\*\*\*(?=\S)(.+?)(?<=\S)\*\*\*|\*\*(?=\S)(.+?)(?<=\S)\*\*|(?<!\w)__(?=\S)(.+?)(?<=\S)__(?!\w)|\*(?=\S)(.+?)(?<=\S)\*|(?<!\w)_(?=\S)(.+?)(?<=\S)_(?!\w)|~~(?=\S)(.+?)(?<=\S)~~""",
     RegexOption.DOT_MATCHES_ALL
 )
 
@@ -91,12 +90,20 @@ private fun SpannableStringBuilder.appendInline(markdown: String) {
                 append(groups[7]!!.value)
                 span = URLSpan(groups[7]!!.value)
             }
-            groups[8] != null || groups[9] != null -> {
-                appendInline((groups[8] ?: groups[9])!!.value)
+            groups[8] != null -> {
+                appendInline(groups[8]!!.value)
+                span = StyleSpan(Typeface.BOLD_ITALIC)
+            }
+            groups[9] != null || groups[10] != null -> {
+                appendInline((groups[9] ?: groups[10])!!.value)
                 span = StyleSpan(Typeface.BOLD)
             }
+            groups[13] != null -> {
+                appendInline(groups[13]!!.value)
+                span = StrikethroughSpan()
+            }
             else -> {
-                appendInline((groups[10] ?: groups[11])!!.value)
+                appendInline((groups[11] ?: groups[12])!!.value)
                 span = StyleSpan(Typeface.ITALIC)
             }
         }
@@ -124,7 +131,7 @@ private fun CopyrightBlock.toText(): CharSequence = SpannableStringBuilder().als
             }
         }
     }
-    if (quote && out.isNotEmpty()) out.setSpan(QuoteSpan(MUTED), 0, out.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    if (quote > 0 && out.isNotEmpty()) out.setSpan(QuoteSpan(MUTED), 0, out.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 }
 
 /** The kept copyright notice of [translationShortName] followed by its name, or empty when there is none. */
@@ -164,35 +171,27 @@ private fun Context.showCopyrightSearch(translationShortName: String) {
             .show()
 }
 
-/** A scrollable list (with a scroll bar) that only lays out the blocks on screen, so documents of any length stay responsive. */
-fun Context.blocksView(blocks: List<CopyrightBlock>): RecyclerView {
+/** Adapter that only lays out the blocks on screen, so documents of any length stay responsive. */
+fun Context.blocksAdapter(blocks: List<CopyrightBlock>): RecyclerView.Adapter<*> {
     val padding = (24 * resources.displayMetrics.density).toInt()
     val indentStep = (16 * resources.displayMetrics.density).toInt()
-    return RecyclerView(this).apply {
-        isVerticalScrollBarEnabled = true
-        scrollBarStyle = View.SCROLLBARS_OUTSIDE_OVERLAY
-        layoutManager = LinearLayoutManager(context)
-        setPadding(padding, padding / 3, padding, 0)
-        clipToPadding = false
-        adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-            override fun getItemCount() = blocks.size
+    return object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+        override fun getItemCount() = blocks.size
 
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = object : RecyclerView.ViewHolder(
-                TextView(parent.context).apply {
-                    layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                    setTextAppearance(android.R.style.TextAppearance_Material_Medium)
-                    setPadding(0, 0, 0, padding / 2)
-                    setTextIsSelectable(true)
-                    movementMethod = LinkMovementMethod.getInstance()
-                }
-            ) {}
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = object : RecyclerView.ViewHolder(
+            TextView(parent.context).apply {
+                layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                setTextAppearance(android.R.style.TextAppearance_Material_Medium)
+                setTextIsSelectable(true)
+                movementMethod = LinkMovementMethod.getInstance()
+            }
+        ) {}
 
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-                val block = blocks[position]
-                (holder.itemView as TextView).apply {
-                    text = block.toText()
-                    setPaddingRelative(block.indent * indentStep, 0, 0, padding / 2)
-                }
+        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+            val block = blocks[position]
+            (holder.itemView as TextView).apply {
+                text = block.toText()
+                setPaddingRelative(padding + (block.indent + maxOf(block.quote - 1, 0)) * indentStep, 0, padding, padding / 2)
             }
         }
     }

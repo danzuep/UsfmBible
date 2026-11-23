@@ -104,7 +104,7 @@ class CopyrightTest {
                 CopyrightBlock("• b"),
                 CopyrightBlock("1. first"),
                 CopyrightBlock("2) second"),
-                CopyrightBlock("quoted text", quote = true),
+                CopyrightBlock("quoted text", quote = 1),
                 CopyrightBlock("val x = 1\n\n*not* markdown", code = true),
                 CopyrightBlock("", rule = true),
                 CopyrightBlock("", rule = true)
