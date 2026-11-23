@@ -115,7 +115,7 @@ class OpenFileTest {
     }
 
     @Test
-    fun markdownFileIsShownInADialog() {
+    fun markdownFileIsShownFullScreen() {
         open(MarkdownActivity::class.java, "licence.md", "# Smoke licence\n\nPermission is granted.\n").use {
             await("the licence text") { isShown("Permission is granted.") }
             screenshot("markdown")

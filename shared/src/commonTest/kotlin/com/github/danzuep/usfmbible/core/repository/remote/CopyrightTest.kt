@@ -73,6 +73,47 @@ class CopyrightTest {
     }
 
     @Test
+    fun `test parseCopyrightMarkdown() reads heading levels and setext headings`() {
+        assertEquals(
+            listOf(
+                CopyrightBlock("One", heading = true, level = 1),
+                CopyrightBlock("Three", heading = true, level = 3),
+                CopyrightBlock("Setext one", heading = true, level = 1),
+                CopyrightBlock("Setext two", heading = true, level = 2),
+                CopyrightBlock("#hashtag")
+            ),
+            parseCopyrightMarkdown("# One\n### Three ###\nSetext one\n===\n\nSetext two\n---\n\n#hashtag")
+        )
+    }
+
+    @Test
+    fun `test parseCopyrightMarkdown() joins paragraph lines and honours hard breaks`() {
+        assertEquals(
+            listOf(CopyrightBlock("one two"), CopyrightBlock("a\nb\nc")),
+            parseCopyrightMarkdown("one\ntwo\n\na  \nb\\\nc")
+        )
+    }
+
+    @Test
+    fun `test parseCopyrightMarkdown() reads lists, quotes, code and rules`() {
+        val markdown = "- a\n  - nested\n* b\n1. first\n2) second\n\n> quoted\n> text\n\n```kotlin\nval x = 1\n\n*not* markdown\n```\n***\n- - -"
+        assertEquals(
+            listOf(
+                CopyrightBlock("• a"),
+                CopyrightBlock("◦ nested", indent = 1),
+                CopyrightBlock("• b"),
+                CopyrightBlock("1. first"),
+                CopyrightBlock("2) second"),
+                CopyrightBlock("quoted text", quote = true),
+                CopyrightBlock("val x = 1\n\n*not* markdown", code = true),
+                CopyrightBlock("", rule = true),
+                CopyrightBlock("", rule = true)
+            ),
+            parseCopyrightMarkdown(markdown)
+        )
+    }
+
+    @Test
     fun `test parseCopyrightMarkdown() splits long paragraphs`() {
         val blocks = parseCopyrightMarkdown("word ".repeat(5000))
         assertTrue(blocks.size > 1)
