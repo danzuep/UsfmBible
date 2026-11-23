@@ -126,10 +126,9 @@ class VersePagerAdapter(
     }
 
     /** Follows speech within the currently displayed page, including its loaded neighbouring chapters. */
-    /** [bottomInset] is the height of any control bar drawn over the bottom of the list. */
-    fun revealVerse(verseIndex: VerseIndex, bottomInset: Int = 0): Boolean {
+    fun revealVerse(verseIndex: VerseIndex): Boolean {
         val page = attachedRecyclerView?.findViewHolderForAdapterPosition(currentPagePosition) as? Page ?: return false
-        return page.revealVerse(verseIndex, bottomInset)
+        return page.revealVerse(verseIndex)
     }
 
     private fun forEachAttachedPage(action: (Page) -> Unit) {
@@ -371,7 +370,7 @@ private class Page(
         return true
     }
 
-    fun revealVerse(verseIndex: VerseIndex, bottomInset: Int = 0): Boolean {
+    fun revealVerse(verseIndex: VerseIndex): Boolean {
         val chapterPosition = verseIndex.toPagePosition()
         if (!hasRendered || !chapters.containsKey(chapterPosition)) return false
         val target = renderedItems.positionOfVerse(verseIndex)
@@ -400,7 +399,7 @@ private class Page(
         val visibleTop = list.paddingTop
         // One spare line keeps the verse clear of the bottom bar; a verse that doesn't fit is brought to the top.
         val lineHeight = layout.getLineBottom(line) - layout.getLineTop(line)
-        val visibleBottom = list.height - list.paddingBottom - bottomInset - lineHeight
+        val visibleBottom = list.height - list.paddingBottom - lineHeight
         val scroll = verseRevealScroll(top, bottom, visibleTop, visibleBottom)
         if (scroll != 0) list.scrollBy(0, scroll)
         return true
