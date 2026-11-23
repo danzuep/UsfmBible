@@ -112,10 +112,6 @@ private fun Context.showCopyrightSearch(translationShortName: String) {
             .show()
 }
 
-/** Shows [markdown] (headings, bullets, links and paragraphs) in a dialog, e.g. a licence file, and calls [onDismiss] when it closes. */
-fun Context.showMarkdown(markdown: String, onDismiss: () -> Unit = {}) =
-        showBlocks(parseCopyrightMarkdown(markdown), onDismiss)
-
 /** A scrollable list (with a scroll bar) that only lays out the blocks on screen, so documents of any length stay responsive. */
 fun Context.blocksView(blocks: List<CopyrightBlock>): RecyclerView {
     val padding = (24 * resources.displayMetrics.density).toInt()
@@ -143,13 +139,4 @@ fun Context.blocksView(blocks: List<CopyrightBlock>): RecyclerView {
             }
         }
     }
-}
-
-/** Shows [blocks] in a dialog. */
-fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {}) {
-    AlertDialog.Builder(this)
-            .setView(blocksView(blocks))
-            .setPositiveButton(android.R.string.ok, null)
-            .setOnDismissListener { onDismiss() }
-            .show()
 }
