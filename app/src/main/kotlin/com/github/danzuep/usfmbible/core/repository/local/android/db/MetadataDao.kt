@@ -39,7 +39,7 @@ class MetadataDao(sqliteHelper: SQLiteOpenHelper) {
         const val KEY_SCREEN_ON = "screenOn"
         const val KEY_NIGHT_MODE = "nightMode"
         const val KEY_SIMPLE_READING_MODE_ON = "simpleReadingModeOn"
-        const val KEY_HIDE_SEARCH_BUTTON = "hideSearchButton"
+        const val KEY_SHOW_SEARCH_BUTTON = "showSearchButton"
         const val KEY_DEFAULT_HIGHLIGHT_COLOR = "defaultHighlightColor"
         const val KEY_RUBY_ON = "rubyOn"
         const val KEY_TRANSLATION_LIST_REFRESH_TIMESTAMP = "translationListRefreshTimestamp"

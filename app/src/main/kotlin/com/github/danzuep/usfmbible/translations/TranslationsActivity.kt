@@ -26,6 +26,7 @@ import android.os.Bundle
 import android.provider.OpenableColumns
 import android.text.InputType
 import android.view.MotionEvent
+import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -187,15 +188,17 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
             if (isDestroyed) return@readTranslationDetails
             val content = layoutInflater.inflate(R.layout.dialog_translation_details, null)
             content.findViewById<TextView>(R.id.details_text).text = details.joinToString("\n\n") { (label, value) -> "$label: $value" }
-            AlertDialog.Builder(this)
+            val dialog = AlertDialog.Builder(this)
                 .setTitle(translation.name)
                 .setView(content)
-                .setPositiveButton(R.string.action_download) { _, _ -> viewModel.downloadTranslation(translation) }
-                .setNegativeButton(android.R.string.cancel, null)
-                .setNeutralButton(R.string.action_copyright_permissions) { _, _ ->
-                    showCopyright(translation.shortName)
-                }
-                .show()
+                .create()
+            content.findViewById<View>(R.id.details_copyright).setOnClickListener { showCopyright(translation.shortName) }
+            content.findViewById<View>(R.id.details_cancel).setOnClickListener { dialog.dismiss() }
+            content.findViewById<View>(R.id.details_download).setOnClickListener {
+                dialog.dismiss()
+                viewModel.downloadTranslation(translation)
+            }
+            dialog.show()
         }
     }
 

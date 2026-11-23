@@ -57,7 +57,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
     override fun initializeView() = with(viewBinding) {
         toolbar.setNavigationOnClickListener { navigator.goBack(this@SettingsActivity) }
         keepScreenOn.setOnCheckedChangeByUserListener(viewModel::saveKeepScreenOn)
-        hideSearchButton.setOnCheckedChangeByUserListener(viewModel::saveHideSearchButton)
+        showSearchButton.setOnCheckedChangeByUserListener(viewModel::saveShowSearchButton)
         ruby.setOnCheckedChangeByUserListener(viewModel::saveRubyOn)
         fontSize.setOnSingleClickListener(viewModel::selectFontSizeScale)
         nightMode.setOnSingleClickListener(viewModel::selectNightMode)
@@ -97,7 +97,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         setTextSize(bodyTextSizePx = viewState.bodyTextSizePx, captionTextSizePx = viewState.captionTextSizePx)
 
         keepScreenOn.isChecked = viewState.keepScreenOn
-        hideSearchButton.isChecked = viewState.hideSearchButton
+        showSearchButton.isChecked = viewState.showSearchButton
         ruby.isChecked = viewState.rubyOn
 
         nightMode.setDescription(viewState.nightModeStringRes)
@@ -120,7 +120,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         nightMode.setTextSize(bodyTextSizePx, captionTextSizePx)
         language.setTextSize(bodyTextSizePx, captionTextSizePx)
         reading.setTextSize(bodyTextSizePx)
-        hideSearchButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
+        showSearchButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
         ruby.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
         defaultHighlightColor.setTextSize(bodyTextSizePx, captionTextSizePx)
         backupRestore.setTextSize(bodyTextSizePx)

@@ -734,7 +734,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechProgressHandler.removeCallbacks(speechProgressTick)
         if (playing) speechProgressHandler.post(speechProgressTick)
         window.decorView.keepScreenOn = playing || settings?.keepScreenOn == true
-        if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.hideSearchButton != true) viewBinding.search.show()
+        if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.showSearchButton != false) viewBinding.search.show()
         updateSpeechNotification()
     }
 

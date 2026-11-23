@@ -105,7 +105,7 @@ class SettingsRepositoryTest : BaseUnitTest() {
 
     @Test
     fun `test saveSettings() for hiding search button`() = runTest {
-        saveUpdatedSettingsAndVerifySaveSettingsIsCalled(Settings.DEFAULT.copy(hideSearchButton = true))
+        saveUpdatedSettingsAndVerifySaveSettingsIsCalled(Settings.DEFAULT.copy(showSearchButton = false))
     }
 
     @Test

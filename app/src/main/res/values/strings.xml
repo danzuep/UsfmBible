@@ -174,7 +174,7 @@
     <string name="settings_text_language_system">🗣️</string>
     <string name="settings_title_night_mode">🌙</string>
     <string name="settings_header_reading"></string>
-    <string name="settings_title_hide_search_button">🚫 🔍</string>
+    <string name="settings_title_show_search_button">🚫 🔍</string>
     <string name="settings_title_ruby">ふ 振</string>
     <string name="settings_title_default_highlight_color">🎨 🖍</string>
     <string name="settings_header_backup_restore"></string>

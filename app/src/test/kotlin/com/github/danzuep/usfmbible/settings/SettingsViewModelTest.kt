@@ -120,7 +120,7 @@ class SettingsViewModelTest : BaseUnitTest() {
         keepScreenOn = Settings.DEFAULT.keepScreenOn,
         simpleReadingModeOn = Settings.DEFAULT.simpleReadingModeOn,
         nightModeStringRes = R.string.settings_text_night_mode_system,
-        hideSearchButton = Settings.DEFAULT.hideSearchButton,
+        showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
         defaultHighlightColor = Highlight.COLOR_NONE,
         backupState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
@@ -226,19 +226,19 @@ class SettingsViewModelTest : BaseUnitTest() {
     }
 
     @Test
-    fun `test saveHideSearchButton()`() = runTest {
+    fun `test saveShowSearchButton()`() = runTest {
         every { settingsManager.settings() } returns flowOf(Settings.DEFAULT)
-        coEvery { settingsManager.saveSettings(Settings.DEFAULT.copy(hideSearchButton = true)) } returns Unit
+        coEvery { settingsManager.saveSettings(Settings.DEFAULT.copy(showSearchButton = false)) } returns Unit
 
-        settingsViewModel.saveHideSearchButton(hideSearchButton = false)
-        settingsViewModel.saveHideSearchButton(hideSearchButton = true)
+        settingsViewModel.saveShowSearchButton(showSearchButton = true)
+        settingsViewModel.saveShowSearchButton(showSearchButton = false)
 
-        coVerify(exactly = 1) { settingsManager.saveSettings(Settings.DEFAULT.copy(hideSearchButton = true)) }
+        coVerify(exactly = 1) { settingsManager.saveSettings(Settings.DEFAULT.copy(showSearchButton = false)) }
         assertEquals(createDefaultViewState(), settingsViewModel.viewState().first())
 
-        coEvery { settingsManager.saveSettings(Settings.DEFAULT.copy(hideSearchButton = true)) } throws RuntimeException("random exception")
+        coEvery { settingsManager.saveSettings(Settings.DEFAULT.copy(showSearchButton = false)) } throws RuntimeException("random exception")
 
-        settingsViewModel.saveHideSearchButton(hideSearchButton = true)
+        settingsViewModel.saveShowSearchButton(showSearchButton = false)
 
         assertEquals(
             createDefaultViewState().copy(error = SettingsViewModel.ViewState.Error.SettingsUpdatingError),
