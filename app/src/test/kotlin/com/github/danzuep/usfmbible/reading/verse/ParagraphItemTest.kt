@@ -71,6 +71,13 @@ class ParagraphItemTest : BaseUnitTest() {
     }
 
     @Test
+    fun `a verse taller than the viewport is pinned to the top without repeated scrolling`() {
+        assertEquals(80, verseRevealScroll(100, 400, 20, 150))
+        assertEquals(0, verseRevealScroll(20, 320, 20, 150))
+        assertEquals(-30, verseRevealScroll(-10, 290, 20, 150))
+    }
+
+    @Test
     fun `test bookmark is added and removed live`() {
         val item = paragraph()
         assertEquals(0, bookmarkCount(item))
