@@ -17,7 +17,9 @@
 
 package com.github.danzuep.usfmbible.ui
 
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -27,6 +29,7 @@ import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.repository.remote.parseCopyrightMarkdown
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.github.danzuep.usfmbible.utils.toTranslationDisplayName
 import com.google.android.material.appbar.MaterialToolbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,7 +56,7 @@ class MarkdownActivity : AppCompatActivity() {
             insets
         }
         findViewById<MaterialToolbar>(R.id.toolbar).apply {
-            title = translation ?: uri?.lastPathSegment?.substringAfterLast('/')
+            title = translation?.toTranslationDisplayName() ?: uri?.let { fileName(it) }
             setNavigationOnClickListener { finish() }
         }
         val list = findViewById<RecyclerView>(R.id.blocks).apply { layoutManager = LinearLayoutManager(context) }
@@ -67,6 +70,11 @@ class MarkdownActivity : AppCompatActivity() {
             if (blocks.isNullOrEmpty()) finish() else list.adapter = blocksAdapter(blocks)
         }
     }
+
+    private fun fileName(uri: Uri): String? =
+        runCatching {
+            contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { if (it.moveToFirst()) it.getString(0) else null }
+        }.getOrNull() ?: uri.lastPathSegment?.substringAfterLast('/')
 
     companion object {
         /** Short name of a translation whose kept copyright notice is shown instead of a file. */
