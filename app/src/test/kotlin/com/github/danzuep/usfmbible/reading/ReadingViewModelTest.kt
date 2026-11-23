@@ -155,7 +155,7 @@ class ReadingViewModelTest : BaseUnitTest() {
 
     @Test
     fun `test settings`() = runTest {
-        val settings = Settings.DEFAULT.copy(keepScreenOn = false, hideSearchButton = true)
+        val settings = Settings.DEFAULT.copy(keepScreenOn = false, showSearchButton = false)
         every { settingsManager.settings() } returns flowOf(settings)
 
         readingViewModel = createViewModel()

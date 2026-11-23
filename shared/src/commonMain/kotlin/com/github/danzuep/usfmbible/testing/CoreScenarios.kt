@@ -89,7 +89,7 @@ class CoreSettings(private val repository: SettingsRepository, private var curre
 
     suspend fun simpleReadingMode(on: Boolean = true) = update { copy(simpleReadingModeOn = on) }
 
-    suspend fun hideSearchButton(on: Boolean = true) = update { copy(hideSearchButton = on) }
+    suspend fun showSearchButton(on: Boolean = true) = update { copy(showSearchButton = on) }
     suspend fun ruby(on: Boolean = true) = update { copy(rubyOn = on) }
 
 

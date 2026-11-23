@@ -57,7 +57,7 @@ class SettingsViewModel @Inject constructor(
         keepScreenOn = Settings.DEFAULT.keepScreenOn,
         nightModeStringRes = nightModeStringResource(Settings.DEFAULT.nightMode),
         simpleReadingModeOn = Settings.DEFAULT.simpleReadingModeOn,
-        hideSearchButton = Settings.DEFAULT.hideSearchButton,
+        showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
         defaultHighlightColor = Settings.DEFAULT.defaultHighlightColor,
         backupState = ViewState.BackupRestoreState.Idle,
@@ -83,7 +83,7 @@ class SettingsViewModel @Inject constructor(
         val keepScreenOn: Boolean,
         @StringRes val nightModeStringRes: Int,
         val simpleReadingModeOn: Boolean,
-        val hideSearchButton: Boolean,
+        val showSearchButton: Boolean,
         val rubyOn: Boolean,
         @Highlight.Companion.AvailableColor val defaultHighlightColor: Int,
         val backupState: BackupRestoreState,
@@ -135,7 +135,7 @@ class SettingsViewModel @Inject constructor(
                     keepScreenOn = settings.keepScreenOn,
                     nightModeStringRes = nightModeStringResource(settings.nightMode),
                     simpleReadingModeOn = settings.simpleReadingModeOn,
-                    hideSearchButton = settings.hideSearchButton,
+                    showSearchButton = settings.showSearchButton,
                     rubyOn = settings.rubyOn,
                     defaultHighlightColor = settings.defaultHighlightColor,
                 )
@@ -203,8 +203,8 @@ class SettingsViewModel @Inject constructor(
         updateSettings { it.copy(simpleReadingModeOn = simpleReadingModeOn) }
     }
 
-    fun saveHideSearchButton(hideSearchButton: Boolean) {
-        updateSettings { it.copy(hideSearchButton = hideSearchButton) }
+    fun saveShowSearchButton(showSearchButton: Boolean) {
+        updateSettings { it.copy(showSearchButton = showSearchButton) }
     }
 
     fun saveRubyOn(rubyOn: Boolean) {

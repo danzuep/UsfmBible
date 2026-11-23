@@ -9,7 +9,7 @@ The "Update translation catalog" workflow downloads the CSV monthly (or on deman
 
 Most translations are open access: copyrighted with an open licence (typically noncommercial, unchanged text). Only a few
 are public domain, and some of those carry restrictions (for example the WEB trademark). The translation details dialog
-has a **Copyright and permissions** button linking to the translation's `copr.htm` page on eBible.org.
+has a copyright (i) icon button linking to the translation's `copr.htm` page on eBible.org.
 
 Adding download sites
 ---------------------

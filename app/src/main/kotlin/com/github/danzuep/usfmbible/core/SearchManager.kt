@@ -35,7 +35,7 @@ class SearchManager(
         private val noteRepository: VerseAnnotationRepository<Note>
 ) {
     private val searchConfiguration: MutableStateFlow<SearchConfiguration> = MutableStateFlow(SearchConfiguration(
-            includeOldTestament = true, includeNewTestament = true, includeBookmarks = true, includeHighlights = true, includeNotes = true))
+            includeOldTestament = true, includeNewTestament = true, includeBookmarks = true, includeHighlights = true, includeNotes = true, wholeWords = true))
 
     fun configuration(): Flow<SearchConfiguration> = searchConfiguration
 

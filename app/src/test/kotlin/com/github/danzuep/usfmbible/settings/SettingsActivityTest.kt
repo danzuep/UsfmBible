@@ -81,7 +81,7 @@ class SettingsActivityTest : BaseActivityTest() {
         withActivity<SettingsActivity> { activity ->
             val viewBinding: ActivitySettingsBinding = activity.getProperty("viewBinding")
             viewBinding.keepScreenOn.performClickPressed()
-            viewBinding.hideSearchButton.performClickPressed()
+            viewBinding.showSearchButton.performClickPressed()
             viewBinding.fontSize.performClick()
             viewBinding.nightMode.performClick()
             viewBinding.defaultHighlightColor.performClick()
@@ -92,7 +92,7 @@ class SettingsActivityTest : BaseActivityTest() {
 
             verify(ordering = Ordering.ORDERED) {
                 viewModel.saveKeepScreenOn(true)
-                viewModel.saveHideSearchButton(true)
+                viewModel.saveShowSearchButton(true)
                 viewModel.selectFontSizeScale()
                 viewModel.selectNightMode()
                 viewModel.selectHighlightColor()
@@ -162,7 +162,7 @@ class SettingsActivityTest : BaseActivityTest() {
             keepScreenOn = true,
             nightModeStringRes = R.string.settings_text_night_mode_off,
             simpleReadingModeOn = true,
-            hideSearchButton = true,
+            showSearchButton = false,
             rubyOn = false,
             defaultHighlightColor = Highlight.COLOR_NONE,
             backupState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = true),
@@ -178,7 +178,7 @@ class SettingsActivityTest : BaseActivityTest() {
             val viewBinding: ActivitySettingsBinding = activity.getProperty("viewBinding")
             assertEquals("1.0x", viewBinding.fontSize.getProperty<SettingButton, InnerSettingButtonBinding>("viewBinding").description.text)
             assertTrue(viewBinding.keepScreenOn.isChecked)
-            assertTrue(viewBinding.hideSearchButton.isChecked)
+            assertFalse(viewBinding.showSearchButton.isChecked)
             assertFalse(viewBinding.ruby.isChecked)
             assertEquals(activity.getString(R.string.settings_text_night_mode_off), viewBinding.nightMode.getProperty<SettingButton, InnerSettingButtonBinding>("viewBinding").description.text)
             assertEquals(activity.getString(R.string.text_highlight_color_none), viewBinding.defaultHighlightColor.getProperty<SettingButton, InnerSettingButtonBinding>("viewBinding").description.text)
@@ -196,7 +196,7 @@ class SettingsActivityTest : BaseActivityTest() {
             keepScreenOn = true,
             nightModeStringRes = R.string.settings_text_night_mode_off,
             simpleReadingModeOn = true,
-            hideSearchButton = true,
+            showSearchButton = false,
             rubyOn = false,
             defaultHighlightColor = Highlight.COLOR_NONE,
             backupState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
@@ -212,7 +212,7 @@ class SettingsActivityTest : BaseActivityTest() {
             val viewBinding: ActivitySettingsBinding = activity.getProperty("viewBinding")
             assertEquals("1.0x", viewBinding.fontSize.getProperty<SettingButton, InnerSettingButtonBinding>("viewBinding").description.text)
             assertTrue(viewBinding.keepScreenOn.isChecked)
-            assertTrue(viewBinding.hideSearchButton.isChecked)
+            assertFalse(viewBinding.showSearchButton.isChecked)
             assertFalse(viewBinding.ruby.isChecked)
             assertEquals(activity.getString(R.string.settings_text_night_mode_off), viewBinding.nightMode.getProperty<SettingButton, InnerSettingButtonBinding>("viewBinding").description.text)
             assertEquals(activity.getString(R.string.text_highlight_color_none), viewBinding.defaultHighlightColor.getProperty<SettingButton, InnerSettingButtonBinding>("viewBinding").description.text)

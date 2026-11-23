@@ -170,10 +170,10 @@ class CoreScenariosTest {
         val repository = SettingsRepository(storage, scope)
         scope.advanceUntilIdle()
 
-        CoreSettings(repository).keepScreenOn(false).nightMode(Settings.NIGHT_MODE_ON).fontSizeScale(10F).hideSearchButton().ruby(false)
+        CoreSettings(repository).keepScreenOn(false).nightMode(Settings.NIGHT_MODE_ON).fontSizeScale(10F).showSearchButton(false).ruby(false)
 
         assertEquals(
-            Settings.DEFAULT.copy(keepScreenOn = false, nightMode = Settings.NIGHT_MODE_ON, fontSizeScale = Settings.MAX_FONT_SIZE_SCALE, hideSearchButton = true, rubyOn = false),
+            Settings.DEFAULT.copy(keepScreenOn = false, nightMode = Settings.NIGHT_MODE_ON, fontSizeScale = Settings.MAX_FONT_SIZE_SCALE, showSearchButton = false, rubyOn = false),
             storage.saved
         )
     }

@@ -663,7 +663,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             if (request != speechRevealRequest || spokenVerse != verseIndex || speech == Speech.OFF) return
             viewBinding.verseViewPager.post {
                 if (request != speechRevealRequest || spokenVerse != verseIndex || speech == Speech.OFF) return@post
-                if (versePagerAdapter.revealVerse(verseIndex)) {
+                if (versePagerAdapter.revealVerse(verseIndex, speechBarHeight())) {
                     speechRevealPending = false
                 } else if (remaining > 0) {
                     viewBinding.verseViewPager.postDelayed({ retry(remaining - 1) }, 100)
@@ -672,6 +672,9 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         }
         retry(10)
     }
+
+    private fun speechBarHeight(): Int =
+        if (speech == Speech.OFF) 0 else viewBinding.speechBar.root.let { bar -> bar.height.takeIf { it > 0 } ?: bar.layoutParams.height.coerceAtLeast(0) }
 
     private fun countSpeechWords(text: String): Int =
         Regex("[\\p{L}\\p{N}]+").findAll(text).count().coerceAtLeast(1)
@@ -734,7 +737,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         speechProgressHandler.removeCallbacks(speechProgressTick)
         if (playing) speechProgressHandler.post(speechProgressTick)
         window.decorView.keepScreenOn = playing || settings?.keepScreenOn == true
-        if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.hideSearchButton != true) viewBinding.search.show()
+        if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.showSearchButton != false) viewBinding.search.show()
         updateSpeechNotification()
     }
 

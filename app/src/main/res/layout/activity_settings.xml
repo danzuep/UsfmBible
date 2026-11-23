@@ -58,13 +58,13 @@
                 app:settingSectionHeaderTitle="@string/settings_header_reading" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/hide_search_button"
+                android:id="@+id/show_search_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="@dimen/item_height"
                 android:paddingStart="@dimen/padding"
                 android:paddingEnd="@dimen/padding"
-                android:text="@string/settings_title_hide_search_button" />
+                android:text="@string/settings_title_show_search_button" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/ruby"

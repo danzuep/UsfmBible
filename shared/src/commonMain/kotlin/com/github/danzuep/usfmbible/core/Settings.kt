@@ -21,7 +21,7 @@ data class Settings(
     @NightMode val nightMode: Int,
     val fontSizeScale: Float,
     val simpleReadingModeOn: Boolean,
-    val hideSearchButton: Boolean,
+    val showSearchButton: Boolean,
     @Highlight.Companion.AvailableColor val defaultHighlightColor: Int,
     val rubyOn: Boolean = true,
 ) {
@@ -41,7 +41,7 @@ data class Settings(
             nightMode = NIGHT_MODE_FOLLOW_SYSTEM,
             fontSizeScale = 1.0F,
             simpleReadingModeOn = false,
-            hideSearchButton = false,
+            showSearchButton = true,
             defaultHighlightColor = Highlight.COLOR_NONE,
             rubyOn = true,
         )
