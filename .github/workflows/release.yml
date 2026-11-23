@@ -21,6 +21,12 @@ jobs:
         distribution: 'temurin'
         java-version: '25'
     - uses: gradle/actions/setup-gradle@v6
+    # Robolectric downloads its android-all jars from Maven Central into ~/.m2 at test time; cache them so a Maven outage doesn't fail the build.
+    - uses: actions/cache@v5
+      with:
+        path: ~/.m2/repository/org/robolectric
+        key: robolectric-${{ runner.os }}-${{ hashFiles('buildSrc/src/main/kotlin/Configurations.kt', 'app/src/test/resources/robolectric.properties') }}
+        restore-keys: robolectric-${{ runner.os }}-
     - name: Restore signing keystore (optional)
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -50,7 +56,9 @@ jobs:
         fi
     - name: Build APK
       run: |
-        ./gradlew testDebugUnitTest assembleRelease ${VERSION:+-PappVersion=$VERSION}
+        # Robolectric's artifact download can fail transiently, so retry the tests once.
+        ./gradlew testDebugUnitTest || ./gradlew testDebugUnitTest
+        ./gradlew assembleRelease ${VERSION:+-PappVersion=$VERSION}
         cp app/build/outputs/apk/release/app-release.apk "$NAME.apk"
     - name: Download the WEB Bible to prepackage
       run: |
