@@ -59,6 +59,8 @@ class ParagraphItemTest : BaseUnitTest() {
         assertEquals(verses[2], item.verseAt(offset))
         assertTrue(text.substring(offset).contains("Verse 2"))
         assertEquals(null, item.verseStart(VerseIndex(57, 0, 9)))
+        assertEquals(null, item.verseEnd(VerseIndex(57, 0, 9)))
+        assertTrue(item.verseEnd(verses[2].verseIndex)!! > offset)
     }
 
     @Test
@@ -66,6 +68,13 @@ class ParagraphItemTest : BaseUnitTest() {
         assertEquals(0, verseRevealScroll(30, 50, 20, 200))
         assertEquals(-10, verseRevealScroll(10, 30, 20, 200))
         assertEquals(170, verseRevealScroll(190, 210, 20, 200))
+    }
+
+    @Test
+    fun `a verse taller than the viewport is pinned to the top without repeated scrolling`() {
+        assertEquals(80, verseRevealScroll(100, 400, 20, 150))
+        assertEquals(0, verseRevealScroll(20, 320, 20, 150))
+        assertEquals(-30, verseRevealScroll(-10, 290, 20, 150))
     }
 
     @Test

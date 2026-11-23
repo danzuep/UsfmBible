@@ -388,13 +388,19 @@ private class Page(
         val textView = view.findViewById<TextView>(R.id.text) ?: return false
         if (textView.isLayoutRequested) return false
         val layout = textView.layout ?: return false
-        val offset = (renderedItems[target] as ParagraphItem).verseStart(verseIndex) ?: return false
-        val line = layout.getLineForOffset(offset.coerceIn(0, textView.text.length))
+        val paragraph = renderedItems[target] as ParagraphItem
+        val offset = paragraph.verseStart(verseIndex) ?: return false
+        val endOffset = paragraph.verseEnd(verseIndex) ?: offset
+        val maxOffset = (textView.text.length - 1).coerceAtLeast(0)
+        val line = layout.getLineForOffset(offset.coerceIn(0, maxOffset))
+        val lastLine = layout.getLineForOffset((endOffset - 1).coerceIn(offset, maxOffset).coerceAtLeast(0))
         val textTop = view.top + (if (view === textView) 0 else textView.top) + textView.totalPaddingTop
         val top = textTop + layout.getLineTop(line)
-        val bottom = textTop + layout.getLineBottom(line)
+        val bottom = textTop + layout.getLineBottom(lastLine)
         val visibleTop = list.paddingTop
-        val visibleBottom = list.height - list.paddingBottom - bottomInset
+        // One spare line keeps the verse clear of the bottom bar; a verse that doesn't fit is brought to the top.
+        val lineHeight = layout.getLineBottom(line) - layout.getLineTop(line)
+        val visibleBottom = list.height - list.paddingBottom - bottomInset - lineHeight
         val scroll = verseRevealScroll(top, bottom, visibleTop, visibleBottom)
         if (scroll != 0) list.scrollBy(0, scroll)
         return true
