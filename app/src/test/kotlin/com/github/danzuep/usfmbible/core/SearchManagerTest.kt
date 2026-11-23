@@ -167,7 +167,7 @@ class SearchManagerTest : BaseUnitTest() {
             bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "query", true, true, true))
         } returns listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2])
         coEvery { noteRepository.search("query") } returns listOf(
-                Note(VerseIndex(0, 0, 9), "just a note", 12345L),
+                Note(VerseIndex(0, 0, 9), "a note about query", 12345L),
                 // no verse is available for this note, should be ignored
                 // Upstream issue 153
                 Note(VerseIndex(1, 2, 3), "should be ignored", 54321L)
@@ -177,7 +177,7 @@ class SearchManagerTest : BaseUnitTest() {
         assertEquals(listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2]), actual.verses)
         assertTrue(actual.bookmarks.isEmpty())
         assertTrue(actual.highlights.isEmpty())
-        assertEquals(listOf(Pair(Note(VerseIndex(0, 0, 9), "just a note", 12345L), MockContents.kjvVerses[9])), actual.notes)
+        assertEquals(listOf(Pair(Note(VerseIndex(0, 0, 9), "a note about query", 12345L), MockContents.kjvVerses[9])), actual.notes)
     }
 
     @Test
@@ -224,7 +224,7 @@ class SearchManagerTest : BaseUnitTest() {
             highlightRepository.read(Constants.SORT_BY_BOOK)
         } returns listOf(Highlight(VerseIndex(0, 0, 0), Highlight.COLOR_PINK, 12345L), Highlight(VerseIndex(0, 0, 1), Highlight.COLOR_BLUE, 12345L))
         coEvery { noteRepository.search("God") } returns listOf(
-                Note(VerseIndex(0, 0, 9), "just a note", 12345L),
+                Note(VerseIndex(0, 0, 9), "a note about God", 12345L),
                 // no verse is available for this note, should be ignored
                 // Upstream issue 153
                 Note(VerseIndex(1, 2, 3), "should be ignored", 54321L)
@@ -234,7 +234,7 @@ class SearchManagerTest : BaseUnitTest() {
         assertEquals(listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2]), actual.verses)
         assertEquals(listOf(Pair(Bookmark(VerseIndex(0, 0, 0), 12345L), MockContents.kjvVerses[0])), actual.bookmarks)
         assertEquals(listOf(Pair(Highlight(VerseIndex(0, 0, 0), Highlight.COLOR_PINK, 12345L), MockContents.kjvVerses[0])), actual.highlights)
-        assertEquals(listOf(Pair(Note(VerseIndex(0, 0, 9), "just a note", 12345L), MockContents.kjvVerses[9])), actual.notes)
+        assertEquals(listOf(Pair(Note(VerseIndex(0, 0, 9), "a note about God", 12345L), MockContents.kjvVerses[9])), actual.notes)
     }
 
     @Test
