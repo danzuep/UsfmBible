@@ -59,6 +59,8 @@ class ParagraphItemTest : BaseUnitTest() {
         assertEquals(verses[2], item.verseAt(offset))
         assertTrue(text.substring(offset).contains("Verse 2"))
         assertEquals(null, item.verseStart(VerseIndex(57, 0, 9)))
+        assertEquals(null, item.verseEnd(VerseIndex(57, 0, 9)))
+        assertTrue(item.verseEnd(verses[2].verseIndex)!! > offset)
     }
 
     @Test
