@@ -104,7 +104,7 @@ private val CODE_FENCE = Regex("""^ {0,3}(`{3,}|~{3,})""")
 private val THEMATIC_BREAK = Regex("""^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$""")
 private val SETEXT_UNDERLINE = Regex("""^ {0,3}(=+|-+)[ \t]*$""")
 private val LIST_ITEM_START = Regex("""^( *)([-*+]|\d{1,9}[.)])[ \t]+(\S.*)$""")
-private val TASK_ITEM = Regex("""^\[([ xX])] +(.*)$""")
+private val TASK_ITEM = Regex("""^\[([ xX])\] +(.*)$""")
 private val TABLE_DELIMITER = Regex("""^\|(?:[ \t]*:?-+:?[ \t]*\|)+$""")
 private val QUOTE_MARKER = Regex("""^ {0,3}> ?""")
 
