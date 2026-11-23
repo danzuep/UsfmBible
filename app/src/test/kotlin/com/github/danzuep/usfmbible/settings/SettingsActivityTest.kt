@@ -92,7 +92,7 @@ class SettingsActivityTest : BaseActivityTest() {
 
             verify(ordering = Ordering.ORDERED) {
                 viewModel.saveKeepScreenOn(true)
-                viewModel.saveShowSearchButton(false)
+                viewModel.saveShowSearchButton(true)
                 viewModel.selectFontSizeScale()
                 viewModel.selectNightMode()
                 viewModel.selectHighlightColor()

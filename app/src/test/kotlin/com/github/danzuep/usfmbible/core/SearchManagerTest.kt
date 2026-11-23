@@ -83,7 +83,7 @@ class SearchManagerTest : BaseUnitTest() {
             bibleReadingRepository.readVerses(MockContents.kjvShortName, listOf(VerseIndex(0, 0, 0), VerseIndex(0, 0, 1)))
         } returns mapOf(Pair(VerseIndex(0, 0, 0), MockContents.kjvVerses[0]))
         coEvery {
-            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true))
+            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true, true))
         } returns listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2])
         coEvery {
             bookmarkRepository.read(Constants.SORT_BY_BOOK)
@@ -122,7 +122,7 @@ class SearchManagerTest : BaseUnitTest() {
             bibleReadingRepository.readVerses(MockContents.kjvShortName, listOf(VerseIndex(0, 0, 0), VerseIndex(0, 0, 1)))
         } returns mapOf(Pair(VerseIndex(0, 0, 0), MockContents.kjvVerses[0]))
         coEvery {
-            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true))
+            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true, true))
         } returns listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2])
         coEvery {
             highlightRepository.read(Constants.SORT_BY_BOOK)
@@ -164,7 +164,7 @@ class SearchManagerTest : BaseUnitTest() {
             )
         } returns mapOf(Pair(VerseIndex(0, 0, 9), MockContents.kjvVerses[9]))
         coEvery {
-            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "query", true, true))
+            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "query", true, true, true))
         } returns listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2])
         coEvery { noteRepository.search("query") } returns listOf(
                 Note(VerseIndex(0, 0, 9), "just a note", 12345L),
@@ -215,7 +215,7 @@ class SearchManagerTest : BaseUnitTest() {
             bibleReadingRepository.readVerses(MockContents.kjvShortName, listOf(VerseIndex(0, 0, 9), VerseIndex(1, 2, 3)))
         } returns mapOf(Pair(VerseIndex(0, 0, 9), MockContents.kjvVerses[9]))
         coEvery {
-            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true))
+            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true, true))
         } returns listOf(MockContents.kjvVerses[0], MockContents.kjvVerses[2])
         coEvery {
             bookmarkRepository.read(Constants.SORT_BY_BOOK)
