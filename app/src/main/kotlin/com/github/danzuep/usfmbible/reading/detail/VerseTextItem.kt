@@ -19,6 +19,7 @@ package com.github.danzuep.usfmbible.reading.detail
 
 import android.text.SpannableStringBuilder
 import com.github.danzuep.usfmbible.utils.localized
+import com.github.danzuep.usfmbible.utils.toTranslationDisplayName
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
@@ -62,7 +63,7 @@ class VerseTextItem(
         if (followingEmptyVerseCount > 0) {
             SPANNABLE_STRING_BUILDER.append('-').append((verseIndex.verseIndex + followingEmptyVerseCount + 1).localized())
         }
-        SPANNABLE_STRING_BUILDER.append(' ').append(verseText.translationShortName)
+        SPANNABLE_STRING_BUILDER.append(' ').append(verseText.translationShortName.toTranslationDisplayName())
         return@lazy SPANNABLE_STRING_BUILDER.setSpans(BOOK_NAME_SPANS)
                 .append('\n').append(verseText.text)
                 .toCharSequence()
