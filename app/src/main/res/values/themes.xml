@@ -15,11 +15,4 @@
 
         <item name="android:windowAnimationStyle">@style/AppWindowAnimationStyle</item>
     </style>
-
-    <!-- A see-through window for activities that only show a dialog. -->
-    <style name="DialogOnlyTheme" parent="AppTheme">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowAnimationStyle">@null</item>
-    </style>
 </resources>

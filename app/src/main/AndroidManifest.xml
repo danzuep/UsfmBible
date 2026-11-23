@@ -67,9 +67,8 @@
         <activity
             android:name=".ui.MarkdownActivity"
             android:exported="true"
-            android:theme="@style/DialogOnlyTheme"
-            android:excludeFromRecents="true">
-            <!-- Opens .md files, such as licences, in a dialog. -->
+            android:theme="@style/AppTheme">
+            <!-- Opens .md files, such as licences, full screen. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

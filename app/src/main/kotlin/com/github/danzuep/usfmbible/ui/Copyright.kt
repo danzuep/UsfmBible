@@ -28,6 +28,7 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.URLSpan
 import android.text.method.LinkMovementMethod
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
@@ -107,10 +108,12 @@ private fun Context.showCopyrightSearch(translationShortName: String) {
 fun Context.showMarkdown(markdown: String, onDismiss: () -> Unit = {}) =
         showBlocks(parseCopyrightMarkdown(markdown), onDismiss)
 
-/** Shows [blocks] in a dialog that only lays out the blocks on screen, so documents of any length stay responsive. */
-fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {}) {
+/** A scrollable list (with a scroll bar) that only lays out the blocks on screen, so documents of any length stay responsive. */
+fun Context.blocksView(blocks: List<CopyrightBlock>): RecyclerView {
     val padding = (24 * resources.displayMetrics.density).toInt()
-    val list = RecyclerView(this).apply {
+    return RecyclerView(this).apply {
+        isVerticalScrollBarEnabled = true
+        scrollBarStyle = View.SCROLLBARS_OUTSIDE_OVERLAY
         layoutManager = LinearLayoutManager(context)
         setPadding(padding, padding / 3, padding, 0)
         clipToPadding = false
@@ -132,8 +135,12 @@ fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {})
             }
         }
     }
+}
+
+/** Shows [blocks] in a dialog. */
+fun Context.showBlocks(blocks: List<CopyrightBlock>, onDismiss: () -> Unit = {}) {
     AlertDialog.Builder(this)
-            .setView(list)
+            .setView(blocksView(blocks))
             .setPositiveButton(android.R.string.ok, null)
             .setOnDismissListener { onDismiss() }
             .show()

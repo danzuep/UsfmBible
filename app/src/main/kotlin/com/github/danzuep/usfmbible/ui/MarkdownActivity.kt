@@ -18,16 +18,19 @@
 package com.github.danzuep.usfmbible.ui
 
 import android.os.Bundle
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.github.danzuep.usfmbible.core.repository.remote.CopyrightBlock
 import com.github.danzuep.usfmbible.core.repository.remote.parseCopyrightMarkdown
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Shows a markdown file opened from another app (e.g. a licence) in a dialog, without leaving that app's screen behind.
- * The file is read line by line off the main thread and shown as a list of short blocks, so its size is not limited.
+ * Shows a markdown file opened from another app (e.g. a licence) full screen, on its own without the rest of this app.
+ * The file is read line by line off the main thread and shown as a scrollable list of short blocks, so its size is not limited.
  */
 class MarkdownActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +46,17 @@ class MarkdownActivity : AppCompatActivity() {
                     contentResolver.openInputStream(uri)?.bufferedReader()?.use { parseCopyrightMarkdown(it.lineSequence()) }
                 }
             }.getOrNull()
-            if (blocks.isNullOrEmpty()) finish() else showBlocks(blocks) { finish() }
+            if (blocks.isNullOrEmpty()) finish() else show(blocks)
         }
+    }
+
+    private fun show(blocks: List<CopyrightBlock>) {
+        val list = blocksView(blocks)
+        ViewCompat.setOnApplyWindowInsetsListener(list) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(view.paddingLeft, bars.top, view.paddingRight, bars.bottom)
+            insets
+        }
+        setContentView(list)
     }
 }
