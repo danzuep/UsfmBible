@@ -50,7 +50,7 @@ class CommonMarkDemoTest {
                 CopyrightBlock("This is a nested blockquote.", quote = 2),
                 CopyrightBlock("Code", heading = true, level = 3),
                 CopyrightBlock("Use `inline code` inside a sentence."),
-                CopyrightBlock("def greet(name):\n    return f\"Hello, {name}!\"", code = true),
+                CopyrightBlock("greet() {\n  echo \"Hello, \$1!\"\n}", code = true),
                 CopyrightBlock("Tables", heading = true, level = 3),
                 CopyrightBlock("Feature │ Syntax │ Support"),
                 CopyrightBlock("Left-aligned │ `:---` │ Yes"),

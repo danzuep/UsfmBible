@@ -29,9 +29,10 @@ This is a standard paragraph with **bold text**, *italic text*, ***bold and ital
 ### Code
 Use `inline code` inside a sentence.
 
-```python
-def greet(name):
-    return f"Hello, {name}!"
+```bash
+greet() {
+  echo "Hello, $1!"
+}
 ```
 
 ### Tables
