@@ -35,6 +35,7 @@ import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
@@ -663,7 +664,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             if (request != speechRevealRequest || spokenVerse != verseIndex || speech == Speech.OFF) return
             viewBinding.verseViewPager.post {
                 if (request != speechRevealRequest || spokenVerse != verseIndex || speech == Speech.OFF) return@post
-                if (versePagerAdapter.revealVerse(verseIndex, speechBarHeight())) {
+                if (versePagerAdapter.revealVerse(verseIndex)) {
                     speechRevealPending = false
                 } else if (remaining > 0) {
                     viewBinding.verseViewPager.postDelayed({ retry(remaining - 1) }, 100)
@@ -672,9 +673,6 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         }
         retry(10)
     }
-
-    private fun speechBarHeight(): Int =
-        if (speech == Speech.OFF) 0 else viewBinding.speechBar.root.let { bar -> bar.height.takeIf { it > 0 } ?: bar.layoutParams.height.coerceAtLeast(0) }
 
     private fun countSpeechWords(text: String): Int =
         Regex("[\\p{L}\\p{N}]+").findAll(text).count().coerceAtLeast(1)
@@ -728,6 +726,14 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     private fun updateSpeechBar() = with(viewBinding.speechBar) {
         root.visibility = if (speech == Speech.OFF) View.GONE else View.VISIBLE
+        // The reader ends above the bar so the last verse is never covered by it.
+        (viewBinding.verseViewPager.layoutParams as ViewGroup.MarginLayoutParams).let { params ->
+            val bottomMargin = if (speech == Speech.OFF) 0 else root.layoutParams.height.coerceAtLeast(0)
+            if (params.bottomMargin != bottomMargin) {
+                params.bottomMargin = bottomMargin
+                viewBinding.verseViewPager.layoutParams = params
+            }
+        }
         val playing = speech == Speech.PLAYING
         speechPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
         speechPlayPause.contentDescription = getString(if (playing) R.string.action_pause else R.string.action_play)
