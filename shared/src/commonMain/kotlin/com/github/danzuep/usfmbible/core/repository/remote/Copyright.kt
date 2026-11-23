@@ -17,8 +17,19 @@
 
 package com.github.danzuep.usfmbible.core.repository.remote
 
-/** A paragraph of a translation's copyright notice, or a heading when [heading] is set. Links stay as markdown, `[label](url)`. */
-data class CopyrightBlock(val text: String, val heading: Boolean = false)
+/**
+ * A block of a markdown document: a paragraph, a heading of [level] when [heading] is set, a list item, a [code] block or a [rule].
+ * [indent] is the list nesting depth and [quote] marks block quote text. Inline markup (emphasis, code, links) stays as markdown.
+ */
+data class CopyrightBlock(
+    val text: String,
+    val heading: Boolean = false,
+    val level: Int = 1,
+    val indent: Int = 0,
+    val quote: Boolean = false,
+    val code: Boolean = false,
+    val rule: Boolean = false
+)
 
 private val HIDDEN_HTML = Regex("""<(script|style|head|title)\b[\s\S]*?</\1\s*>|<!--[\s\S]*?-->""", RegexOption.IGNORE_CASE)
 private val ANCHOR = Regex("""<a\b[^>]*?href\s*=\s*["']([^"']*)["'][^>]*>([\s\S]*?)</a\s*>""", RegexOption.IGNORE_CASE)
@@ -88,26 +99,125 @@ fun parseCopyrightMarkdown(markdown: String): List<CopyrightBlock> = parseCopyri
 /** The longest text of a block; longer paragraphs are split so that no single view has to lay out a huge text. */
 const val MAX_BLOCK_LENGTH = 2000
 
-/** Reads [lines] one at a time, so large files never need to be held as a single string or laid out as a single view. */
-fun parseCopyrightMarkdown(lines: Sequence<String>): List<CopyrightBlock> = lines.flatMap { line ->
-    val text = line.trim()
-    when {
-        text.isEmpty() -> emptyList()
-        text.startsWith("#") -> splitBlock(text.trimStart('#').trim(), heading = true)
-        text.startsWith("- ") -> splitBlock("• ${text.drop(2)}", heading = false)
-        else -> splitBlock(text, heading = false)
-    }
-}.toList()
+private val ATX_HEADING = Regex("""^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$""")
+private val CODE_FENCE = Regex("""^ {0,3}(`{3,}|~{3,})""")
+private val THEMATIC_BREAK = Regex("""^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$""")
+private val SETEXT_UNDERLINE = Regex("""^ {0,3}(=+|-+)[ \t]*$""")
+private val LIST_ITEM_START = Regex("""^( *)([-*+]|\d{1,9}[.)])[ \t]+(\S.*)$""")
+private val QUOTE_MARKER = Regex("""^ {0,3}> ?""")
 
-private fun splitBlock(text: String, heading: Boolean): List<CopyrightBlock> {
-    if (text.length <= MAX_BLOCK_LENGTH) return listOf(CopyrightBlock(text, heading))
+/**
+ * Reads [lines] one at a time, so large files never need to be held as a single string or laid out as a single view.
+ * Covers the everyday CommonMark blocks: ATX and setext headings, paragraphs (lines are joined), bullet and numbered
+ * lists, block quotes, fenced code and thematic breaks. Indented code, tables, HTML and reference definitions are left as text.
+ */
+fun parseCopyrightMarkdown(lines: Sequence<String>): List<CopyrightBlock> {
+    val blocks = mutableListOf<CopyrightBlock>()
+    var text: StringBuilder? = null
+    var template = CopyrightBlock("")
+    var plainParagraph = false
+    var fence: String? = null
+    var hardBreak = false
+    val code = StringBuilder()
+
+    fun flush() {
+        text?.let { blocks += splitBlock(it.toString(), template) }
+        text = null
+    }
+
+    fun flushCode() {
+        if (code.isNotEmpty()) blocks += splitBlock(code.toString().trimEnd('\n'), CopyrightBlock("", code = true))
+        code.clear()
+    }
+
+    for (line in lines) {
+        val open = fence
+        if (open != null) {
+            val trimmed = line.trim()
+            if (trimmed.length >= open.length && trimmed.all { it == open[0] }) {
+                fence = null
+                flushCode()
+            } else code.append(line.trimEnd()).append('\n')
+            continue
+        }
+        if (line.isBlank()) {
+            flush()
+            continue
+        }
+        var content = line
+        var quote = false
+        while (true) {
+            val marker = QUOTE_MARKER.find(content) ?: break
+            content = content.substring(marker.range.last + 1)
+            quote = true
+        }
+        if (content.isBlank()) {
+            flush()
+            continue
+        }
+        if (text != null && template.quote != quote) flush()
+        val trimmed = content.trim()
+        val underline = SETEXT_UNDERLINE.find(content)
+        val atx = ATX_HEADING.find(content)
+        val list = LIST_ITEM_START.find(content)
+        when {
+            CODE_FENCE.containsMatchIn(content) -> {
+                flush()
+                fence = CODE_FENCE.find(content)!!.groupValues[1]
+            }
+            atx != null -> {
+                flush()
+                if (atx.groupValues[2].isNotEmpty()) blocks += splitBlock(atx.groupValues[2], CopyrightBlock("", heading = true, level = atx.groupValues[1].length, quote = quote))
+            }
+            underline != null && plainParagraph && text != null -> {
+                val level = if (underline.groupValues[1][0] == '=') 1 else 2
+                template = template.copy(heading = true, level = level)
+                flush()
+            }
+            THEMATIC_BREAK.containsMatchIn(content) -> {
+                flush()
+                blocks += CopyrightBlock("", rule = true, quote = quote)
+            }
+            list != null -> {
+                flush()
+                val marker = list.groupValues[2]
+                val indent = minOf(list.groupValues[1].length / 2, MAX_INDENT)
+                val bullet = if (marker[0].isDigit()) "$marker " else if (indent == 0) "• " else "◦ "
+                text = StringBuilder(bullet).append(list.groupValues[3].trim())
+                template = CopyrightBlock("", indent = indent, quote = quote)
+                plainParagraph = false
+            }
+            else -> {
+                val current = text
+                if (current == null) {
+                    text = StringBuilder(trimmed)
+                    template = CopyrightBlock("", quote = quote)
+                    plainParagraph = true
+                } else {
+                    val backslashBreak = current.endsWith("\\")
+                    if (backslashBreak) current.setLength(current.length - 1)
+                    current.append(if (backslashBreak || hardBreak) "\n" else " ").append(trimmed)
+                }
+            }
+        }
+        hardBreak = line.endsWith("  ")
+    }
+    flush()
+    flushCode()
+    return blocks
+}
+
+private const val MAX_INDENT = 3
+
+private fun splitBlock(text: String, template: CopyrightBlock): List<CopyrightBlock> {
+    if (text.length <= MAX_BLOCK_LENGTH) return listOf(template.copy(text = text))
     val parts = mutableListOf<CopyrightBlock>()
     var start = 0
     while (start < text.length) {
         var end = minOf(start + MAX_BLOCK_LENGTH, text.length)
-        // Break after a space if there is one, so words (and short links) stay whole.
-        if (end < text.length) text.lastIndexOf(' ', end).takeIf { it > start }?.let { end = it + 1 }
-        parts += CopyrightBlock(text.substring(start, end).trim(), heading)
+        // Break after a space or line break if there is one, so words (and short links) stay whole.
+        if (end < text.length) text.lastIndexOfAny(charArrayOf(' ', '\n'), end).takeIf { it > start }?.let { end = it + 1 }
+        parts += template.copy(text = text.substring(start, end).trim())
         start = end
     }
     return parts.filter { it.text.isNotEmpty() }
