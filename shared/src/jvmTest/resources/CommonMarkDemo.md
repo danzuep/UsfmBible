@@ -18,9 +18,9 @@ This is a standard paragraph with **bold text**, *italic text*, ***bold and ital
 - [ ] Incomplete task
 
 ### Links & Images
-[Visit Markdown Guide](https://www.markdownguide.org)
+[Read the repository README](../../../../README.md)
 
-![Alt text for image](https://placeholder.com "Optional title")
+![App icon](../../../../fastlane/metadata/android/en-US/images/icon.png "Optional title")
 
 ### Blockquotes
 > This is a blockquote.
