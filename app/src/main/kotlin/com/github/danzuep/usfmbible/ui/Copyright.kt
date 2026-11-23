@@ -17,6 +17,7 @@
 
 package com.github.danzuep.usfmbible.ui
 
+import android.app.Activity
 import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -74,15 +75,22 @@ private fun List<CopyrightBlock>.toText(): CharSequence = SpannableStringBuilder
     }
 }
 
-/** Shows the copyright notice kept for [translationShortName], or a placeholder that searches the web for translations that have none. */
-fun Context.showCopyright(translationShortName: String) {
+/** The kept copyright notice of [translationShortName] followed by its name, or empty when there is none. */
+internal fun Context.copyrightBlocks(translationShortName: String): List<CopyrightBlock> {
     val file = copyrightFile(translationShortName)
     val blocks = if (file.exists()) parseCopyrightMarkdown(file.readText()) else emptyList()
-    if (blocks.isEmpty()) {
+    return if (blocks.isEmpty()) emptyList() else blocks + CopyrightBlock(translationShortName)
+}
+
+/** Shows the copyright notice kept for [translationShortName] full screen, or a placeholder that searches the web for translations that have none. */
+fun Context.showCopyright(translationShortName: String) {
+    if (copyrightBlocks(translationShortName).isEmpty()) {
         showCopyrightSearch(translationShortName)
         return
     }
-    showBlocks(blocks + CopyrightBlock(translationShortName))
+    val intent = Intent(this, MarkdownActivity::class.java).putExtra(MarkdownActivity.KEY_COPYRIGHT, translationShortName)
+    if (this !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    startActivity(intent)
 }
 
 /** Placeholder for a missing notice, offering a search with the default search provider. */

@@ -35,6 +35,14 @@ import kotlinx.coroutines.withContext
 class MarkdownActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val translation = intent.getStringExtra(KEY_COPYRIGHT)
+        if (translation != null) {
+            lifecycleScope.launch {
+                val blocks = withContext(Dispatchers.IO) { copyrightBlocks(translation) }
+                if (blocks.isEmpty()) finish() else show(blocks)
+            }
+            return
+        }
         val uri = intent.data
         if (uri == null) {
             finish()
@@ -48,6 +56,11 @@ class MarkdownActivity : AppCompatActivity() {
             }.getOrNull()
             if (blocks.isNullOrEmpty()) finish() else show(blocks)
         }
+    }
+
+    companion object {
+        /** Short name of a translation whose kept copyright notice is shown instead of a file. */
+        const val KEY_COPYRIGHT = "com.github.danzuep.usfmbible.KEY_COPYRIGHT"
     }
 
     private fun show(blocks: List<CopyrightBlock>) {
