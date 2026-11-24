@@ -65,6 +65,14 @@ class VersePagerAdapter(
     private var currentTranslation = ""
     private var parallelTranslations = emptyList<String>()
 
+    /** Height at the bottom of the pager covered by a control bar; pages scroll their last verse clear of it. */
+    var bottomInset = 0
+        set(value) {
+            if (field == value) return
+            field = value
+            forEachAttachedPage { it.setBottomInset(value) }
+        }
+
     var settings: Settings? = null
         set(value) {
             field = value
@@ -195,6 +203,7 @@ class VersePagerAdapter(
         // Otherwise a chapter that finishes loading after the bind never reaches the page, which then spins forever.
         livePages.add(holder as Page)
         holder.bind(position, settings!!, currentVerseIndex)
+        holder.setBottomInset(bottomInset)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
@@ -250,6 +259,11 @@ private class Page(
                 }
             }
         })
+    }
+
+    fun setBottomInset(inset: Int) = with(viewBinding.verseList) {
+        clipToPadding = false
+        if (paddingBottom != inset) setPadding(paddingLeft, paddingTop, paddingRight, inset)
     }
 
     fun bind(position: Int, settings: Settings, currentVerseIndex: VerseIndex) {
