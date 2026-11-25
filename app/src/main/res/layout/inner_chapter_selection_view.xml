@@ -38,6 +38,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/chapter_selection_old_testament" />
 
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/verse_selection_book"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/background_chapter_selection"
+        android:gravity="center"
+        android:padding="@dimen/padding"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/text_primary"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:id="@+id/verse_selection_panel"
         android:layout_width="match_parent"
@@ -48,7 +61,7 @@
         android:orientation="horizontal"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/chapter_selection_old_testament">
+        app:layout_constraintTop_toBottomOf="@id/verse_selection_book">
 
         <ListView
             android:id="@+id/verse_selection_chapters"
@@ -60,7 +73,6 @@
             android:id="@+id/verse_selection_delimiter"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:contentDescription="@string/text_verse_selection_close"
             android:gravity="center"
             android:minWidth="@dimen/padding"
             android:paddingHorizontal="@dimen/padding"
