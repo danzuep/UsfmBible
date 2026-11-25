@@ -63,23 +63,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/verse_selection_book">
 
-        <ListView
-            android:id="@+id/verse_selection_chapters"
-            android:layout_width="@dimen/chapter_grid_width"
-            android:layout_height="match_parent"
-            android:divider="@null" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/verse_selection_delimiter"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:minWidth="@dimen/padding"
-            android:paddingHorizontal="@dimen/padding"
-            android:text=":"
-            android:textColor="@android:color/white"
-            android:textSize="@dimen/text_primary" />
-
         <GridView
             android:id="@+id/verse_selection_verses"
             android:layout_width="0dp"

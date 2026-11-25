@@ -63,7 +63,6 @@ class ChapterSelectionView : ConstraintLayout {
     }
 
     private var onViewEvent: ((ViewEvent) -> Unit)? = null
-    private var versesBookIndex = -1
     private var bookNames = emptyMap<Int, String>()
     private var showTestamentTabs = true
 
@@ -95,18 +94,10 @@ class ChapterSelectionView : ConstraintLayout {
         updateSelection(SELECTION_OLD_TESTAMENT, false)
     }
 
-    /** Narrows the chapters to a column and fills the rest with the verses of [chapterIndex], as "chapter:verse". */
+    /** Replaces the chapters with the verses of [chapterIndex], under a "Book chapter:" header. */
     fun showVerses(bookIndex: Int, chapterIndex: Int, verseCount: Int) {
         if (verseCount <= 0) return
-        if (versesBookIndex != bookIndex) {
-            versesBookIndex = bookIndex
-            viewBinding.verseSelectionChapters.adapter = NumberAdapter(context, Bible.getChapterCount(bookIndex)) { chapter ->
-                onViewEvent?.invoke(ViewEvent.OpenVerses(bookIndex, chapter))
-            }
-        }
-        viewBinding.verseSelectionBook.text = bookNames[bookIndex].orEmpty()
-        (viewBinding.verseSelectionChapters.adapter as NumberAdapter).selectedIndex = chapterIndex
-        viewBinding.verseSelectionChapters.setSelection(chapterIndex)
+        viewBinding.verseSelectionBook.text = "${bookNames[bookIndex].orEmpty()} ${(chapterIndex + 1).localized()}:"
         viewBinding.verseSelectionVerses.adapter = NumberAdapter(context, verseCount) { verse ->
             hideVerses()
             onViewEvent?.invoke(ViewEvent.SelectVerse(bookIndex, chapterIndex, verse))
