@@ -65,6 +65,7 @@ class ChapterSelectionView : ConstraintLayout {
     private var onViewEvent: ((ViewEvent) -> Unit)? = null
     private var versesBookIndex = -1
     private var bookNames = emptyMap<Int, String>()
+    private var showTestamentTabs = true
 
     private val viewBinding = InnerChapterSelectionViewBinding.inflate(LayoutInflater.from(context), this)
 
@@ -112,11 +113,13 @@ class ChapterSelectionView : ConstraintLayout {
         }
         viewBinding.verseSelectionBook.visibility = View.VISIBLE
         viewBinding.verseSelectionPanel.visibility = View.VISIBLE
+        applyTestamentTabs()
     }
 
     fun hideVerses() {
         viewBinding.verseSelectionBook.visibility = View.GONE
         viewBinding.verseSelectionPanel.visibility = View.GONE
+        applyTestamentTabs()
     }
 
     fun isShowingVerses(): Boolean = viewBinding.verseSelectionPanel.visibility == View.VISIBLE
@@ -154,10 +157,18 @@ class ChapterSelectionView : ConstraintLayout {
     }
 
     private fun updateTestamentTabs(visibility: TestamentTabVisibility) {
-        val showTabs = visibility.showOldTestament && visibility.showNewTestament
-        val tabVisibility = if (showTabs) View.VISIBLE else View.GONE
+        showTestamentTabs = visibility.showOldTestament && visibility.showNewTestament
+        applyTestamentTabs()
+    }
+
+    /** The book name takes the place of the tabs while the verses are shown. */
+    private fun applyTestamentTabs() {
+        val visible = showTestamentTabs && !isShowingVerses()
+        val tabVisibility = if (visible) View.VISIBLE else View.GONE
         viewBinding.chapterSelectionOldTestament.visibility = tabVisibility
         viewBinding.chapterSelectionNewTestament.visibility = tabVisibility
+        viewBinding.chapterSelectionOldTestament.isEnabled = visible
+        viewBinding.chapterSelectionNewTestament.isEnabled = visible
     }
 
     fun expandCurrentBook() {

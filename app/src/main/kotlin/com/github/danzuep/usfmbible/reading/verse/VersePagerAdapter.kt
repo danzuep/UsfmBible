@@ -330,6 +330,7 @@ private class Page(
             if (target >= 0) {
                 scrollToPosition(target, 0)
                 pendingVerseScroll = null
+                targetVerse?.let(::alignVerseToTop)
             }
         } else if (anchor != null) {
             val target = renderedItems.positionOfVerse(anchor.verseIndex)
@@ -381,7 +382,30 @@ private class Page(
         }
         scrollToPosition(target, 0)
         pendingVerseScroll = null
+        alignVerseToTop(verseIndex)
         return true
+    }
+
+    /** A verse in the middle of a long paragraph is not at the top, or even on screen, after scrolling to the paragraph. */
+    private fun alignVerseToTop(verseIndex: VerseIndex, attempts: Int = 5) {
+        if (verseIndex.verseIndex <= 0) return
+        val list = viewBinding.verseList
+        list.post {
+            val target = renderedItems.positionOfVerse(verseIndex)
+            val paragraph = renderedItems.getOrNull(target) as? ParagraphItem ?: return@post
+            val view = (list.layoutManager as LinearLayoutManager).findViewByPosition(target)
+            val textView = view?.findViewById<TextView>(R.id.text)
+            val layout = textView?.layout
+            if (view == null || textView == null || layout == null || textView.isLayoutRequested) {
+                if (attempts > 0) alignVerseToTop(verseIndex, attempts - 1)
+                return@post
+            }
+            val offset = paragraph.verseStart(verseIndex) ?: return@post
+            val line = layout.getLineForOffset(offset.coerceIn(0, (textView.text.length - 1).coerceAtLeast(0)))
+            val textTop = view.top + (if (view === textView) 0 else textView.top) + textView.totalPaddingTop
+            val delta = textTop + layout.getLineTop(line) - list.paddingTop
+            if (delta > 0) list.scrollBy(0, delta)
+        }
     }
 
     fun revealVerse(verseIndex: VerseIndex): Boolean {
