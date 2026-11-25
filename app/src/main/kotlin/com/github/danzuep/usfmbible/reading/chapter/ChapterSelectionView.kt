@@ -196,7 +196,8 @@ private class NumberAdapter(private val context: Context, private val count: Int
         val view = (convertView as? TextView)
             ?: LayoutInflater.from(context).inflate(R.layout.item_number, parent, false) as TextView
         view.text = (position + 1).localized()
-        view.isSelected = position == selectedIndex
+        // Activated, because ListView overwrites the selected state of its rows.
+        view.isActivated = position == selectedIndex
         view.setOnClickListener { onClick(position) }
         return view
     }
