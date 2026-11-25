@@ -54,6 +54,8 @@ class ChapterSelectionViewModel @Inject constructor(
         }
     }
 
+    private var currentChapter = -1 to -1
+
     init {
         bibleReadingManager.currentTranslation().onEach { currentTranslation ->
             val booksWithVerses = bibleReadingManager.readBookIndicesWithVerses(currentTranslation)
@@ -64,6 +66,7 @@ class ChapterSelectionViewModel @Inject constructor(
         }.launchIn(viewModelScope)
 
         bibleReadingManager.currentVerseIndex().onEach { currentVerseIndex ->
+            currentChapter = currentVerseIndex.bookIndex to currentVerseIndex.chapterIndex
             updateViewState { it.copy(currentBookIndex = currentVerseIndex.bookIndex, currentChapterIndex = currentVerseIndex.chapterIndex) }
         }.launchIn(viewModelScope)
     }
@@ -73,6 +76,11 @@ class ChapterSelectionViewModel @Inject constructor(
         val translation = bibleReadingManager.currentTranslation().first()
         bibleReadingManager.readVerses(translation, bookIndex, chapterIndex).maxOfOrNull { it.verseIndex.verseIndex + 1 } ?: 0
     }.getOrDefault(0)
+
+    /** Moves the reader to the chapter's start, unless it is already being read. */
+    fun openChapter(bookIndex: Int, chapterIndex: Int) {
+        if (currentChapter != bookIndex to chapterIndex) selectChapter(bookIndex, chapterIndex)
+    }
 
     fun selectChapter(bookToSelect: Int, chapterToSelect: Int, verseToSelect: Int = 0) {
         viewModelScope.launch {
