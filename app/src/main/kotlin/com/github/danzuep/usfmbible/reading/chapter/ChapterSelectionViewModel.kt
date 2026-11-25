@@ -20,6 +20,7 @@ package com.github.danzuep.usfmbible.reading.chapter
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -67,10 +68,16 @@ class ChapterSelectionViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun selectChapter(bookToSelect: Int, chapterToSelect: Int) {
+    /** The number of verses in the chapter of the current translation, or 0 if it has none. */
+    suspend fun verseCount(bookIndex: Int, chapterIndex: Int): Int = runCatching {
+        val translation = bibleReadingManager.currentTranslation().first()
+        bibleReadingManager.readVerses(translation, bookIndex, chapterIndex).maxOfOrNull { it.verseIndex.verseIndex + 1 } ?: 0
+    }.getOrDefault(0)
+
+    fun selectChapter(bookToSelect: Int, chapterToSelect: Int, verseToSelect: Int = 0) {
         viewModelScope.launch {
             runCatching {
-                bibleReadingManager.saveCurrentVerseIndex(VerseIndex(bookIndex = bookToSelect, chapterIndex = chapterToSelect, verseIndex = 0))
+                bibleReadingManager.saveCurrentVerseIndex(VerseIndex(bookIndex = bookToSelect, chapterIndex = chapterToSelect, verseIndex = verseToSelect))
             }.onFailure { e ->
                 Logger.withTag(tag).e(e) { "Failed to select chapter [bookToSelect=$bookToSelect, chapterToSelect=$chapterToSelect]" }
                 updateViewState { it.copy(error = ViewState.Error.ChapterSelectionError(bookToSelect = bookToSelect, chapterToSelect = chapterToSelect)) }

@@ -23,6 +23,11 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.AbsListView
+import android.widget.BaseAdapter
+import android.view.ViewGroup
+import android.widget.TextView
+import com.github.danzuep.usfmbible.R
+import com.github.danzuep.usfmbible.utils.localized
 import android.widget.ExpandableListView
 import androidx.annotation.IntDef
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -52,7 +57,13 @@ class ChapterSelectionView : ConstraintLayout {
     sealed class ViewEvent {
         data class SelectBook(val bookIndex: Int) : ViewEvent()
         data class SelectChapter(val bookIndex: Int, val chapterIndex: Int) : ViewEvent()
+        data class SelectVerse(val bookIndex: Int, val chapterIndex: Int, val verseIndex: Int) : ViewEvent()
+        /** A chapter was long pressed, so its verses can be offered; answer with [showVerses]. */
+        data class OpenVerses(val bookIndex: Int, val chapterIndex: Int) : ViewEvent()
     }
+
+    private var onViewEvent: ((ViewEvent) -> Unit)? = null
+    private var versesBookIndex = -1
 
     private val viewBinding = InnerChapterSelectionViewBinding.inflate(LayoutInflater.from(context), this)
 
@@ -78,8 +89,33 @@ class ChapterSelectionView : ConstraintLayout {
                 updateSelection(if (firstVisibleGroup < Bible.OLD_TESTAMENT_COUNT) SELECTION_OLD_TESTAMENT else SELECTION_NEW_TESTAMENT, false)
             }
         })
+        viewBinding.verseSelectionDelimiter.setOnClickListener { hideVerses() }
         updateSelection(SELECTION_OLD_TESTAMENT, false)
     }
+
+    /** Narrows the chapters to a column and fills the rest with the verses of [chapterIndex], as "chapter:verse". */
+    fun showVerses(bookIndex: Int, chapterIndex: Int, verseCount: Int) {
+        if (verseCount <= 0) return
+        if (versesBookIndex != bookIndex) {
+            versesBookIndex = bookIndex
+            viewBinding.verseSelectionChapters.adapter = NumberAdapter(context, Bible.getChapterCount(bookIndex)) { chapter ->
+                onViewEvent?.invoke(ViewEvent.OpenVerses(bookIndex, chapter))
+            }
+        }
+        (viewBinding.verseSelectionChapters.adapter as NumberAdapter).selectedIndex = chapterIndex
+        viewBinding.verseSelectionChapters.setSelection(chapterIndex)
+        viewBinding.verseSelectionVerses.adapter = NumberAdapter(context, verseCount) { verse ->
+            hideVerses()
+            onViewEvent?.invoke(ViewEvent.SelectVerse(bookIndex, chapterIndex, verse))
+        }
+        viewBinding.verseSelectionPanel.visibility = View.VISIBLE
+    }
+
+    fun hideVerses() {
+        viewBinding.verseSelectionPanel.visibility = View.GONE
+    }
+
+    fun isShowingVerses(): Boolean = viewBinding.verseSelectionPanel.visibility == View.VISIBLE
 
     private fun updateSelection(@Selection newSelection: Int, scrollToFirstItem: Boolean) {
         selection = newSelection
@@ -99,6 +135,7 @@ class ChapterSelectionView : ConstraintLayout {
     }
 
     fun initialize(onViewEvent: (ViewEvent) -> Unit) {
+        this.onViewEvent = onViewEvent
         viewBinding.chapterListView.initialize(onViewEvent)
     }
 
@@ -120,5 +157,29 @@ class ChapterSelectionView : ConstraintLayout {
 
     fun expandCurrentBook() {
         viewBinding.chapterListView.expandCurrentBook()
+    }
+}
+
+/** Numbers 1..[count], reporting the 0-based index of the one clicked. */
+private class NumberAdapter(private val context: Context, private val count: Int, private val onClick: (Int) -> Unit) : BaseAdapter() {
+    var selectedIndex = -1
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
+    override fun getCount(): Int = count
+
+    override fun getItem(position: Int): Int = position
+
+    override fun getItemId(position: Int): Long = position.toLong()
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = (convertView as? TextView)
+            ?: LayoutInflater.from(context).inflate(R.layout.item_number, parent, false) as TextView
+        view.text = (position + 1).localized()
+        view.isSelected = position == selectedIndex
+        view.setOnClickListener { onClick(position) }
+        return view
     }
 }

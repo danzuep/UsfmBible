@@ -256,6 +256,8 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private var lastSelectedPage = -1
     // Set until the reader has moved to the referenced verse, because moving to another chapter ends the selection.
     private var pendingReferenceSelection: Pair<VerseIndex, Int>? = null
+    // A verse picked in the chapter menu, which is scrolled to even if its chapter is already on screen.
+    private var pendingVerseJump: VerseIndex? = null
     private val referenceBackStack = ArrayDeque<VerseIndex>()
 
     // The launcher alias reuses a running reader, so an open-book request arrives here instead of onCreate().
@@ -455,6 +457,9 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             }
         })
 
+        chapterSelectionFragment.getFragment<ChapterSelectionFragment>().onVerseSelected = { verseIndex ->
+            pendingVerseJump = verseIndex
+        }
         chapterSelectionFragment.getFragment<ChapterSelectionFragment>().onChapterSelected = {
             drawerLayout.closeDrawer(GravityCompat.START)
         }
@@ -912,10 +917,12 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             // A verse reached by the user scrolling is already on screen; moving the pager would jump it to a chapter heading.
             val reportedByScroll = status.currentVerseIndex in versesReportedByScroll
             if (reportedByScroll) versesReportedByScroll.clear()
+            val verseJump = status.currentVerseIndex == pendingVerseJump
+            if (verseJump) pendingVerseJump = null
             val chapterChanged = previousVerseIndex.bookIndex != status.currentVerseIndex.bookIndex
                 || previousVerseIndex.chapterIndex != status.currentVerseIndex.chapterIndex
             val speechFollowing = speech != Speech.OFF && status.currentVerseIndex == spokenVerse
-            if (!speechFollowing && !reportedByScroll && (chapterChanged || !versePagerAdapter.containsChapterInCurrentPage(status.currentVerseIndex))) {
+            if (verseJump || (!speechFollowing && !reportedByScroll && (chapterChanged || !versePagerAdapter.containsChapterInCurrentPage(status.currentVerseIndex)))) {
                 val targetPage = status.currentVerseIndex.toPagePosition()
                 if (verseViewPager.currentItem != targetPage) verseViewPager.setCurrentItem(targetPage, false)
                 // A cached page is reused without a rebind, so it must be positioned explicitly.
