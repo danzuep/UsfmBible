@@ -58,12 +58,13 @@ class ChapterSelectionView : ConstraintLayout {
         data class SelectBook(val bookIndex: Int) : ViewEvent()
         data class SelectChapter(val bookIndex: Int, val chapterIndex: Int) : ViewEvent()
         data class SelectVerse(val bookIndex: Int, val chapterIndex: Int, val verseIndex: Int) : ViewEvent()
-        /** A chapter was long pressed, so its verses can be offered; answer with [showVerses]. */
+        /** A chapter was tapped, so its verses can be offered; answer with [showVerses]. */
         data class OpenVerses(val bookIndex: Int, val chapterIndex: Int) : ViewEvent()
     }
 
     private var onViewEvent: ((ViewEvent) -> Unit)? = null
     private var versesBookIndex = -1
+    private var bookNames = emptyMap<Int, String>()
 
     private val viewBinding = InnerChapterSelectionViewBinding.inflate(LayoutInflater.from(context), this)
 
@@ -89,7 +90,7 @@ class ChapterSelectionView : ConstraintLayout {
                 updateSelection(if (firstVisibleGroup < Bible.OLD_TESTAMENT_COUNT) SELECTION_OLD_TESTAMENT else SELECTION_NEW_TESTAMENT, false)
             }
         })
-        viewBinding.verseSelectionDelimiter.setOnClickListener { hideVerses() }
+        viewBinding.verseSelectionBook.setOnClickListener { hideVerses() }
         updateSelection(SELECTION_OLD_TESTAMENT, false)
     }
 
@@ -102,16 +103,19 @@ class ChapterSelectionView : ConstraintLayout {
                 onViewEvent?.invoke(ViewEvent.OpenVerses(bookIndex, chapter))
             }
         }
+        viewBinding.verseSelectionBook.text = bookNames[bookIndex].orEmpty()
         (viewBinding.verseSelectionChapters.adapter as NumberAdapter).selectedIndex = chapterIndex
         viewBinding.verseSelectionChapters.setSelection(chapterIndex)
         viewBinding.verseSelectionVerses.adapter = NumberAdapter(context, verseCount) { verse ->
             hideVerses()
             onViewEvent?.invoke(ViewEvent.SelectVerse(bookIndex, chapterIndex, verse))
         }
+        viewBinding.verseSelectionBook.visibility = View.VISIBLE
         viewBinding.verseSelectionPanel.visibility = View.VISIBLE
     }
 
     fun hideVerses() {
+        viewBinding.verseSelectionBook.visibility = View.GONE
         viewBinding.verseSelectionPanel.visibility = View.GONE
     }
 
@@ -144,6 +148,7 @@ class ChapterSelectionView : ConstraintLayout {
     }
 
     fun setChapterSelectionItems(chapterSelectionItems: List<ChapterSelectionItem>) {
+        bookNames = chapterSelectionItems.associate { it.bookIndex to it.bookName }
         viewBinding.chapterListView.setChapterSelectionItems(chapterSelectionItems = chapterSelectionItems)
         updateTestamentTabs(testamentTabVisibility(chapterSelectionItems.map { it.bookIndex }))
     }

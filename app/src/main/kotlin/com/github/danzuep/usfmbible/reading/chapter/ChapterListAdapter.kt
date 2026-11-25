@@ -43,16 +43,15 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
 
     private val inflater = LayoutInflater.from(context)
 
+    // A tap offers the verses of the chapter; a long press opens the chapter itself.
     private val onChapterClickedListener = View.OnClickListener { view ->
         val tag = view.tag as Tag
-        if (tag.bookIndex != currentBookIndex || tag.chapterIndex != currentChapterIndex) {
-            onViewEvent(ChapterSelectionView.ViewEvent.SelectChapter(tag.bookIndex, tag.chapterIndex))
-        }
+        onViewEvent(ChapterSelectionView.ViewEvent.OpenVerses(tag.bookIndex, tag.chapterIndex))
     }
 
     private val onChapterLongClickedListener = View.OnLongClickListener { view ->
         val tag = view.tag as Tag
-        onViewEvent(ChapterSelectionView.ViewEvent.OpenVerses(tag.bookIndex, tag.chapterIndex))
+        onViewEvent(ChapterSelectionView.ViewEvent.SelectChapter(tag.bookIndex, tag.chapterIndex))
         true
     }
 

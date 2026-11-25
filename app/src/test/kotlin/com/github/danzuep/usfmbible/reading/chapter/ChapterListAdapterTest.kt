@@ -87,9 +87,6 @@ class ChapterListAdapterTest : BaseUnitTest() {
             when (viewEvent) {
                 is ChapterSelectionView.ViewEvent.SelectChapter -> {
                     assertEquals(bookToSelect, viewEvent.bookIndex)
-                    if (viewEvent.bookIndex == 2 && viewEvent.chapterIndex == 0) {
-                        fail()
-                    }
                     assertEquals(chapterToSelect, viewEvent.chapterIndex)
                     selectChapterCalled++
                 }
@@ -117,8 +114,8 @@ class ChapterListAdapterTest : BaseUnitTest() {
 
             bookToSelect = 2
             chapterToSelect = index
-            child.performClick()
-            assertEquals(index, selectChapterCalled)
+            child.performLongClick()
+            assertEquals(index + 1, selectChapterCalled)
         }
 
         val lastRow = ItemChapterRowBinding.bind(adapter.getChildView(2, 5, false, firstRow.root, FrameLayout(ApplicationProvider.getApplicationContext())))
@@ -131,8 +128,8 @@ class ChapterListAdapterTest : BaseUnitTest() {
 
                 bookToSelect = 2
                 chapterToSelect = index + 25
-                child.performClick()
-                assertEquals(index + 5, selectChapterCalled)
+                child.performLongClick()
+                assertEquals(index + 6, selectChapterCalled)
             }
         }
 
@@ -145,8 +142,8 @@ class ChapterListAdapterTest : BaseUnitTest() {
 
             bookToSelect = 0
             chapterToSelect = index
-            child.performClick()
-            assertEquals(index + 7, selectChapterCalled)
+            child.performLongClick()
+            assertEquals(index + 8, selectChapterCalled)
         }
     }
 }
