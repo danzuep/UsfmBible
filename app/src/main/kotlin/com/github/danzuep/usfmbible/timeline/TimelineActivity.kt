@@ -16,6 +16,7 @@
 
 package com.github.danzuep.usfmbible.timeline
 
+import android.widget.Spinner
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -25,6 +26,7 @@ import com.github.danzuep.usfmbible.Navigator
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.annotated.AnnotatedVerseAdapter
 import com.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
+import com.github.danzuep.usfmbible.annotated.initializeSortOrder
 import com.github.danzuep.usfmbible.core.ReadingTimeline
 import com.github.danzuep.usfmbible.core.VerseIndex
 import com.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
@@ -70,6 +72,8 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
             }
         }
 
+        (toolbar.menu.findItem(R.id.action_sort).actionView as Spinner).initializeSortOrder(viewModel::setSortOrder)
+
         adapter = AnnotatedVerseAdapter(
             inflater = layoutInflater,
             executor = coroutineDispatcherProvider.default.asExecutor()
@@ -91,6 +95,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     override fun onViewStateUpdated(viewState: TimelineViewModel.ViewState): Unit = with(viewBinding) {
         limit = viewState.limit
         toolbar.menu.findItem(R.id.action_timeline_limit).title = viewState.limit.localized()
+        (toolbar.menu.findItem(R.id.action_sort).actionView as Spinner).setSelection(viewState.sortOrder)
 
         if (!viewState.loading) {
             timelineItems = viewState.items
@@ -185,6 +190,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     private fun updateSelectionMenu() {
         val menu = viewBinding.toolbar.menu
         menu.findItem(R.id.action_timeline_limit).isVisible = !selectionMode
+        menu.findItem(R.id.action_sort).isVisible = !selectionMode
         menu.findItem(R.id.action_timeline_select_all).isVisible = selectionMode
         menu.findItem(R.id.action_timeline_delete).apply {
             isVisible = selectionMode

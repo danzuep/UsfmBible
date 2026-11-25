@@ -57,6 +57,7 @@ class TimelineViewModel @Inject constructor(
         val limit: Int,
         val items: List<AnnotatedVerseItem>,
         val error: Error?,
+        @Constants.SortOrder val sortOrder: Int = Constants.DEFAULT_SORT_ORDER,
     ) {
         sealed class Error {
             object TimelineLoadingError : Error()
@@ -64,6 +65,16 @@ class TimelineViewModel @Inject constructor(
             data class TimelineDeletingError(val verses: Set<VerseIndex>) : Error()
             data class VerseOpeningError(val verseToOpen: VerseIndex) : Error()
         }
+    }
+
+    // The timeline has no dates, so "by date" is the order it was read in, most recent first.
+    @Constants.SortOrder
+    private var sortOrder = Constants.DEFAULT_SORT_ORDER
+
+    fun setSortOrder(@Constants.SortOrder sortOrder: Int) {
+        if (sortOrder == this.sortOrder) return
+        this.sortOrder = sortOrder
+        loadTimeline()
     }
 
     fun loadTimeline() {
@@ -79,21 +90,36 @@ class TimelineViewModel @Inject constructor(
                 val bookNames = bibleReadingManager.readBookNames(translation)
                 val bookShortNames = bibleReadingManager.readBookShortNames(translation)
 
-                val items = timeline.mapNotNull { verseIndex ->
-                    verses[verseIndex]?.let {
+                val order = sortOrder
+                val readVerses = timeline.filter { it in verses }.let { found ->
+                    if (order == Constants.SORT_BY_BOOK) {
+                        found.sortedWith(compareBy({ it.bookIndex }, { it.chapterIndex }, { it.verseIndex }))
+                    } else {
+                        found
+                    }
+                }
+                val items = ArrayList<AnnotatedVerseItem>()
+                var currentBookIndex = -1
+                readVerses.forEach { verseIndex ->
+                    if (order == Constants.SORT_BY_BOOK && verseIndex.bookIndex != currentBookIndex) {
+                        currentBookIndex = verseIndex.bookIndex
+                        items.add(AnnotatedVerseItem.Header(settings = settings, text = bookNames[verseIndex.bookIndex], hideDivider = false))
+                    }
+                    items.add(
                         AnnotatedVerseItem.Bookmark(
                             settings = settings,
                             verseIndex = verseIndex,
                             bookName = bookNames[verseIndex.bookIndex],
                             bookShortName = bookShortNames[verseIndex.bookIndex],
-                            verseText = it.text.text,
-                            sortOrder = Constants.SORT_BY_DATE
+                            verseText = verses.getValue(verseIndex).text.text,
+                            sortOrder = order
                         )
-                    }
-                }.ifEmpty {
+                    )
+                }
+                val shown = items.ifEmpty {
                     listOf(AnnotatedVerseItem.Header(settings = settings, text = application.getString(R.string.text_no_timeline), hideDivider = true))
                 }
-                updateViewState { it.copy(loading = false, limit = limit, items = items) }
+                updateViewState { it.copy(loading = false, limit = limit, items = shown, sortOrder = order) }
             }.onFailure { e ->
                 Logger.withTag(tag).e(e) { "Failed to load the reading timeline" }
                 updateViewState { it.copy(loading = false, error = ViewState.Error.TimelineLoadingError) }
