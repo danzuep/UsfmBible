@@ -43,25 +43,28 @@ class AnnotatedVerseToolbar : MaterialToolbar {
     }
 
     fun initialize(sortOrderUpdated: (Int) -> Unit) {
-        (menu.findItem(R.id.action_sort).actionView as Spinner).apply {
-            val sortOrderSpinnerAdapter = SortOrderSpinnerAdapter(context)
-            adapter = sortOrderSpinnerAdapter
-
-            onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    sortOrderSpinnerAdapter.sortOrder = position
-                    sortOrderUpdated.invoke(position)
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                    // do nothing
-                }
-            }
-        }
+        (menu.findItem(R.id.action_sort).actionView as Spinner).initializeSortOrder(sortOrderUpdated)
     }
 
     fun setSortOrder(@Constants.SortOrder sortOrder: Int) {
         (menu.findItem(R.id.action_sort).actionView as Spinner).setSelection(sortOrder)
+    }
+}
+
+/** Fills the spinner with the "by date" and "by book" options and reports the selected one. */
+internal fun Spinner.initializeSortOrder(sortOrderUpdated: (Int) -> Unit) {
+    val sortOrderSpinnerAdapter = SortOrderSpinnerAdapter(context)
+    adapter = sortOrderSpinnerAdapter
+
+    onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            sortOrderSpinnerAdapter.sortOrder = position
+            sortOrderUpdated.invoke(position)
+        }
+
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+            // do nothing
+        }
     }
 }
 
