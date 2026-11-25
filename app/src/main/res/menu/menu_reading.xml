@@ -15,13 +15,13 @@
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/action_reading_progress"
-        android:title="@string/action_reading_progress"
+        android:id="@+id/action_timeline"
+        android:title="@string/action_timeline"
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_timeline"
-        android:title="@string/action_timeline"
+        android:id="@+id/action_reading_progress"
+        android:title="@string/action_reading_progress"
         app:showAsAction="never" />
 
     <item
