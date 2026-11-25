@@ -88,6 +88,10 @@ class BibleReadingManager(
         bibleReadingRepository.saveCurrentVerseIndex(verseIndex)
     }
 
+    fun beginMenuBrowsing() = bibleReadingRepository.beginBrowsing()
+
+    suspend fun endMenuBrowsing() = bibleReadingRepository.endBrowsing()
+
     /** Adds a verse explicitly selected by the user to history, independently of the current reading position. */
     suspend fun recordUserSelectedVerse(verseIndex: VerseIndex) {
         bibleReadingRepository.addToTimeline(verseIndex)
