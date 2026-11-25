@@ -458,7 +458,13 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         })
 
         chapterSelectionFragment.getFragment<ChapterSelectionFragment>().onVerseSelected = { verseIndex ->
-            pendingVerseJump = verseIndex
+            // Picking the verse already current changes nothing in the status, so it has to be scrolled to here.
+            if (currentReadingStatus?.currentVerseIndex == verseIndex) {
+                pendingVerseJump = null
+                verseViewPager.post { versePagerAdapter.scrollToVerse(verseIndex) }
+            } else {
+                pendingVerseJump = verseIndex
+            }
         }
         chapterSelectionFragment.getFragment<ChapterSelectionFragment>().onChapterSelected = {
             drawerLayout.closeDrawer(GravityCompat.START)
