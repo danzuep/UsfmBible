@@ -375,7 +375,10 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             else drawerLayout.openDrawer(GravityCompat.START)
         }
         drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerClosed(drawerView: View) = viewModel.endMenuBrowsing()
+
             override fun onDrawerOpened(drawerView: View) {
+                viewModel.beginMenuBrowsing()
                 try {
                     chapterSelectionFragment.getFragment<ChapterSelectionFragment>().expandCurrentBook()
                 } catch (e: Exception) {

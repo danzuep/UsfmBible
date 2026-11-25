@@ -80,11 +80,30 @@ class BibleReadingRepository(private val localReadingStorage: LocalReadingStorag
     private val timelineMutex = Mutex()
     private var timeline: List<VerseIndex>? = null
 
+    private var browsingFrom: VerseIndex? = null
+    private var browsing = false
+
+    /** While the navigation menu is open every pick is a step towards the final one, so none of them go to the timeline. */
+    fun beginBrowsing() {
+        if (browsing) return
+        browsing = true
+        browsingFrom = _currentVerseIndex.value
+    }
+
+    /** Once the reader is back in focus, records what it now shows, unless the menu left it where it was. */
+    suspend fun endBrowsing() {
+        if (!browsing) return
+        browsing = false
+        val selected = _currentVerseIndex.value
+        if (selected != null && selected != browsingFrom) addToTimeline(selected)
+        browsingFrom = null
+    }
+
     suspend fun saveCurrentVerseIndex(verseIndex: VerseIndex) {
         val previous = _currentVerseIndex.value
         _currentVerseIndex.value = verseIndex
         localReadingStorage.saveCurrentVerseIndex(verseIndex)
-        if (previous != null && ReadingTimeline.isJump(previous, verseIndex)) addToTimeline(previous)
+        if (!browsing && previous != null && ReadingTimeline.isJump(previous, verseIndex)) addToTimeline(previous)
     }
 
     // The timeline is a convenience, so it must never stop the reader from navigating.

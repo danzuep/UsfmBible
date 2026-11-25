@@ -265,6 +265,13 @@ class ReadingViewModel @Inject constructor(
         }
     }
 
+    /** The navigation menu is open: picks made in it are only recorded in the timeline once it closes. */
+    fun beginMenuBrowsing() = bibleReadingManager.beginMenuBrowsing()
+
+    fun endMenuBrowsing() {
+        viewModelScope.launch { bibleReadingManager.endMenuBrowsing() }
+    }
+
     fun recordUserSelectedVerse(verseIndex: VerseIndex) {
         viewModelScope.launch {
             bibleReadingManager.recordUserSelectedVerse(verseIndex)
