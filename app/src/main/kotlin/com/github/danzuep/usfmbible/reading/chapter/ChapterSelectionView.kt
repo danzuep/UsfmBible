@@ -163,6 +163,8 @@ class ChapterSelectionView : ConstraintLayout {
 
     /** The book name takes the place of the tabs while the verses are shown. */
     private fun applyTestamentTabs() {
+        // The list would otherwise show through the transparent book name header behind the verses.
+        viewBinding.chapterListView.visibility = if (isShowingVerses()) View.INVISIBLE else View.VISIBLE
         val visible = showTestamentTabs && !isShowingVerses()
         val tabVisibility = if (visible) View.VISIBLE else View.GONE
         viewBinding.chapterSelectionOldTestament.visibility = tabVisibility
