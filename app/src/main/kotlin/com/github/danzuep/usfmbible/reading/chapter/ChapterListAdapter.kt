@@ -50,6 +50,12 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
         }
     }
 
+    private val onChapterLongClickedListener = View.OnLongClickListener { view ->
+        val tag = view.tag as Tag
+        onViewEvent(ChapterSelectionView.ViewEvent.OpenVerses(tag.bookIndex, tag.chapterIndex))
+        true
+    }
+
     private var currentBookIndex: Int = -1
     private var currentChapterIndex: Int = -1
     private val items: ArrayList<ChapterSelectionItem> = ArrayList()
@@ -126,6 +132,7 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
         val binding = ItemChapterRowBinding.inflate(inflater, parent, false)
         binding.root.children.forEach { child ->
             child.setOnClickListener(onChapterClickedListener)
+            child.setOnLongClickListener(onChapterLongClickedListener)
             child.tag = Tag(-1, -1)
         }
         return binding

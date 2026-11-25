@@ -142,6 +142,7 @@
     <string name="text_highlight_color_none">🚫</string>
 
     <string name="text_chapter_selection_old_testament">@string/text_old_testament_abbr</string>
+    <string name="text_verse_selection_close">Back to chapters</string>
     <string name="text_chapter_selection_new_testament">@string/text_new_testament_abbr</string>
 
     <string name="text_restore_from">☁ 💾 ⬇</string>

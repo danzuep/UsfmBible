@@ -18,6 +18,9 @@
 package com.github.danzuep.usfmbible.reading.chapter
 
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.github.danzuep.usfmbible.core.VerseIndex
 import dagger.hilt.android.AndroidEntryPoint
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.databinding.FragmentChapterSelectionBinding
@@ -38,9 +41,21 @@ class ChapterSelectionFragment : BaseFragment<FragmentChapterSelectionBinding, C
                     viewModel.selectChapter(bookToSelect = viewEvent.bookIndex, chapterToSelect = viewEvent.chapterIndex)
                     onChapterSelected?.invoke()
                 }
+                is ChapterSelectionView.ViewEvent.OpenVerses -> viewLifecycleOwner.lifecycleScope.launch {
+                    val verseCount = viewModel.verseCount(viewEvent.bookIndex, viewEvent.chapterIndex)
+                    viewBinding.chapterSelectionView.showVerses(viewEvent.bookIndex, viewEvent.chapterIndex, verseCount)
+                }
+                is ChapterSelectionView.ViewEvent.SelectVerse -> {
+                    onVerseSelected?.invoke(VerseIndex(viewEvent.bookIndex, viewEvent.chapterIndex, viewEvent.verseIndex))
+                    viewModel.selectChapter(viewEvent.bookIndex, viewEvent.chapterIndex, viewEvent.verseIndex)
+                    onChapterSelected?.invoke()
+                }
             }
         }
     }
+
+    /** Invoked before the reader moves to a verse picked after long pressing a chapter, so the host can scroll to it. */
+    var onVerseSelected: ((VerseIndex) -> Unit)? = null
 
     /** Invoked after the user picks a chapter, e.g. so the host can close the drawer. */
     var onChapterSelected: (() -> Unit)? = null

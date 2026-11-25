@@ -37,4 +37,44 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/chapter_selection_old_testament" />
+
+    <LinearLayout
+        android:id="@+id/verse_selection_panel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@android:color/black"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chapter_selection_old_testament">
+
+        <ListView
+            android:id="@+id/verse_selection_chapters"
+            android:layout_width="@dimen/chapter_grid_width"
+            android:layout_height="match_parent"
+            android:divider="@null" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/verse_selection_delimiter"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/text_verse_selection_close"
+            android:gravity="center"
+            android:minWidth="@dimen/padding"
+            android:paddingHorizontal="@dimen/padding"
+            android:text=":"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_primary" />
+
+        <GridView
+            android:id="@+id/verse_selection_verses"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:columnWidth="@dimen/chapter_grid_width"
+            android:numColumns="auto_fit"
+            android:stretchMode="columnWidth" />
+    </LinearLayout>
 </merge>

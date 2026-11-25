@@ -93,7 +93,9 @@ class ChapterListAdapterTest : BaseUnitTest() {
                     assertEquals(chapterToSelect, viewEvent.chapterIndex)
                     selectChapterCalled++
                 }
-                is ChapterSelectionView.ViewEvent.SelectBook -> fail()
+                is ChapterSelectionView.ViewEvent.SelectBook,
+                is ChapterSelectionView.ViewEvent.SelectVerse,
+                is ChapterSelectionView.ViewEvent.OpenVerses -> fail()
             }
         }
         adapter.setCurrentChapter(currentBookIndex = 2, currentChapterIndex = 0)
