@@ -52,7 +52,7 @@ class BibleReadingRepositoryTimelineTest {
         BibleReadingRepository(storage, TestScope(UnconfinedTestDispatcher(testScheduler)))
 
     @Test
-    fun onlyTheFinalMenuSelectionIsRecordedOnceTheMenuCloses() = runTest {
+    fun onlyTheStartAndFinalMenuSelectionAreRecordedOnceTheMenuCloses() = runTest {
         val storage = InMemoryReading(VerseIndex(0, 0, 0))
         val repository = repository(storage)
 
@@ -65,7 +65,7 @@ class BibleReadingRepositoryTimelineTest {
         assertEquals(emptyList(), repository.readTimeline())
 
         repository.endBrowsing()
-        assertEquals(listOf(VerseIndex(43, 4, 7)), repository.readTimeline())
+        assertEquals(listOf(VerseIndex(43, 4, 7), VerseIndex(0, 0, 0)), repository.readTimeline())
     }
 
     @Test
@@ -91,6 +91,6 @@ class BibleReadingRepositoryTimelineTest {
         repository.endBrowsing()
         repository.saveCurrentVerseIndex(VerseIndex(42, 1, 0))
 
-        assertEquals(listOf(VerseIndex(42, 0, 0)), repository.readTimeline())
+        assertEquals(listOf(VerseIndex(42, 0, 0), VerseIndex(0, 0, 0)), repository.readTimeline())
     }
 }

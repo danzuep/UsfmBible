@@ -90,12 +90,19 @@ class BibleReadingRepository(private val localReadingStorage: LocalReadingStorag
         browsingFrom = _currentVerseIndex.value
     }
 
-    /** Once the reader is back in focus, records what it now shows, unless the menu left it where it was. */
+    /**
+     * Once the reader is back in focus, records the place the menu was opened from (if the chapter changed) and then what the
+     * reader now shows, so only the start and the final selection are kept. Nothing is recorded if the menu left it where it was.
+     */
     suspend fun endBrowsing() {
         if (!browsing) return
         browsing = false
         val selected = _currentVerseIndex.value
-        if (selected != null && selected != browsingFrom) addToTimeline(selected)
+        val from = browsingFrom
+        if (selected != null && selected != from) {
+            if (from != null && ReadingTimeline.isJump(from, selected)) addToTimeline(from)
+            addToTimeline(selected)
+        }
         browsingFrom = null
     }
 
