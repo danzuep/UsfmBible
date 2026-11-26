@@ -68,10 +68,10 @@ abstract class BaseActivity<VB : ViewBinding, ViewAction, ViewState, VM : BaseVi
 
         setContentView(viewBinding.root)
         extendIntoDisplayCutout()
-        // The bars are transparent over the app background, so their icons must contrast with it: dark in light mode.
+        // The status bar sits over the dark primary colour in both modes, so keep its icons white; the navigation bar follows the app background.
         val isNight = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
         WindowCompat.getInsetsController(window, viewBinding.root).apply {
-            isAppearanceLightStatusBars = !isNight
+            isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = !isNight
         }
         // Edge-to-edge is enforced on Android 15+, so keep content out of the status bar and cutout.
