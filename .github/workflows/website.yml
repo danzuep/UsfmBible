@@ -1,0 +1,23 @@
+name: Website
+
+on:
+  pull_request:
+    paths:
+      - 'website/**'
+      - 'fastlane/**'
+      - '.github/workflows/website.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@v7
+    - name: Build the site
+      run: |
+        curl -sL https://github.com/gohugoio/hugo/releases/download/v0.147.0/hugo_0.147.0_linux-amd64.tar.gz | tar xz hugo
+        ./hugo --source website --destination "$PWD/public" --minify
+        grep -q "Get it on F-Droid" public/index.html

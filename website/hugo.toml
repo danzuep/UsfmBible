@@ -1,0 +1,22 @@
+baseURL = "https://danzuep.github.io/UsfmBible/"
+title = "UsfmBible"
+languageCode = "en-US"
+disableKinds = ["taxonomy", "term", "RSS", "sitemap"]
+
+# All store text and images come from the Fastlane metadata, so edit them there.
+[[module.mounts]]
+source = "../fastlane/metadata"
+target = "assets/metadata"
+[[module.mounts]]
+source = "layouts"
+target = "layouts"
+[[module.mounts]]
+source = "static"
+target = "static"
+
+[params]
+  github = "https://github.com/danzuep/UsfmBible"
+  fdroidRepo = "https://danzuep.github.io/UsfmBible/fdroid/repo"
+  # Set these once the app is published; the buttons appear automatically.
+  playStoreId = ""
+  appStoreUrl = ""

@@ -1,0 +1,62 @@
+{{- $a := "metadata/android/en-US" -}}
+{{- $title := (resources.Get (printf "%s/title.txt" $a)).Content | chomp -}}
+{{- $short := (resources.Get (printf "%s/short_description.txt" $a)).Content | chomp -}}
+{{- $full := (resources.Get (printf "%s/full_description.txt" $a)).Content -}}
+{{- $icon := resources.Get (printf "%s/images/icon.png" $a) -}}
+{{- $shots := resources.Match "**/en-US/images/phoneScreenshots/*" -}}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ $title }} - {{ $short }}</title>
+<meta name="description" content="{{ $short }}">
+<style>
+  body{font-family:system-ui,sans-serif;max-width:46rem;margin:0 auto;padding:1rem;line-height:1.5;color:#222}
+  header{text-align:center;padding:1.5rem 0}
+  header img{width:96px;height:96px;border-radius:20%}
+  .btn{display:inline-block;margin:.25rem;padding:.7rem 1.2rem;border-radius:.5rem;background:#1565c0;color:#fff;text-decoration:none;font-weight:600}
+  .btn.alt{background:#455a64}
+  .shots{display:flex;gap:.5rem;overflow-x:auto}
+  .shots img{height:24rem;border-radius:.5rem}
+  code{word-break:break-all}
+  @media (prefers-color-scheme:dark){body{background:#121212;color:#e0e0e0}a{color:#90caf9}}
+</style>
+</head>
+<body>
+<header>
+  {{ with $icon }}<img src="{{ .RelPermalink }}" alt="">{{ end }}
+  <h1>{{ $title }}</h1>
+  <p>{{ $short }}</p>
+  <p>
+    {{ with .Site.Params.playStoreId }}<a class="btn" href="https://play.google.com/store/apps/details?id={{ . }}">Get it on Google Play</a>{{ end }}
+    {{ with .Site.Params.appStoreUrl }}<a class="btn" href="{{ . }}">Download on the App Store</a>{{ end }}
+    <a class="btn" id="fdroid" href="{{ .Site.Params.fdroidRepo }}">Get it on F-Droid</a>
+    <a class="btn alt" href="{{ .Site.Params.github }}/releases/latest">Download APK</a>
+  </p>
+</header>
+<main>
+{{ $full | safeHTML }}
+<div class="shots">
+{{ range $shots }}<img loading="lazy" alt="" src="{{ .RelPermalink }}">
+{{ end }}</div>
+<h2>Install with F-Droid</h2>
+<ol>
+  <li>Install <a href="https://f-droid.org">F-Droid</a>.</li>
+  <li>Tap the F-Droid button above (or add the repository below in Settings, Repositories).</li>
+  <li>Install {{ $title }} and receive updates automatically.</li>
+</ol>
+<p>Repository: <a id="repo" href="{{ .Site.Params.fdroidRepo }}">{{ .Site.Params.fdroidRepo }}</a></p>
+<h2>Feedback</h2>
+<p>Found a bug or have an idea? <a href="{{ .Site.Params.github }}/issues/new">Open an issue</a> or browse the <a href="{{ .Site.Params.github }}">source code</a>.</p>
+</main>
+<script>
+  // On Android, open F-Droid directly; elsewhere the links fall back to the repo URL.
+  if (/Android/i.test(navigator.userAgent)) {
+    var link = 'fdroidrepos://' + '{{ .Site.Params.fdroidRepo }}'.replace(/^https?:\/\//, '');
+    document.getElementById('fdroid').href = link;
+    document.getElementById('repo').href = link;
+  }
+</script>
+</body>
+</html>
