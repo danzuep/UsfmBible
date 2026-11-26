@@ -923,9 +923,22 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         val previousVerseIndex = currentReadingStatus?.currentVerseIndex ?: VerseIndex.INVALID
         val previousTranslation = currentReadingStatus?.currentTranslation
         currentReadingStatus = status
-        // The queued speech was built from the old translation, so restart it with the new text and voice language.
-        if (speech == Speech.PLAYING && previousTranslation != null && previousTranslation != status.currentTranslation && spokenVerse.isValid()) {
-            startSpeech(spokenVerse)
+        // The queued speech was built from the old translation, and a voice picked for it would keep reading the wrong
+        // language, so go back to the voice matching the new translation and restart with the new text.
+        if (speech != Speech.OFF && previousTranslation != null && previousTranslation != status.currentTranslation && spokenVerse.isValid()) {
+            speaker.selectedLanguage = null
+            if (speech == Speech.PLAYING) {
+                startSpeech(spokenVerse)
+            } else {
+                val verse = spokenVerse
+                lifecycleScope.launch {
+                    val chapter = runCatching { viewModel.speechChapter(verse.bookIndex, verse.chapterIndex) }.getOrNull() ?: return@launch
+                    if (speech == Speech.PAUSED && spokenVerse == verse) {
+                        setSpeechChapter(chapter.verses)
+                        updateSpeechBar()
+                    }
+                }
+            }
         }
 
         // Navigating elsewhere (menu, search, reference) while speaking retargets the speech there, instead of being pulled back.
