@@ -35,9 +35,10 @@ open class LruCache<K : Any, V : Any>(private val maxSize: Int) {
             map[key] = value
             size += sizeOf(key, value)
             while (size > maxSize && map.size > 1) {
-                val eldest = map.entries.first()
-                map.remove(eldest.key)
-                size -= sizeOf(eldest.key, eldest.value)
+                // Read the entry before removing it, as removal invalidates it on Kotlin/JS.
+                val (key, value) = map.entries.first().let { it.key to it.value }
+                map.remove(key)
+                size -= sizeOf(key, value)
             }
         }
     }
