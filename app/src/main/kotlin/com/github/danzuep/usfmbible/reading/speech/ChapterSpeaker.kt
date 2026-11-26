@@ -78,7 +78,8 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                         finalUtteranceId = null
                         listener.onChapterFinished()
                     } else {
-                        speakNextSegment(parsed.generation, TextToSpeech.QUEUE_ADD)
+                        // Keep one segment queued ahead so the engine never idles between verses.
+                        speakNextSegment(parsed.generation, TextToSpeech.QUEUE_ADD, notifyQueued = false)
                     }
                 }
             }
@@ -138,6 +139,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
             }
             finalUtteranceId = pendingSegments.lastOrNull()?.id
             speakNextSegment(request, TextToSpeech.QUEUE_FLUSH)
+            speakNextSegment(request, TextToSpeech.QUEUE_ADD, notifyQueued = false)
         }
     }
 
@@ -163,11 +165,11 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         engine.shutdown()
     }
 
-    private fun speakNextSegment(request: Int, queueMode: Int) {
+    private fun speakNextSegment(request: Int, queueMode: Int, notifyQueued: Boolean = true) {
         if (closed || request != generation) return
         val queued = pendingSegments.getOrNull(nextSegmentIndex) ?: return
         val segment = queued.segment
-        // Rate and pitch are engine-wide, so speak one segment at a time to keep modifiers local.
+        // Rate and pitch are engine-wide but captured when each utterance is queued, so segments keep their own modifiers.
         if (engine.setSpeechRate(segment.rate * playbackSpeed) == TextToSpeech.ERROR ||
             engine.setPitch(segment.pitch) == TextToSpeech.ERROR) {
             pendingSegments = emptyList()
@@ -183,7 +185,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
             finalUtteranceId = null
             generation++
             listener.onError()
-        } else {
+        } else if (notifyQueued) {
             listener.onVerseQueued(segment.verseIndex)
         }
     }
