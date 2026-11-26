@@ -99,4 +99,39 @@ class ChapterSpeakerTest {
             context.getSharedPreferences("speech", Context.MODE_PRIVATE).edit().remove("language").commit()
         }
     }
+
+    @Test
+    fun `an incomplete sentence over the length limit is split at a comma`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val events = mutableListOf<String>()
+        val listener = object : ChapterSpeaker.Listener {
+            override fun onVerseQueued(verseIndex: VerseIndex) = Unit
+            override fun onVerseStarted(verseIndex: VerseIndex) { events += "started ${verseIndex.verseIndex}" }
+            override fun onVerseFinished(verseIndex: VerseIndex) { events += "finished ${verseIndex.verseIndex}" }
+            override fun onChapterFinished() { events += "chapter" }
+            override fun onLanguageUnavailable(language: String) = Unit
+            override fun onError() { events += "error" }
+        }
+        ShadowTextToSpeech.addLanguageAvailability(Locale.ENGLISH)
+        val speaker = ChapterSpeaker(context, listener)
+        try {
+            speaker.selectedLanguage = "en"
+            val engine = shadowOf(ShadowTextToSpeech.getLastTextToSpeechInstance())
+            engine.onInitListener.onInit(TextToSpeech.SUCCESS)
+            shadowOf(Looper.getMainLooper()).idle()
+            val clauses = "alpha beta gamma, ".repeat(20).trim()
+            val verses = listOf(clauses, clauses, "$clauses.")
+            speaker.speak(verses.mapIndexed { i, text -> VerseIndex(0, 0, i) to text }, "en")
+            shadowOf(Looper.getMainLooper()).idle()
+            val spoken = engine.spokenTextList
+            assertEquals(2, spoken.size)
+            assertEquals(true, spoken.all { it.length <= 1000 && it.endsWith(",") || it.endsWith(".") })
+            assertEquals(verses.joinToString(" "), spoken.joinToString(" "))
+            listOf(0, 1, 2).forEach { assertEquals(true, "started $it" in events && "finished $it" in events, "verse $it") }
+            assertEquals("chapter", events.last())
+        } finally {
+            speaker.shutdown()
+            context.getSharedPreferences("speech", Context.MODE_PRIVATE).edit().remove("language").commit()
+        }
+    }
 }

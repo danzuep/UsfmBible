@@ -223,30 +223,62 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     }
 
     /**
-     * Joins neighbouring verses that share a voice and are not separated by sentence punctuation into one utterance,
-     * because the engine pauses at every utterance boundary, even when the text continues.
+     * Joins neighbouring verses that share a voice into one utterance while a sentence is still incomplete, because the
+     * engine pauses at every utterance boundary, even when the text continues. A joined text over [MAX_UTTERANCE_LENGTH]
+     * is split at the last sentence end, else the last comma-like mark, else the last space, that fits.
      */
     private fun mergeSegments(segments: List<SpeechSegment>): List<MergedSegment> {
-        val result = mutableListOf<MergedSegment>()
+        val groups = mutableListOf<MergedSegment>()
         for (segment in segments) {
-            val last = result.lastOrNull()
+            val last = groups.lastOrNull()
             if (last != null && last.canJoin(segment)) {
                 val offset = last.segment.text.length + 1
-                result[result.lastIndex] = MergedSegment(
+                groups[groups.lastIndex] = MergedSegment(
                     last.segment.copy(text = last.segment.text + " " + segment.text),
                     last.spans + VerseSpan(segment.verseIndex, offset)
                 )
             } else {
-                result += MergedSegment(segment, listOf(VerseSpan(segment.verseIndex, 0)))
+                groups += MergedSegment(segment, listOf(VerseSpan(segment.verseIndex, 0)))
             }
+        }
+        return groups.flatMap(::splitLongSegment)
+    }
+
+    private fun splitLongSegment(group: MergedSegment): List<MergedSegment> {
+        val text = group.segment.text
+        if (text.length <= MAX_UTTERANCE_LENGTH) return listOf(group)
+        val result = mutableListOf<MergedSegment>()
+        var start = 0
+        while (start < text.length) {
+            val end = splitPoint(text, start)
+            val chunk = text.substring(start, end).trim()
+            val chunkStart = start + text.substring(start, end).indexOf(chunk)
+            val spans = group.spans.mapIndexedNotNull { i, span ->
+                val verseEnd = group.spans.getOrNull(i + 1)?.offset ?: (text.length + 1)
+                if (span.offset < end && verseEnd > chunkStart) VerseSpan(span.verseIndex, maxOf(0, span.offset - chunkStart)) else null
+            }
+            if (chunk.isNotEmpty()) result += MergedSegment(group.segment.copy(text = chunk), spans)
+            start = end
         }
         return result
     }
 
+    private fun splitPoint(text: String, start: Int): Int {
+        if (text.length - start <= MAX_UTTERANCE_LENGTH) return text.length
+        val windowEnd = start + MAX_UTTERANCE_LENGTH
+        val window = text.substring(start, windowEnd + 1)
+        val end = lastMatchEnd(SENTENCE_BREAK, window) ?: lastMatchEnd(CLAUSE_BREAK, window)
+            ?: window.lastIndexOf(' ').takeIf { it > 0 }
+            ?: MAX_UTTERANCE_LENGTH
+        return start + end
+    }
+
+    private fun lastMatchEnd(regex: Regex, window: String): Int? =
+        regex.findAll(window).lastOrNull()?.range?.last?.plus(1)
+
     private fun MergedSegment.canJoin(next: SpeechSegment): Boolean =
         spans.last().verseIndex != next.verseIndex &&
             segment.volume == next.volume && segment.rate == next.rate && segment.pitch == next.pitch &&
-            segment.text.length + next.text.length < MAX_MERGED_LENGTH &&
             !SENTENCE_END.containsMatchIn(segment.text)
 
     private fun whenEngineReady(action: () -> Unit) {
@@ -354,7 +386,9 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         const val KEY_LANGUAGE = "language"
         const val KEY_PLAYBACK_SPEED = "playback_speed_v2"
         const val DEFAULT_PLAYBACK_SPEED = 1f
-        const val MAX_MERGED_LENGTH = 1000
+        const val MAX_UTTERANCE_LENGTH = 1000
+        val SENTENCE_BREAK = Regex("[.!?…。！？][\"'”’»)\\]]*(?=\\s)")
+        val CLAUSE_BREAK = Regex("[,;:，、；：][\"'”’»)\\]]*(?=\\s)")
         val SENTENCE_END = Regex("[.!?;:…。！？][\"'”’»)\\]]*\\s*$")
         const val PSALMS = 18
         const val HABAKKUK = 34
