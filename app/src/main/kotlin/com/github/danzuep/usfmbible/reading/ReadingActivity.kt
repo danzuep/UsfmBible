@@ -915,7 +915,12 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     private fun applyCurrentReadingStatus(status: ReadingViewModel.ViewState.CurrentReadingStatus) {
         val previousVerseIndex = currentReadingStatus?.currentVerseIndex ?: VerseIndex.INVALID
+        val previousTranslation = currentReadingStatus?.currentTranslation
         currentReadingStatus = status
+        // The queued speech was built from the old translation, so restart it with the new text and voice language.
+        if (speech == Speech.PLAYING && previousTranslation != null && previousTranslation != status.currentTranslation && spokenVerse.isValid()) {
+            startSpeech(spokenVerse)
+        }
 
         with(viewBinding) {
             versePagerAdapter.setCurrent(
