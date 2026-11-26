@@ -45,6 +45,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ActionMode
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import java.util.Locale
@@ -759,9 +760,14 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         updateSpeechProgress()
         speechProgressHandler.removeCallbacks(speechProgressTick)
         if (playing) speechProgressHandler.post(speechProgressTick)
-        window.decorView.keepScreenOn = playing || settings?.keepScreenOn == true
+        updateKeepScreenOn()
         if (speech != Speech.OFF) viewBinding.search.hide() else if (settings?.showSearchButton != false) viewBinding.search.show()
         updateSpeechNotification()
+    }
+
+    private fun updateKeepScreenOn() {
+        val started = lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+        window.decorView.keepScreenOn = started && (speech == Speech.PLAYING || settings?.keepScreenOn == true)
     }
 
     private fun updateSpeechNotification() {
@@ -1035,7 +1041,13 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
 
     override fun onStart() {
         super.onStart()
+        updateKeepScreenOn()
         viewModel.checkDownloadedTranslation()
+    }
+
+    override fun onStop() {
+        window.decorView.keepScreenOn = false
+        super.onStop()
     }
 
     override fun onDestroy() {
