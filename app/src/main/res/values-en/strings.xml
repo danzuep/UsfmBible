@@ -120,6 +120,8 @@
     <string name="title_translation_updates">Updates</string>
     <string name="checkbox_select_all">Select all</string>
     <string name="button_update">Update</string>
+    <string name="button_check_on_wifi">Check on Wi-Fi</string>
+    <string name="text_network_blocked">Mobile data is not allowed by the data policy (see the menu). Check for updates when on Wi-Fi?</string>
     <string name="text_checking_for_updates">Checking for updates…</string>
     <string name="text_up_to_date">All translations are up to date</string>
     <string name="text_update_check_failed">Could not check for updates</string>

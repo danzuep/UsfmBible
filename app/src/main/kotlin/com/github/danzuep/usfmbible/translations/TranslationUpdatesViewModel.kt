@@ -39,6 +39,7 @@ class TranslationUpdatesViewModel @Inject constructor(
         object Checking : Status()
         object UpToDate : Status()
         object CheckFailed : Status()
+        object NetworkBlocked : Status()
         object WaitingForWifi : Status()
         data class Updating(val name: String, val progress: Int) : Status()
         data class UpdateFailed(val name: String) : Status()
@@ -49,6 +50,8 @@ class TranslationUpdatesViewModel @Inject constructor(
         val items: List<Item> = emptyList(),
     ) {
         val busy: Boolean get() = status is Status.Checking || status is Status.WaitingForWifi || status is Status.Updating
+        // The ticks stay editable while waiting for Wi-Fi, only a running check or download locks them.
+        val locked: Boolean get() = status is Status.Checking || status is Status.Updating
         val allChecked: Boolean get() = items.isNotEmpty() && items.all { it.checked }
     }
 
@@ -72,9 +75,7 @@ class TranslationUpdatesViewModel @Inject constructor(
         mutate { it.copy(status = Status.Checking, items = emptyList()) }
         viewModelScope.launch {
             if (!networkPolicy.isAllowed()) {
-                // Check and update later, on an unmetered network, even if the user leaves this page.
-                TranslationUpdateJobService.schedule(application, emptyList())
-                mutate { it.copy(status = Status.WaitingForWifi) }
+                mutate { it.copy(status = if (TranslationUpdateJobService.isPending(application)) Status.WaitingForWifi else Status.NetworkBlocked) }
                 return@launch
             }
             val result = runCatching {
@@ -100,6 +101,13 @@ class TranslationUpdatesViewModel @Inject constructor(
 
     fun setAllChecked(checked: Boolean) {
         mutate { current -> current.copy(items = current.items.map { it.copy(checked = checked) }) }
+    }
+
+    /** Asked for by the user: check and update later, on an unmetered network, even if they leave this page. */
+    fun checkWhenOnWifi() {
+        if (state.status !is Status.NetworkBlocked) return
+        TranslationUpdateJobService.schedule(application, emptyList())
+        mutate { it.copy(status = Status.WaitingForWifi) }
     }
 
     fun update() {

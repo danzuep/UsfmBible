@@ -10,7 +10,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.databinding.ActivityTranslationUpdatesBinding
 import com.github.danzuep.usfmbible.infra.BaseActivity
+import com.github.danzuep.usfmbible.ui.ProgressDialog
 import com.github.danzuep.usfmbible.ui.listDialog
+import com.github.danzuep.usfmbible.ui.progressDialog
 import com.github.danzuep.usfmbible.ui.toast
 
 @AndroidEntryPoint
@@ -38,10 +40,10 @@ class TranslationUpdatesActivity : BaseActivity<
         selectAll.setOnClickListener { viewModel.setAllChecked(selectAll.isChecked) }
         updateButton.setOnClickListener {
             val state = viewModel.currentState
-            if (state.status is TranslationUpdatesViewModel.Status.WaitingForWifi || state.status is TranslationUpdatesViewModel.Status.Updating) {
-                viewModel.cancel()
-            } else {
-                viewModel.update()
+            when (state.status) {
+                is TranslationUpdatesViewModel.Status.WaitingForWifi, is TranslationUpdatesViewModel.Status.Updating -> viewModel.cancel()
+                is TranslationUpdatesViewModel.Status.NetworkBlocked -> viewModel.checkWhenOnWifi()
+                else -> viewModel.update()
             }
         }
     }
@@ -52,9 +54,11 @@ class TranslationUpdatesActivity : BaseActivity<
 
     override fun onViewStateUpdated(viewState: TranslationUpdatesViewModel.ViewState): Unit = with(viewBinding) {
         val status = viewState.status
+        showProgress(status)
         loadingSpinner.isVisible = status is TranslationUpdatesViewModel.Status.Checking
         updatesScroll.isVisible = viewState.items.isNotEmpty()
-        updateButton.isVisible = viewState.items.isNotEmpty() || status is TranslationUpdatesViewModel.Status.WaitingForWifi
+        updateButton.isVisible = viewState.items.isNotEmpty() || status is TranslationUpdatesViewModel.Status.WaitingForWifi ||
+            status is TranslationUpdatesViewModel.Status.NetworkBlocked
 
         status.message(viewState.items.any { it.unknownVersion })?.let {
             statusText.text = it
@@ -62,9 +66,13 @@ class TranslationUpdatesActivity : BaseActivity<
         } ?: run { statusText.isVisible = false }
 
         val cancellable = status is TranslationUpdatesViewModel.Status.WaitingForWifi || status is TranslationUpdatesViewModel.Status.Updating
-        updateButton.setText(if (cancellable) android.R.string.cancel else R.string.button_update)
-        updateButton.isEnabled = cancellable || viewState.items.any { it.checked }
-        selectAll.isEnabled = !viewState.busy
+        updateButton.setText(when {
+            cancellable -> android.R.string.cancel
+            status is TranslationUpdatesViewModel.Status.NetworkBlocked -> R.string.button_check_on_wifi
+            else -> R.string.button_update
+        })
+        updateButton.isEnabled = cancellable || status is TranslationUpdatesViewModel.Status.NetworkBlocked || viewState.items.any { it.checked }
+        selectAll.isEnabled = !viewState.locked
         selectAll.isChecked = viewState.allChecked
 
         // Rebuilt only when the rows change, so that ticking a box does not recreate the view being tapped.
@@ -85,7 +93,7 @@ class TranslationUpdatesActivity : BaseActivity<
         for (i in 0 until updateList.childCount) {
             val box = updateList.getChildAt(i) as MaterialCheckBox
             box.isChecked = viewState.items.firstOrNull { it.translation.shortName == box.tag }?.checked == true
-            box.isEnabled = !viewState.busy
+            box.isEnabled = !viewState.locked
         }
     }
 
@@ -101,12 +109,27 @@ class TranslationUpdatesActivity : BaseActivity<
         }
     }
 
+    private var updateProgress: ProgressDialog? = null
+
+    private fun showProgress(status: TranslationUpdatesViewModel.Status) {
+        if (status is TranslationUpdatesViewModel.Status.Updating) {
+            if (updateProgress == null) {
+                updateProgress = progressDialog(R.string.dialog_title_downloading, 100) { viewModel.cancel() }
+            }
+            updateProgress?.setProgress(status.progress)
+        } else {
+            updateProgress?.dismiss()
+            updateProgress = null
+        }
+    }
+
     private var shownRows: List<Pair<String, Boolean>> = emptyList()
 
     private fun TranslationUpdatesViewModel.Status.message(hasUnknown: Boolean): String? = when (this) {
         is TranslationUpdatesViewModel.Status.Checking -> getString(R.string.text_checking_for_updates)
         is TranslationUpdatesViewModel.Status.UpToDate -> getString(R.string.text_up_to_date)
         is TranslationUpdatesViewModel.Status.CheckFailed -> getString(R.string.text_update_check_failed)
+        is TranslationUpdatesViewModel.Status.NetworkBlocked -> getString(R.string.text_network_blocked)
         is TranslationUpdatesViewModel.Status.WaitingForWifi -> getString(R.string.text_waiting_for_wifi)
         is TranslationUpdatesViewModel.Status.Updating -> getString(R.string.text_updating, name, progress)
         is TranslationUpdatesViewModel.Status.UpdateFailed -> getString(R.string.text_update_failed, name)
