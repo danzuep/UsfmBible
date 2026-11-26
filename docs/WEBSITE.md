@@ -20,4 +20,4 @@ Set `playStoreId` (the application id, once published on Google Play) or `appSto
 Building
 --------
 
-`hugo --source website --destination /tmp/site` (extended or standard Hugo, v0.147 or later). The release workflow builds it into the Pages artifact next to the F-Droid repo (`fdroid/repo`); the `Website` workflow checks that it builds on pull requests.
+`hugo --source website --destination /tmp/site` (extended or standard Hugo, v0.147 or later). Deployment: Pages has one deployment holding the site and the F-Droid repo (`fdroid/repo`). `release.yml` builds both on each `v*` tag. The `Website` workflow (`pages.yml`) redeploys only the site when `website/` or `fastlane/` change on `main` (or on manual dispatch), carrying the F-Droid repo over from the latest deployed Pages artifact, so merging a change does not need a release. It needs a previous release deployment to exist, and `main` allowed under Settings > Environments > `github-pages` > Deployment branches and tags. The `Website check` workflow only checks that it builds on pull requests.
