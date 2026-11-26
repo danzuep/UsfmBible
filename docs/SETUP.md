@@ -80,12 +80,12 @@ winget install -e --id Microsoft.OpenJDK.25
 winget install -e --id Gradle.Gradle
 ```
 
-Here’s an alternative PowerShell (`pwsh`) way to download and install Gradle 9.4.1 from the ZIP URL.
+Here’s an alternative PowerShell (`pwsh`) way to download and install Gradle 9.9.2 from the ZIP URL.
 
 ```powershell
-$gradleUrl = 'https://services.gradle.org/distributions/gradle-9.4.1-bin.zip'
+$gradleUrl = 'https://services.gradle.org/distributions/gradle-9.9.2-bin.zip'
 $installDir = "${env:USERPROFILE}/tools/gradle"
-$tempZip = "${env:TEMP}gradle-9.4.1-bin.zip"
+$tempZip = "${env:TEMP}gradle-9.9.2-bin.zip"
 New-Item -ItemType Directory -Force -Path $installDir | Out-Null
 Invoke-WebRequest -Uri $gradleUrl -OutFile $tempZip
 Expand-Archive -Path $tempZip -DestinationPath $installDir -Force
@@ -94,19 +94,19 @@ Expand-Archive -Path $tempZip -DestinationPath $installDir -Force
 This will create:
 
 ```powershell
-%USERPROFILE%\tools\gradle\gradle-9.4.1\
+%USERPROFILE%\tools\gradle\gradle-9.9.2\
 ```
 
 then add Gradle to your PATH for the current session:
 
 ```powershell
-$env:Path = "$(Join-Path $installDir 'gradle-9.4.1\bin');$env:Path"
+$env:Path = "$(Join-Path $installDir 'gradle-9.9.2\bin');$env:Path"
 ```
 
 or optionally add it permanently for your user:
 
 ```powershell
-$gradleBin = Join-Path $installDir 'gradle-9.4.1\bin'
+$gradleBin = Join-Path $installDir 'gradle-9.9.2\bin'
 $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
 
 if ($userPath -notlike "*$gradleBin*") {
