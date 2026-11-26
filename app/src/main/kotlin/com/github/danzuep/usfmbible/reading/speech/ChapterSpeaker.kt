@@ -48,6 +48,8 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private var pendingSegments = emptyList<QueuedSegment>()
     private var nextSegmentIndex = 0
     private var finalUtteranceId: String? = null
+    private var currentPosition = -1
+    private var startedSpans = 0
     private var closed = false
 
     private val engine = TextToSpeech(context.applicationContext) { status ->
@@ -64,7 +66,20 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
                 val id = utteranceId?.let(::parse) ?: return
-                main.post { if (!closed && id.generation == generation) listener.onVerseStarted(id.verseIndex) }
+                main.post {
+                    if (closed || id.generation != generation) return@post
+                    pendingSegments.getOrNull(id.position)?.let { enter(id.position, it, 0) }
+                }
+            }
+
+            // Verses merged into one utterance are followed by their character offset in the text.
+            override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
+                val id = utteranceId?.let(::parse) ?: return
+                main.post {
+                    if (closed || id.generation != generation) return@post
+                    val queued = pendingSegments.getOrNull(id.position) ?: return@post
+                    enter(id.position, queued, queued.spans.indexOfLast { it.offset <= start }.coerceAtLeast(0))
+                }
             }
 
             override fun onDone(utteranceId: String?) {
@@ -72,7 +87,10 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 val parsed = parse(id) ?: return
                 main.post {
                     if (closed || parsed.generation != generation) return@post
-                    if (parsed.lastForVerse) listener.onVerseFinished(parsed.verseIndex)
+                    pendingSegments.getOrNull(parsed.position)?.let { queued ->
+                        enter(parsed.position, queued, queued.spans.lastIndex)
+                        if (queued.lastForVerse) listener.onVerseFinished(queued.spans.last().verseIndex)
+                    }
                     if (id == finalUtteranceId) {
                         pendingSegments = emptyList()
                         finalUtteranceId = null
@@ -119,6 +137,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         pendingSegments = emptyList()
         finalUtteranceId = null
         nextSegmentIndex = 0
+        currentPosition = -1
         if (ready) engine.stop()
         whenEngineReady {
             if (closed || request != generation) return@whenEngineReady
@@ -131,11 +150,11 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 listener.onChapterFinished()
                 return@whenEngineReady
             }
-            val segments = verses.flatMap { (verseIndex, text) -> segmentsForVerse(verseIndex, text) }
-            pendingSegments = segments.mapIndexed { position, segment ->
-                val id = utteranceId(request, segment.verseIndex, position, position == segments.lastIndex ||
-                    segments.getOrNull(position + 1)?.verseIndex != segment.verseIndex)
-                QueuedSegment(id, segment)
+            val merged = mergeSegments(verses.flatMap { (verseIndex, text) -> segmentsForVerse(verseIndex, text) })
+            pendingSegments = merged.mapIndexed { position, item ->
+                val lastVerse = item.spans.last().verseIndex
+                val lastForVerse = merged.getOrNull(position + 1)?.spans?.first()?.verseIndex != lastVerse
+                QueuedSegment(utteranceId(request, position), item.segment, item.spans, lastForVerse)
             }
             finalUtteranceId = pendingSegments.lastOrNull()?.id
             speakNextSegment(request, TextToSpeech.QUEUE_FLUSH)
@@ -186,9 +205,49 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
             generation++
             listener.onError()
         } else if (notifyQueued) {
-            listener.onVerseQueued(segment.verseIndex)
+            listener.onVerseQueued(queued.spans.first().verseIndex)
         }
     }
+
+    /** Reports the verses of utterance [position] up to span [upTo] as started, finishing the ones before them. */
+    private fun enter(position: Int, queued: QueuedSegment, upTo: Int) {
+        if (currentPosition != position) {
+            currentPosition = position
+            startedSpans = 0
+        }
+        while (startedSpans <= upTo) {
+            if (startedSpans > 0) listener.onVerseFinished(queued.spans[startedSpans - 1].verseIndex)
+            listener.onVerseStarted(queued.spans[startedSpans].verseIndex)
+            startedSpans++
+        }
+    }
+
+    /**
+     * Joins neighbouring verses that share a voice and are not separated by sentence punctuation into one utterance,
+     * because the engine pauses at every utterance boundary, even when the text continues.
+     */
+    private fun mergeSegments(segments: List<SpeechSegment>): List<MergedSegment> {
+        val result = mutableListOf<MergedSegment>()
+        for (segment in segments) {
+            val last = result.lastOrNull()
+            if (last != null && last.canJoin(segment)) {
+                val offset = last.segment.text.length + 1
+                result[result.lastIndex] = MergedSegment(
+                    last.segment.copy(text = last.segment.text + " " + segment.text),
+                    last.spans + VerseSpan(segment.verseIndex, offset)
+                )
+            } else {
+                result += MergedSegment(segment, listOf(VerseSpan(segment.verseIndex, 0)))
+            }
+        }
+        return result
+    }
+
+    private fun MergedSegment.canJoin(next: SpeechSegment): Boolean =
+        spans.last().verseIndex != next.verseIndex &&
+            segment.volume == next.volume && segment.rate == next.rate && segment.pitch == next.pitch &&
+            segment.text.length + next.text.length < MAX_MERGED_LENGTH &&
+            !SENTENCE_END.containsMatchIn(segment.text)
 
     private fun whenEngineReady(action: () -> Unit) {
         when {
@@ -213,14 +272,13 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         return locale.takeIf { result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED }
     }
 
-    private class UtteranceId(val generation: Int, val verseIndex: VerseIndex, val lastForVerse: Boolean)
+    private class UtteranceId(val generation: Int, val position: Int)
 
-    private fun utteranceId(generation: Int, v: VerseIndex, segment: Int, lastForVerse: Boolean) =
-        "$generation:${v.bookIndex}:${v.chapterIndex}:${v.verseIndex}:$segment:${if (lastForVerse) 1 else 0}"
+    private fun utteranceId(generation: Int, position: Int) = "$generation:$position"
 
     private fun parse(id: String): UtteranceId? {
         val parts = id.split(":").mapNotNull { it.toIntOrNull() }
-        return if (parts.size == 6) UtteranceId(parts[0], VerseIndex(parts[1], parts[2], parts[3]), parts[5] == 1) else null
+        return if (parts.size == 2) UtteranceId(parts[0], parts[1]) else null
     }
 
     private fun splitSelah(text: String): List<Pair<String, Float>> {
@@ -280,13 +338,24 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         val pitch: Float = NORMAL_PITCH
     )
 
-    private data class QueuedSegment(val id: String, val segment: SpeechSegment)
+    private class VerseSpan(val verseIndex: VerseIndex, val offset: Int)
+
+    private class MergedSegment(val segment: SpeechSegment, val spans: List<VerseSpan>)
+
+    private class QueuedSegment(
+        val id: String,
+        val segment: SpeechSegment,
+        val spans: List<VerseSpan>,
+        val lastForVerse: Boolean
+    )
 
     private companion object {
         const val PREFERENCES = "speech"
         const val KEY_LANGUAGE = "language"
         const val KEY_PLAYBACK_SPEED = "playback_speed_v2"
         const val DEFAULT_PLAYBACK_SPEED = 1f
+        const val MAX_MERGED_LENGTH = 1000
+        val SENTENCE_END = Regex("[.!?;:…。！？][\"'”’»)\\]]*\\s*$")
         const val PSALMS = 18
         const val HABAKKUK = 34
         const val PSALM_9_CHAPTER_INDEX = 8
