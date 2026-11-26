@@ -4,6 +4,11 @@
 {{- $full := (resources.Get (printf "%s/full_description.txt" $a)).Content -}}
 {{- $icon := resources.Get (printf "%s/images/icon.png" $a) -}}
 {{- $shots := resources.Match "**/en-US/images/phoneScreenshots/*" -}}
+{{- $parts := split $full "<ul>" -}}
+{{- $intro := index $parts 0 | chomp -}}
+{{- $rest := split (index $parts 1) "</ul>" -}}
+{{- $items := findRE `(?s)<li>.*?</li>` (index $rest 0) -}}
+{{- $outro := index $rest 1 | chomp -}}
 <!doctype html>
 <html lang="en">
 <head>
@@ -12,44 +17,73 @@
 <title>{{ $title }} - {{ $short }}</title>
 <meta name="description" content="{{ $short }}">
 <style>
-  body{font-family:system-ui,sans-serif;max-width:46rem;margin:0 auto;padding:1rem;line-height:1.5;color:#222}
-  header{text-align:center;padding:1.5rem 0}
-  header img{width:96px;height:96px;border-radius:20%}
-  .btn{display:inline-block;margin:.25rem;padding:.7rem 1.2rem;border-radius:.5rem;background:#1565c0;color:#fff;text-decoration:none;font-weight:600}
-  .btn.alt{background:#455a64}
-  .shots{display:flex;gap:.5rem;overflow-x:auto}
-  .shots img{height:24rem;border-radius:.5rem}
+  :root{--bg:#f6f8fb;--card:#fff;--text:#1d2733;--muted:#5b6876;--accent:#1565c0;--border:#e3e8ef;--shadow:0 1px 3px rgba(16,24,40,.08),0 4px 12px rgba(16,24,40,.06)}
+  @media (prefers-color-scheme:dark){:root{--bg:#0f1318;--card:#182029;--text:#e6ebf1;--muted:#9aa7b5;--accent:#6cb2ff;--border:#263341;--shadow:none}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6;background:var(--bg);color:var(--text)}
+  a{color:var(--accent)}
+  .wrap{max-width:62rem;margin:0 auto;padding:0 1.25rem}
+  .hero{text-align:center;padding:3.5rem 0 2.5rem;background:linear-gradient(180deg,rgba(21,101,192,.14),transparent)}
+  .hero img{width:96px;height:96px;border-radius:22%;box-shadow:var(--shadow)}
+  h1{font-size:clamp(2rem,6vw,3rem);margin:.75rem 0 .25rem;letter-spacing:-.02em}
+  .lead{font-size:1.2rem;color:var(--muted);max-width:40rem;margin:0 auto 1.5rem}
+  .btn{display:inline-block;margin:.3rem;padding:.8rem 1.4rem;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;box-shadow:var(--shadow)}
+  .btn.alt{background:transparent;color:var(--accent);border:2px solid var(--accent);box-shadow:none}
+  @media (prefers-color-scheme:dark){.btn{color:#0f1318}}
+  h2{font-size:1.6rem;margin:3rem 0 1.25rem;text-align:center;letter-spacing:-.01em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:1rem}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:1rem;padding:1.25rem;box-shadow:var(--shadow)}
+  .card h3{margin:0 0 .4rem;font-size:1.05rem}
+  .card p{margin:0;color:var(--muted);font-size:.95rem}
+  .shots{display:flex;gap:1rem;overflow-x:auto;padding:.5rem .25rem 1rem;scroll-snap-type:x proximity}
+  .shots img{height:26rem;width:auto;border-radius:1.25rem;border:1px solid var(--border);box-shadow:var(--shadow);scroll-snap-align:start}
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem;padding:0;list-style:none}
+  .steps li{counter-increment:s}
+  .steps li:before{content:counter(s);display:inline-grid;place-items:center;width:2rem;height:2rem;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;margin-bottom:.5rem}
+  @media (prefers-color-scheme:dark){.steps li:before{color:#0f1318}}
+  .note{max-width:44rem;margin:2rem auto 0;text-align:center;color:var(--muted);font-size:.95rem}
   code{word-break:break-all}
-  @media (prefers-color-scheme:dark){body{background:#121212;color:#e0e0e0}a{color:#90caf9}}
+  footer{margin:4rem 0 2rem;text-align:center;color:var(--muted);font-size:.9rem}
 </style>
 </head>
 <body>
-<header>
+<header class="hero"><div class="wrap">
   {{ with $icon }}<img src="{{ .RelPermalink }}" alt="">{{ end }}
   <h1>{{ $title }}</h1>
-  <p>{{ $short }}</p>
+  <p class="lead">{{ $short }}</p>
   <p>
     {{ with .Site.Params.playStoreId }}<a class="btn" href="https://play.google.com/store/apps/details?id={{ . }}">Get it on Google Play</a>{{ end }}
     {{ with .Site.Params.appStoreUrl }}<a class="btn" href="{{ . }}">Download on the App Store</a>{{ end }}
     <a class="btn" id="fdroid" href="{{ .Site.Params.fdroidRepo }}">Get it on F-Droid</a>
     <a class="btn alt" href="{{ .Site.Params.github }}/releases/latest">Download APK</a>
   </p>
-</header>
-<main>
-{{ $full | safeHTML }}
+</div></header>
+<main class="wrap">
+<p class="lead" style="text-align:center">{{ $intro }}</p>
+<h2>Features</h2>
+<div class="grid">
+{{ range $items }}{{ $t := . | replaceRE `</?li>` "" | strings.TrimSpace }}{{ $kv := split $t ": " }}
+  <div class="card"><h3>{{ index $kv 0 }}</h3><p>{{ delimit (after 1 $kv) ": " | safeHTML }}</p></div>
+{{ end }}</div>
+<p class="note">{{ $outro }}</p>
+<h2>See it in action</h2>
 <div class="shots">
 {{ range $shots }}<img loading="lazy" alt="" src="{{ .RelPermalink }}">
 {{ end }}</div>
 <h2>Install with F-Droid</h2>
-<ol>
-  <li>Install <a href="https://f-droid.org">F-Droid</a>.</li>
-  <li>Tap the F-Droid button above (or add the repository below in Settings, Repositories).</li>
-  <li>Install {{ $title }} and receive updates automatically.</li>
+<ol class="steps">
+  <li class="card"><strong>Get F-Droid</strong><p>Install <a href="https://f-droid.org">F-Droid</a> or a compatible client.</p></li>
+  <li class="card"><strong>Add the repository</strong><p>Tap the F-Droid button above, or add <a id="repo" href="{{ .Site.Params.fdroidRepo }}"><code>{{ .Site.Params.fdroidRepo }}</code></a> in Settings, Repositories.</p></li>
+  <li class="card"><strong>Install</strong><p>Install {{ $title }} and receive updates automatically.</p></li>
 </ol>
-<p>Repository: <a id="repo" href="{{ .Site.Params.fdroidRepo }}">{{ .Site.Params.fdroidRepo }}</a></p>
 <h2>Feedback</h2>
-<p>Found a bug or have an idea? <a href="{{ .Site.Params.github }}/issues/new">Open an issue</a> or browse the <a href="{{ .Site.Params.github }}">source code</a>.</p>
+<div class="grid">
+  <div class="card"><h3>Report a bug or request a feature</h3><p><a href="{{ .Site.Params.github }}/issues/new">Open an issue</a> on GitHub.</p></div>
+  <div class="card"><h3>Source code</h3><p>Read the code, contribute or star the project on <a href="{{ .Site.Params.github }}">GitHub</a>.</p></div>
+  <div class="card"><h3>Translations</h3><p>All translations come from <a href="https://ebible.org">eBible.org</a>.</p></div>
+</div>
 </main>
+<footer>{{ $title }} is free and open source software.</footer>
 <script>
   // On Android, open F-Droid directly; elsewhere the links fall back to the repo URL.
   if (/Android/i.test(navigator.userAgent)) {

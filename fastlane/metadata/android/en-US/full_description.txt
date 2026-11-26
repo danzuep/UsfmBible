@@ -1,13 +1,18 @@
-A simple, free and open source Bible reader for Android with a minimalist design.
+A simple, free and open source Bible reader for Android with a minimalist design. Choose from 1,500+ translations in hundreds of languages, download once and read anywhere, with no ads and no tracking.
 
 <ul>
-<li>Read offline: translations are downloaded once from eBible.org and stored on your device</li>
-<li>Compare translations side by side</li>
-<li>Search every verse</li>
-<li>Keep notes, bookmarks and highlights</li>
-<li>Copy or share verses with consecutive verses consolidated</li>
-<li>Light and dark themes</li>
-<li>Tiny install, no ads, no tracking, no analytics</li>
+<li>Read offline: translations are downloaded once from eBible.org and stored on your device, so you never need a connection to read</li>
+<li>1,500+ translations: the public domain World English Bible (WEB) is the default, with openly licensed translations in many languages</li>
+<li>Compare translations: view the same verse in several translations side by side</li>
+<li>Search every verse: full-text search, limited to the Old or New Testament, with quotation marks for exact matches</li>
+<li>Notes, bookmarks and highlights: saved as you type and shown inline in the text</li>
+<li>Listen: have a chapter read aloud, with the current verse highlighted and media controls to pause or change chapter</li>
+<li>Share verses: copy or share with consecutive verses consolidated and verse numbers kept</li>
+<li>Reading progress: pick up exactly where you left off and see how far you have read</li>
+<li>Comfortable reading: adjustable font size, light and dark themes, and flowing paragraphs with headings and poetry</li>
+<li>Your language: the interface is translated into several languages, including right-to-left scripts</li>
+<li>Tiny install: under 5 MB, no ads, no tracking, no analytics</li>
+<li>Open source: free forever, with your own download sites supported</li>
 </ul>
 
-Translations come from eBible.org as USFM files, including the public domain World English Bible (WEB). Most other translations are copyrighted with an open licence, so check each one's copyright and permissions. You can also add your own download sites.
+Translations come from eBible.org as USFM files, including the public domain World English Bible (WEB). Most other translations are copyrighted with an open licence, so check each one's copyright and permissions.
