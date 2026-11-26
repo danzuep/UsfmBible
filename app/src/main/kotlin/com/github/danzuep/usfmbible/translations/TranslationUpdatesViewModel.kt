@@ -67,7 +67,7 @@ class TranslationUpdatesViewModel @Inject constructor(
         updateViewState { state }
     }
 
-    private val networkPolicy = NetworkPolicy(application) { settingsManager.settings().first().allowMobileData }
+    private val networkPolicy = NetworkPolicy(application) { settingsManager.settings().first() }
     private var updateJob: Job? = null
 
     init {

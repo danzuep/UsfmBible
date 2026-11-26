@@ -24,7 +24,7 @@ data class Settings(
     val showSearchButton: Boolean,
     @Highlight.Companion.AvailableColor val defaultHighlightColor: Int,
     val rubyOn: Boolean = true,
-    val allowMobileData: Boolean = true,
+    @DataPolicy val dataPolicy: Int = DATA_POLICY_MOBILE,
 ) {
     companion object {
         const val MIN_FONT_SIZE_SCALE = 0.5F
@@ -37,6 +37,14 @@ data class Settings(
         @Retention(AnnotationRetention.SOURCE)
         annotation class NightMode
 
+        /** Which networks may be used for downloads: unmetered ones only, also metered (mobile) ones, or also while roaming. */
+        const val DATA_POLICY_WIFI = 0
+        const val DATA_POLICY_MOBILE = 1
+        const val DATA_POLICY_ROAMING = 2
+
+        @Retention(AnnotationRetention.SOURCE)
+        annotation class DataPolicy
+
         val DEFAULT = Settings(
             keepScreenOn = true,
             nightMode = NIGHT_MODE_FOLLOW_SYSTEM,
@@ -45,7 +53,15 @@ data class Settings(
             showSearchButton = true,
             defaultHighlightColor = Highlight.COLOR_NONE,
             rubyOn = true,
-            allowMobileData = true,
+            dataPolicy = DATA_POLICY_MOBILE,
         )
+    }
+
+    /** Whether a download may use the current network under [dataPolicy]. */
+    fun allowsNetwork(unmetered: Boolean, roaming: Boolean): Boolean = when {
+        unmetered -> true
+        dataPolicy == DATA_POLICY_WIFI -> false
+        roaming -> dataPolicy == DATA_POLICY_ROAMING
+        else -> true
     }
 }

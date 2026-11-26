@@ -186,7 +186,7 @@ object RepositoryModule {
         app: Application, androidDatabase: AndroidDatabase, settingsRepository: SettingsRepository, timeProvider: TimeProvider, appScope: CoroutineScope,
     ): TranslationRepository = TranslationRepository(
         AndroidTranslationStorage(androidDatabase, app),
-        HttpTranslationService(app, NetworkPolicy(app) { settingsRepository.settings.first().allowMobileData }),
+        HttpTranslationService(app, NetworkPolicy(app) { settingsRepository.settings.first() }),
         timeProvider,
         appScope,
     )
