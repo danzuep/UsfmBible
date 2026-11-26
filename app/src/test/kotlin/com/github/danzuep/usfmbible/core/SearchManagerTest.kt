@@ -320,6 +320,10 @@ class SearchManagerTest : BaseUnitTest() {
         assertEquals(BibleReference(bookNames.indexOf("1 John"), 2), parse("1 John 3"))
         assertEquals(BibleReference(bookNames.indexOf("Song of Solomon"), 1), parse("Song of Solomon 2"))
 
+        assertEquals(BibleReference(0, 22, 16..17), parse("Genesis 23:17-18"))
+        assertEquals(BibleReference(0, 22, 16..17), parse("Genesis 23:17\u201318"))
+        assertEquals(BibleReference(0, 22, 16..17), parse("Genesis 23:17 \u2014 18"))
+
         assertNull(parse(""))
         assertNull(parse("John"))
         assertNull(parse("God created"))

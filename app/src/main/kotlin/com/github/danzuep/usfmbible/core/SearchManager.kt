@@ -151,7 +151,7 @@ private fun String.isWordCharacterBefore(index: Int): Boolean =
 private fun String.isWordCharacterAt(index: Int): Boolean =
         Character.isLetterOrDigit(Character.codePointAt(this, index)) || Character.codePointAt(this, index) == '_'.code
 
-private val REFERENCE_REGEX = Regex("""(.*?\S)\s*(\d+)(?:(?:[:.]|\s+)(\d+)(?:\s*-\s*(\d+))?)?""")
+private val REFERENCE_REGEX = Regex("""(.*?\S)\s*(\d+)(?:(?:[:.]|\s+)(\d+)(?:\s*[-\u2010-\u2015\u2212]\s*(\d+))?)?""")
 
 /**
  * Parses references such as "John 1", "John 1:4", "John 1 4", "1 John 3:2-5", "Gen. 1:1", "JHN1.1" or "jhn 1" against the book names
