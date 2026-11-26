@@ -37,11 +37,11 @@ class ChapterSelectionFragment : BaseFragment<FragmentChapterSelectionBinding, C
         viewBinding.chapterSelectionView.initialize { viewEvent ->
             when (viewEvent) {
                 is ChapterSelectionView.ViewEvent.SelectBook -> viewModel.selectChapter(bookToSelect = viewEvent.bookIndex, chapterToSelect = 0)
-                is ChapterSelectionView.ViewEvent.SelectChapter -> {
-                    viewModel.selectChapter(bookToSelect = viewEvent.bookIndex, chapterToSelect = viewEvent.chapterIndex)
-                    onChapterSelected?.invoke()
-                }
-                is ChapterSelectionView.ViewEvent.OpenVerses -> viewLifecycleOwner.lifecycleScope.launch {
+                is ChapterSelectionView.ViewEvent.SelectChapter -> selectChapterStart(viewEvent.bookIndex, viewEvent.chapterIndex)
+                is ChapterSelectionView.ViewEvent.OpenVerses -> if (viewModel.isCurrentChapter(viewEvent.bookIndex, viewEvent.chapterIndex)) {
+                    // Opening the verses would move nothing, so tapping the chapter being read closes the picker at its start.
+                    selectChapterStart(viewEvent.bookIndex, viewEvent.chapterIndex)
+                } else viewLifecycleOwner.lifecycleScope.launch {
                     // Like picking a book, the reader moves straight to the chapter while the drawer stays open.
                     viewModel.openChapter(viewEvent.bookIndex, viewEvent.chapterIndex)
                     val verseCount = viewModel.verseCount(viewEvent.bookIndex, viewEvent.chapterIndex)
@@ -54,6 +54,13 @@ class ChapterSelectionFragment : BaseFragment<FragmentChapterSelectionBinding, C
                 }
             }
         }
+    }
+
+    private fun selectChapterStart(bookIndex: Int, chapterIndex: Int) {
+        // The host scrolls to the start itself when the chapter is already current, since the status won't change.
+        onVerseSelected?.invoke(VerseIndex(bookIndex, chapterIndex, 0))
+        viewModel.selectChapter(bookToSelect = bookIndex, chapterToSelect = chapterIndex)
+        onChapterSelected?.invoke()
     }
 
     /** Invoked before the reader moves to a verse picked after long pressing a chapter, so the host can scroll to it. */
