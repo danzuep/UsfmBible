@@ -41,7 +41,7 @@ class TranslationInfoComparator(@SortOrder private val sortOrder: Int) : Compara
         val score2 = if (userLanguage == language2 || languageMatchesLocale(t2.language)) 1 else 0
         var r = score2 - score1
         if (r == 0) {
-            r = language1.compareTo(language2)
+            r = languageNameComparator.compare(language1, language2)
         }
         if (r == 0) {
             r = when (sortOrder) {
