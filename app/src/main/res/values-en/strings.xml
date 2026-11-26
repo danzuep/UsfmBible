@@ -124,7 +124,7 @@
     <string name="text_checking_for_updates">Checking for updates…</string>
     <string name="text_up_to_date">All translations are up to date</string>
     <string name="text_update_check_failed">Could not check for updates</string>
-    <string name="text_waiting_for_wifi">Waiting for Wi-Fi…</string>
+    <string name="text_waiting_for_wifi">Will update when on Wi-Fi, even if you leave this page…</string>
     <string name="text_updating">Updating %1$s… %2$d%%</string>
     <string name="text_update_failed">Could not update %1$s</string>
     <string name="text_update_version_unknown">Newer versions may be available. Ones marked with ? could not be compared, so they may already be current.</string>

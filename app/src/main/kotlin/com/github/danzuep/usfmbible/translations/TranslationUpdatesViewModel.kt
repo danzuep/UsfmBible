@@ -2,9 +2,7 @@ package com.github.danzuep.usfmbible.translations
 
 import android.app.Application
 import android.net.ConnectivityManager
-import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import com.github.danzuep.usfmbible.core.TranslationInfo
@@ -51,7 +49,7 @@ class TranslationUpdatesViewModel @Inject constructor(
     data class ViewState(
         val status: Status = Status.Checking,
         val items: List<Item> = emptyList(),
-        val waitForWifi: Boolean = false,
+        val waitForWifi: Boolean = true,
     ) {
         val busy: Boolean get() = status is Status.Checking || status is Status.WaitingForWifi || status is Status.Updating
         val allChecked: Boolean get() = items.isNotEmpty() && items.all { it.checked }
@@ -67,7 +65,6 @@ class TranslationUpdatesViewModel @Inject constructor(
     }
 
     private val connectivityManager = application.getSystemService(ConnectivityManager::class.java)
-    private var wifiCallback: ConnectivityManager.NetworkCallback? = null
     private var updateJob: Job? = null
 
     init {
@@ -101,7 +98,10 @@ class TranslationUpdatesViewModel @Inject constructor(
                 when {
                     result == null -> it.copy(status = Status.CheckFailed)
                     result.isEmpty() -> it.copy(status = Status.UpToDate)
-                    else -> it.copy(status = Status.Idle, items = result)
+                    else -> it.copy(
+                        status = if (TranslationUpdateJobService.isPending(application)) Status.WaitingForWifi else Status.Idle,
+                        items = result,
+                    )
                 }
             }
         }
@@ -118,7 +118,10 @@ class TranslationUpdatesViewModel @Inject constructor(
     fun setWaitForWifi(wait: Boolean) {
         mutate { it.copy(waitForWifi = wait) }
         // Unticking while waiting means "use mobile data now".
-        if (!wait && state.status == Status.WaitingForWifi) startUpdates()
+        if (!wait && state.status == Status.WaitingForWifi) {
+            TranslationUpdateJobService.cancel(application)
+            startUpdates()
+        }
     }
 
     fun update() {
@@ -127,7 +130,7 @@ class TranslationUpdatesViewModel @Inject constructor(
     }
 
     fun cancel() {
-        stopWaitingForWifi()
+        TranslationUpdateJobService.cancel(application)
         updateJob?.cancel()
         updateJob = null
         mutate { if (it.busy) it.copy(status = Status.Idle) else it }
@@ -138,31 +141,13 @@ class TranslationUpdatesViewModel @Inject constructor(
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == true
     }
 
-    // Only listens while this page is open; ACCESS_NETWORK_STATE is already declared and is not a runtime permission.
+    // The job outlives this page; ACCESS_NETWORK_STATE is already declared and is not a runtime permission.
     private fun waitForWifi() {
+        TranslationUpdateJobService.schedule(application, state.items.filter { it.checked }.map { it.translation.shortName })
         mutate { it.copy(status = Status.WaitingForWifi) }
-        val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                viewModelScope.launch { startUpdates() }
-            }
-        }
-        wifiCallback = callback
-        connectivityManager.registerNetworkCallback(
-            NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-                .build(),
-            callback,
-        )
-    }
-
-    private fun stopWaitingForWifi() {
-        wifiCallback?.let { runCatching { connectivityManager.unregisterNetworkCallback(it) } }
-        wifiCallback = null
     }
 
     private fun startUpdates() {
-        stopWaitingForWifi()
         if (updateJob?.isActive == true) return
         val selected = state.items.filter { it.checked }.map { it.translation }
         updateJob = viewModelScope.launch {
@@ -180,10 +165,5 @@ class TranslationUpdatesViewModel @Inject constructor(
             }
             checkForUpdates()
         }
-    }
-
-    override fun onCleared() {
-        stopWaitingForWifi()
-        super.onCleared()
     }
 }
