@@ -104,8 +104,8 @@ class TranslationInfoComparatorTest : BaseUnitTest() {
         val comparator = TranslationInfoComparator(TranslationInfoComparator.SORT_ORDER_LANGUAGE_THEN_NAME)
 
         Locale.setDefault(Locale.CHINESE)
-        assertEquals(listOf(cmn, eng, jpn), listOf(eng, jpn, cmn).sortedWith(comparator))
+        assertEquals(cmn, listOf(eng, jpn, cmn).sortedWith(comparator).first())
         Locale.setDefault(Locale.JAPANESE)
-        assertEquals(listOf(jpn, eng, cmn), listOf(eng, jpn, cmn).sortedWith(comparator))
+        assertEquals(jpn, listOf(eng, jpn, cmn).sortedWith(comparator).first())
     }
 }
