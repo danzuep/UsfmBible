@@ -5,7 +5,7 @@ The GitHub Pages home page (https://danzuep.github.io/UsfmBible/) is a [Hugo](ht
 
 | Page element | Source |
 |--------------|--------|
-| Title, tagline, description | `fastlane/metadata/android/en-US/{title,short_description,full_description}.txt` |
+| Title, tagline, intro, feature cards (each `<li>` as `Title: text`) | `fastlane/metadata/android/en-US/{title,short_description,full_description}.txt` |
 | Icon | `fastlane/metadata/android/en-US/images/icon.png` |
 | Screenshots | `fastlane/metadata/android/en-US/images/phoneScreenshots/` |
 | Download buttons and links | `website/hugo.toml` (`[params]`) |

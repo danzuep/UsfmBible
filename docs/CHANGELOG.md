@@ -1,6 +1,62 @@
 CHANGELOG
 ---------
 
+#### v0.52 (2026-11-26)
+- Check for updates to installed translations from a dedicated page.
+- Choose a specific text-to-speech voice, not just a language; the voice follows the translation's language and playback restarts when the translation changes.
+- Smoother read-aloud: the next segment is queued ahead, verses without sentence punctuation are spoken as one utterance, and speech retargets when you navigate while it plays.
+- Open the verse picker by tapping the current chapter; sort the language list alphabetically; accept en/em dashes in verse ranges.
+- Lower memory and CPU use on low-spec phones, and SQLite write-ahead logging.
+- Light status bar in light mode.
+
+#### v0.46 (2026-11-25)
+- Tap a chapter to pick a verse (long press to open it), with the book and chapter shown above the verse grid.
+- Group the reading timeline by date or by book, and make it the first overflow menu item.
+
+#### v0.43 (2026-11-19)
+- Read chapters aloud with Android text to speech, with highlighted verse, media controls, speeds up to 5x and chapter-to-chapter playback.
+- Manage reading history in bulk and add selected verses to it.
+- Full-screen Markdown viewer with a scroll bar.
+- Self-hosted F-Droid repository on GitHub Pages.
+
+#### v0.42 (2026-11-16)
+- Open `.usfm` files and import plain USFM books or zips, with the upload form prefilled from the file name and technical details in error popups.
+- Support the deuterocanon.
+- Show the copyright notice offline.
+- Rename the app to USFM Bible and refresh the icon.
+
+#### v0.38 (2026-11-12)
+- Web reader gains infinite scroll, night mode and text size.
+- Add a Pixel 9 screenshot workflow.
+
+#### v0.37 (2026-11-10)
+- Reading timeline in the overflow menu.
+
+#### v0.35 (2026-11-09)
+- Show ruby above text, with a setting to turn it off.
+- Open verses from `bible://` deep links.
+- Select a verse from search results.
+
+#### v0.34 (2026-11-08)
+- Search from selected text and by space-separated reference, matching book names by prefix.
+- Tap selects verses and long press opens details; share works like copy, with shorter references.
+
+#### v0.30 (2026-11-06)
+- Localize the interface into the top languages, including Thai, Japanese, traditional Chinese and right-to-left scripts, with native digits.
+- Parse the bundled WEB Bible at build time.
+
+#### v0.28 (2026-11-05)
+- Show open access wording and a copyright link per translation.
+- Show chapter starts inline with a pilcrow marker.
+
+#### v0.25 (2026-11-03)
+- Upload a Bible from a USFM zip.
+- Group translations by language with native language names.
+- Extract the Android-free code into a Kotlin Multiplatform shared module.
+
+#### v0.23 (2026-11-02)
+- Reorder parallel translations, auto-select new downloads and add a paratext tab.
+
 #### v0.28.3 (2026-11-05)
 - Use eBible.org's translations.csv as the default translation catalog, refreshed by a workflow; see https://ebible.org/about.php.
 
