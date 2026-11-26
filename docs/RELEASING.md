@@ -83,7 +83,7 @@ The same `fastlane/metadata/android/en-US/` listing feeds F-Droid, the [website]
 
 - `title.txt` up to 30 characters, `short_description.txt` up to 80, `full_description.txt` up to 4000 and plain text (bullets are `• ` lines, because Play does not render `<ul>`).
 - `changelogs/<versionCode>.txt` up to 500 characters; `changelogs/default.txt` is the fallback.
-- `images/icon.png` 512x512, `images/featureGraphic.png` 1024x500, and 2 to 8 `images/phoneScreenshots/` whose height is at most twice their width.
+- `images/icon.png` 512x512, `images/featureGraphic.png` 1024x500, and 2 to 8 `images/phoneScreenshots/` whose height is at most twice their width (typical 20:9 phone screenshots need padding, see below).
 
 Setup: create the app in Play Console, link a service account with release permissions (Setup > API access) and export its JSON key as `SUPPLY_JSON_KEY`. Google Play needs an Android App Bundle signed with the upload key, which is the release keystore; CI currently builds only APKs, so build one with `./gradlew bundleRelease -PappVersion=X.Y.Z` first.
 
@@ -93,5 +93,7 @@ bundle exec fastlane validate                  # check the listing without publi
 bundle exec fastlane metadata                  # upload text and images
 bundle exec fastlane internal aab:app/build/outputs/bundle/release/app-release.aab
 ```
+
+Run `python3 .github/scripts/check-store-assets.py` (needs `pip install pillow`) to check all of these limits; the `Website` workflow runs it on pull requests. Add new screenshots as-is and run it with `--fix`, which pads any screenshot taller than 2:1 with black side bars instead of cropping it.
 
 `internal` uploads a draft to the internal testing track, so add testers and roll it out in Play Console.
