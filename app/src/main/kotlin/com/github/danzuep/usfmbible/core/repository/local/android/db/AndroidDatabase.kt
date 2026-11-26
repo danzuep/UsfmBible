@@ -50,6 +50,12 @@ class AndroidDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
     val translationDao = TranslationDao(this)
     val translationInfoDao = TranslationInfoDao(this)
 
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        // Write-ahead logging makes writes (e.g. installing a translation) faster and lets reads continue during them.
+        db.enableWriteAheadLogging()
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.transaction {
             bookmarkDao.createTable(db)

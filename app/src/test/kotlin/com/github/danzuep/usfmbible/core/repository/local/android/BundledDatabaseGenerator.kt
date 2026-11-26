@@ -36,6 +36,8 @@ class BundledDatabaseGenerator : BaseSqliteTest() {
                     translation.bookNames, translation.bookShortNames, translation.verses)
         }
 
+        // The asset must be a single self-contained file, so leave write-ahead logging before closing.
+        androidDatabase.writableDatabase.disableWriteAheadLogging()
         androidDatabase.close()
         val output = File(bundleDir, AndroidTranslationStorage.PREBUILT_ASSET).apply { parentFile!!.mkdirs() }
         context.getDatabasePath(AndroidDatabase.DATABASE_NAME).copyTo(output, overwrite = true)

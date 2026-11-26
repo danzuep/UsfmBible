@@ -133,9 +133,15 @@ class AndroidTranslationStorageTest : BaseSqliteTest() {
     }
 
     @Test
+    fun testWriteAheadLoggingIsEnabled() {
+        assertTrue(androidDatabase.writableDatabase.isWriteAheadLoggingEnabled)
+    }
+
+    @Test
     fun testInstallPrebuiltTranslations() = runTest {
         androidTranslationStorage.saveTranslation(MockContents.kjvTranslationInfo,
                 MockContents.kjvBookNames, MockContents.kjvBookShortNames, MockContents.kjvVerses.toMap())
+        androidDatabase.writableDatabase.disableWriteAheadLogging()
         androidDatabase.close()
         val context = ApplicationProvider.getApplicationContext<Context>()
         val prebuilt = File.createTempFile("prebuilt", ".db")
