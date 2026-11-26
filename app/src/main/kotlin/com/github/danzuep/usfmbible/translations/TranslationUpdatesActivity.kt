@@ -8,6 +8,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.databinding.ActivityTranslationUpdatesBinding
 import com.github.danzuep.usfmbible.infra.BaseActivity
+import com.github.danzuep.usfmbible.ui.toast
 
 @AndroidEntryPoint
 class TranslationUpdatesActivity : BaseActivity<
@@ -25,7 +26,6 @@ class TranslationUpdatesActivity : BaseActivity<
     override fun initializeView() = with(viewBinding) {
         toolbar.setNavigationOnClickListener { navigator.goBack(this@TranslationUpdatesActivity) }
         selectAll.setOnClickListener { viewModel.setAllChecked(selectAll.isChecked) }
-        waitForWifi.setOnClickListener { viewModel.setWaitForWifi(waitForWifi.isChecked) }
         updateButton.setOnClickListener {
             val state = viewModel.currentState
             if (state.status is TranslationUpdatesViewModel.Status.WaitingForWifi || state.status is TranslationUpdatesViewModel.Status.Updating) {
@@ -36,13 +36,14 @@ class TranslationUpdatesActivity : BaseActivity<
         }
     }
 
-    override fun onViewActionEmitted(viewAction: TranslationUpdatesViewModel.ViewAction) = Unit
+    override fun onViewActionEmitted(viewAction: TranslationUpdatesViewModel.ViewAction) = when (viewAction) {
+        is TranslationUpdatesViewModel.ViewAction.Completed -> toast(resources.getQuantityString(R.plurals.toast_translations_updated, viewAction.count, viewAction.count))
+    }
 
     override fun onViewStateUpdated(viewState: TranslationUpdatesViewModel.ViewState): Unit = with(viewBinding) {
         val status = viewState.status
         loadingSpinner.isVisible = status is TranslationUpdatesViewModel.Status.Checking
         updatesScroll.isVisible = viewState.items.isNotEmpty()
-        waitForWifi.isVisible = viewState.items.isNotEmpty()
         updateButton.isVisible = viewState.items.isNotEmpty()
 
         status.message(viewState.items.any { it.unknownVersion })?.let {
@@ -54,9 +55,7 @@ class TranslationUpdatesActivity : BaseActivity<
         updateButton.setText(if (cancellable) android.R.string.cancel else R.string.button_update)
         updateButton.isEnabled = cancellable || viewState.items.any { it.checked }
         selectAll.isEnabled = !viewState.busy
-        waitForWifi.isEnabled = status !is TranslationUpdatesViewModel.Status.Updating
         selectAll.isChecked = viewState.allChecked
-        waitForWifi.isChecked = viewState.waitForWifi
 
         // Rebuilt only when the rows change, so that ticking a box does not recreate the view being tapped.
         val rows = viewState.items.map { it.translation.shortName to it.unknownVersion }
@@ -86,6 +85,7 @@ class TranslationUpdatesActivity : BaseActivity<
         is TranslationUpdatesViewModel.Status.Checking -> getString(R.string.text_checking_for_updates)
         is TranslationUpdatesViewModel.Status.UpToDate -> getString(R.string.text_up_to_date)
         is TranslationUpdatesViewModel.Status.CheckFailed -> getString(R.string.text_update_check_failed)
+        is TranslationUpdatesViewModel.Status.NetworkBlocked -> getString(R.string.text_network_blocked)
         is TranslationUpdatesViewModel.Status.WaitingForWifi -> getString(R.string.text_waiting_for_wifi)
         is TranslationUpdatesViewModel.Status.Updating -> getString(R.string.text_updating, name, progress)
         is TranslationUpdatesViewModel.Status.UpdateFailed -> getString(R.string.text_update_failed, name)

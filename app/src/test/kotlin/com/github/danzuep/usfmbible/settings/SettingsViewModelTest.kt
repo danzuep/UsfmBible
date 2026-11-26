@@ -122,6 +122,7 @@ class SettingsViewModelTest : BaseUnitTest() {
         nightModeStringRes = R.string.settings_text_night_mode_system,
         showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
+        allowMobileData = Settings.DEFAULT.allowMobileData,
         defaultHighlightColor = Highlight.COLOR_NONE,
         backupState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
         restoreState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
@@ -524,6 +525,17 @@ class SettingsViewModelTest : BaseUnitTest() {
         settingsViewModel.saveRubyOn(rubyOn = false)
 
         coVerify(exactly = 1) { settingsManager.saveSettings(Settings.DEFAULT.copy(rubyOn = false)) }
+    }
+
+    @Test
+    fun `test saveAllowMobileData()`() = runTest {
+        every { settingsManager.settings() } returns flowOf(Settings.DEFAULT)
+        coEvery { settingsManager.saveSettings(Settings.DEFAULT.copy(allowMobileData = false)) } returns Unit
+
+        settingsViewModel.saveAllowMobileData(allowMobileData = true)
+        settingsViewModel.saveAllowMobileData(allowMobileData = false)
+
+        coVerify(exactly = 1) { settingsManager.saveSettings(Settings.DEFAULT.copy(allowMobileData = false)) }
     }
 
     @Test

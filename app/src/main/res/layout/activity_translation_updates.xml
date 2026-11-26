@@ -53,15 +53,6 @@
             </LinearLayout>
         </ScrollView>
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/wait_for_wifi"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="@dimen/item_height"
-            android:paddingStart="@dimen/padding"
-            android:paddingEnd="@dimen/padding"
-            android:text="@string/checkbox_wait_for_wifi" />
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/update_button"
             android:layout_width="match_parent"

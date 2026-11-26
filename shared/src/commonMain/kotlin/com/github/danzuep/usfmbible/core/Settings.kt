@@ -24,6 +24,7 @@ data class Settings(
     val showSearchButton: Boolean,
     @Highlight.Companion.AvailableColor val defaultHighlightColor: Int,
     val rubyOn: Boolean = true,
+    val allowMobileData: Boolean = true,
 ) {
     companion object {
         const val MIN_FONT_SIZE_SCALE = 0.5F
@@ -44,6 +45,7 @@ data class Settings(
             showSearchButton = true,
             defaultHighlightColor = Highlight.COLOR_NONE,
             rubyOn = true,
+            allowMobileData = true,
         )
     }
 }

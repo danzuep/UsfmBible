@@ -91,6 +91,7 @@ class CoreSettings(private val repository: SettingsRepository, private var curre
 
     suspend fun showSearchButton(on: Boolean = true) = update { copy(showSearchButton = on) }
     suspend fun ruby(on: Boolean = true) = update { copy(rubyOn = on) }
+    suspend fun allowMobileData(on: Boolean = true) = update { copy(allowMobileData = on) }
 
 
     suspend fun defaultHighlightColor(color: Int) = update { copy(defaultHighlightColor = color) }

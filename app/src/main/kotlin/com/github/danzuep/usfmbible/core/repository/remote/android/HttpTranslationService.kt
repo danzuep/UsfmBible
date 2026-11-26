@@ -41,12 +41,16 @@ import java.io.InputStream
 
 private const val TAG = "HttpTranslationService"
 
-class HttpTranslationService(private val context: Context) : RemoteTranslationService {
+class HttpTranslationService(
+    private val context: Context,
+    private val networkPolicy: NetworkPolicy = NetworkPolicy(context),
+) : RemoteTranslationService {
     private val cacheDir: File by lazy { File(context.cacheDir, "translations").apply { mkdirs() } }
 
     override suspend fun fetchTranslations(sites: List<String>): List<RemoteTranslationInfo> = withContext(Dispatchers.IO) {
         sites.flatMap { site ->
             try {
+                if (site != DEFAULT_DOWNLOAD_SITE) networkPolicy.check()
                 readTable(site).map { it.toRemoteTranslationInfo() }
             } catch (e: Exception) {
                 Logger.withTag(TAG).w(e) { "Failed to read translations from $site" }
@@ -65,6 +69,7 @@ class HttpTranslationService(private val context: Context) : RemoteTranslationSe
     override suspend fun fetchTranslation(
             downloadProgress: SendChannel<Int>, translationInfo: RemoteTranslationInfo, sites: List<String>
     ): RemoteTranslation = withContext(Dispatchers.IO) {
+        networkPolicy.check()
         val destination = File(cacheDir, translationInfo.shortName)
         var lastError: Exception? = null
         for (origin in sites.mapNotNull { siteOrigin(it) }.distinct()) {

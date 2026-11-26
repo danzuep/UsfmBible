@@ -31,6 +31,8 @@ import com.github.danzuep.usfmbible.core.provider.DefaultTimeProvider
 import com.github.danzuep.usfmbible.core.provider.TimeProvider
 import com.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase
 import com.github.danzuep.usfmbible.core.repository.remote.android.HttpTranslationService
+import com.github.danzuep.usfmbible.core.repository.remote.android.NetworkPolicy
+import kotlinx.coroutines.flow.first
 import com.github.danzuep.usfmbible.core.serializer.android.BackupJsonSerializer
 import javax.inject.Singleton
 import com.github.danzuep.usfmbible.core.BackupManager
@@ -180,6 +182,12 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideTranslationRepository(app: Application, androidDatabase: AndroidDatabase, timeProvider: TimeProvider, appScope: CoroutineScope): TranslationRepository =
-        TranslationRepository(AndroidTranslationStorage(androidDatabase, app), HttpTranslationService(app), timeProvider, appScope)
+    fun provideTranslationRepository(
+        app: Application, androidDatabase: AndroidDatabase, settingsRepository: SettingsRepository, timeProvider: TimeProvider, appScope: CoroutineScope,
+    ): TranslationRepository = TranslationRepository(
+        AndroidTranslationStorage(androidDatabase, app),
+        HttpTranslationService(app, NetworkPolicy(app) { settingsRepository.settings.first().allowMobileData }),
+        timeProvider,
+        appScope,
+    )
 }

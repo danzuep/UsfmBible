@@ -59,6 +59,7 @@ class SettingsViewModel @Inject constructor(
         simpleReadingModeOn = Settings.DEFAULT.simpleReadingModeOn,
         showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
+        allowMobileData = Settings.DEFAULT.allowMobileData,
         defaultHighlightColor = Settings.DEFAULT.defaultHighlightColor,
         backupState = ViewState.BackupRestoreState.Idle,
         restoreState = ViewState.BackupRestoreState.Idle,
@@ -85,6 +86,7 @@ class SettingsViewModel @Inject constructor(
         val simpleReadingModeOn: Boolean,
         val showSearchButton: Boolean,
         val rubyOn: Boolean,
+        val allowMobileData: Boolean,
         @Highlight.Companion.AvailableColor val defaultHighlightColor: Int,
         val backupState: BackupRestoreState,
         val restoreState: BackupRestoreState,
@@ -137,6 +139,7 @@ class SettingsViewModel @Inject constructor(
                     simpleReadingModeOn = settings.simpleReadingModeOn,
                     showSearchButton = settings.showSearchButton,
                     rubyOn = settings.rubyOn,
+                    allowMobileData = settings.allowMobileData,
                     defaultHighlightColor = settings.defaultHighlightColor,
                 )
             }
@@ -209,6 +212,10 @@ class SettingsViewModel @Inject constructor(
 
     fun saveRubyOn(rubyOn: Boolean) {
         updateSettings { it.copy(rubyOn = rubyOn) }
+    }
+
+    fun saveAllowMobileData(allowMobileData: Boolean) {
+        updateSettings { it.copy(allowMobileData = allowMobileData) }
     }
 
     fun saveDefaultHighlightColor(@Highlight.Companion.AvailableColor defaultHighlightColor: Int) {

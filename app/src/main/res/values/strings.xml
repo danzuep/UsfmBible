@@ -201,7 +201,6 @@
     <string name="action_check_for_updates">↻</string>
     <string name="title_translation_updates">↻</string>
     <string name="checkbox_select_all">☑</string>
-    <string name="checkbox_wait_for_wifi">📶</string>
     <string name="button_update">↻</string>
     <string name="text_checking_for_updates">…</string>
     <string name="text_up_to_date">✓</string>
@@ -210,4 +209,11 @@
     <string name="text_updating">↻ %1$s %2$d%%</string>
     <string name="text_update_failed">⚠ %1$s</string>
     <string name="text_update_version_unknown">?</string>
+    <plurals name="toast_translations_updated">
+        <item quantity="one">✓ %d</item>
+        <item quantity="other">✓ %d</item>
+    </plurals>
+    <string name="text_network_blocked">📶 ✗</string>
+    <string name="settings_title_allow_mobile_data">📶</string>
+    <string name="toast_translations_updated_job">✓</string>
 </resources>

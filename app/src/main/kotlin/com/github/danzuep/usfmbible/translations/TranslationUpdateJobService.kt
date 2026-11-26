@@ -6,9 +6,13 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.os.PersistableBundle
 import co.touchlab.kermit.Logger
+import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.TranslationManager
+import com.github.danzuep.usfmbible.ui.toast
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -20,7 +24,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Updates translations once the device is on an unmetered network (e.g. Wi-Fi), using the platform [JobScheduler] so no
+ * Updates translations once the device is on an unmetered network (e.g. Wi-Fi), when mobile data is off, roaming or unavailable, using the platform [JobScheduler] so no
  * extra library is needed. Scheduled only when the user asks on the updates page; interrupted downloads resume later.
  */
 @AndroidEntryPoint
@@ -44,6 +48,7 @@ class TranslationUpdateJobService : JobService() {
                 Logger.withTag(TAG).e(e) { "Failed to update translations" }
                 failed = true
             }
+            if (!failed) Handler(Looper.getMainLooper()).post { applicationContext.toast(R.string.toast_translations_updated_job) }
             jobFinished(params, failed)
         }
         return true

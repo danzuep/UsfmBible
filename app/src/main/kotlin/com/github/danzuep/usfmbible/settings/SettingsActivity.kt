@@ -60,6 +60,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         keepScreenOn.setOnCheckedChangeByUserListener(viewModel::saveKeepScreenOn)
         showSearchButton.setOnCheckedChangeByUserListener(viewModel::saveShowSearchButton)
         ruby.setOnCheckedChangeByUserListener(viewModel::saveRubyOn)
+        allowMobileData.setOnCheckedChangeByUserListener(viewModel::saveAllowMobileData)
         fontSize.setOnSingleClickListener(viewModel::selectFontSizeScale)
         nightMode.setOnSingleClickListener(viewModel::selectNightMode)
         language.setOnSingleClickListener(::selectLanguage)
@@ -100,6 +101,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         keepScreenOn.isChecked = viewState.keepScreenOn
         showSearchButton.isChecked = viewState.showSearchButton
         ruby.isChecked = viewState.rubyOn
+        allowMobileData.isChecked = viewState.allowMobileData
 
         nightMode.setDescription(viewState.nightModeStringRes)
         language.setDescription(AppLanguage.selectedCode()?.let(AppLanguage::nativeName) ?: getString(R.string.settings_text_language_system))
@@ -123,6 +125,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         reading.setTextSize(bodyTextSizePx)
         showSearchButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
         ruby.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
+        allowMobileData.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
         defaultHighlightColor.setTextSize(bodyTextSizePx, captionTextSizePx)
         backupRestore.setTextSize(bodyTextSizePx)
         backup.setTextSize(bodyTextSizePx, captionTextSizePx)

@@ -34,6 +34,7 @@ class AndroidSettingsStorage(private val androidDatabase: AndroidDatabase) : Loc
                 Pair(MetadataDao.KEY_SHOW_SEARCH_BUTTON, Settings.DEFAULT.showSearchButton.toString()),
                 Pair(MetadataDao.KEY_DEFAULT_HIGHLIGHT_COLOR, Settings.DEFAULT.defaultHighlightColor.toString()),
                 Pair(MetadataDao.KEY_RUBY_ON, Settings.DEFAULT.rubyOn.toString()),
+                Pair(MetadataDao.KEY_ALLOW_MOBILE_DATA, Settings.DEFAULT.allowMobileData.toString()),
         ))
         return@withContext Settings(values.getValue(MetadataDao.KEY_SCREEN_ON).toBoolean(),
                 values.getValue(MetadataDao.KEY_NIGHT_MODE).toInt(),
@@ -41,7 +42,8 @@ class AndroidSettingsStorage(private val androidDatabase: AndroidDatabase) : Loc
                 values.getValue(MetadataDao.KEY_SIMPLE_READING_MODE_ON).toBoolean(),
                 values.getValue(MetadataDao.KEY_SHOW_SEARCH_BUTTON).toBoolean(),
                 values.getValue(MetadataDao.KEY_DEFAULT_HIGHLIGHT_COLOR).toInt(),
-                values.getValue(MetadataDao.KEY_RUBY_ON).toBoolean()
+                values.getValue(MetadataDao.KEY_RUBY_ON).toBoolean(),
+                values.getValue(MetadataDao.KEY_ALLOW_MOBILE_DATA).toBoolean()
         )
     }
 
@@ -55,6 +57,7 @@ class AndroidSettingsStorage(private val androidDatabase: AndroidDatabase) : Loc
                     Pair(MetadataDao.KEY_SHOW_SEARCH_BUTTON, settings.showSearchButton.toString()),
                     Pair(MetadataDao.KEY_DEFAULT_HIGHLIGHT_COLOR, settings.defaultHighlightColor.toString()),
                     Pair(MetadataDao.KEY_RUBY_ON, settings.rubyOn.toString()),
+                    Pair(MetadataDao.KEY_ALLOW_MOBILE_DATA, settings.allowMobileData.toString()),
             ))
         }
     }

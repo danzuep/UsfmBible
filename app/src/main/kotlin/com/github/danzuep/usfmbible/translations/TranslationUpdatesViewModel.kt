@@ -1,14 +1,14 @@
 package com.github.danzuep.usfmbible.translations
 
 import android.app.Application
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import com.github.danzuep.usfmbible.core.SettingsManager
 import com.github.danzuep.usfmbible.core.TranslationInfo
 import com.github.danzuep.usfmbible.core.TranslationManager
 import com.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import com.github.danzuep.usfmbible.core.repository.remote.UpdateStatus
+import com.github.danzuep.usfmbible.core.repository.remote.android.NetworkPolicy
 import com.github.danzuep.usfmbible.core.repository.remote.android.TranslationVersions
 import com.github.danzuep.usfmbible.core.repository.remote.android.fetchLastModified
 import com.github.danzuep.usfmbible.core.repository.remote.siteOrigin
@@ -26,12 +26,15 @@ import javax.inject.Inject
 @HiltViewModel
 class TranslationUpdatesViewModel @Inject constructor(
     private val translationManager: TranslationManager,
+    private val settingsManager: SettingsManager,
     private val application: Application,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
 ) : BaseViewModel<TranslationUpdatesViewModel.ViewAction, TranslationUpdatesViewModel.ViewState>(
     initialViewState = ViewState(),
 ) {
-    sealed class ViewAction
+    sealed class ViewAction {
+        data class Completed(val count: Int) : ViewAction()
+    }
 
     /** [unknownVersion] is true when no version was recorded at install time, e.g. the prepackaged WEB. */
     data class Item(val translation: TranslationInfo, val unknownVersion: Boolean, val checked: Boolean = true)
@@ -41,6 +44,7 @@ class TranslationUpdatesViewModel @Inject constructor(
         object Checking : Status()
         object UpToDate : Status()
         object CheckFailed : Status()
+        object NetworkBlocked : Status()
         object WaitingForWifi : Status()
         data class Updating(val name: String, val progress: Int) : Status()
         data class UpdateFailed(val name: String) : Status()
@@ -49,7 +53,6 @@ class TranslationUpdatesViewModel @Inject constructor(
     data class ViewState(
         val status: Status = Status.Checking,
         val items: List<Item> = emptyList(),
-        val waitForWifi: Boolean = true,
     ) {
         val busy: Boolean get() = status is Status.Checking || status is Status.WaitingForWifi || status is Status.Updating
         val allChecked: Boolean get() = items.isNotEmpty() && items.all { it.checked }
@@ -64,7 +67,7 @@ class TranslationUpdatesViewModel @Inject constructor(
         updateViewState { state }
     }
 
-    private val connectivityManager = application.getSystemService(ConnectivityManager::class.java)
+    private val networkPolicy = NetworkPolicy(application) { settingsManager.settings().first().allowMobileData }
     private var updateJob: Job? = null
 
     init {
@@ -74,6 +77,10 @@ class TranslationUpdatesViewModel @Inject constructor(
     private fun checkForUpdates() {
         mutate { it.copy(status = Status.Checking, items = emptyList()) }
         viewModelScope.launch {
+            if (!networkPolicy.isAllowed()) {
+                mutate { it.copy(status = Status.NetworkBlocked) }
+                return@launch
+            }
             val result = runCatching {
                 withContext(coroutineDispatcherProvider.default) {
                     translationManager.reload(false)
@@ -115,18 +122,9 @@ class TranslationUpdatesViewModel @Inject constructor(
         mutate { current -> current.copy(items = current.items.map { it.copy(checked = checked) }) }
     }
 
-    fun setWaitForWifi(wait: Boolean) {
-        mutate { it.copy(waitForWifi = wait) }
-        // Unticking while waiting means "use mobile data now".
-        if (!wait && state.status == Status.WaitingForWifi) {
-            TranslationUpdateJobService.cancel(application)
-            startUpdates()
-        }
-    }
-
     fun update() {
         if (state.busy || state.items.none { it.checked }) return
-        if (state.waitForWifi && !isUnmetered()) waitForWifi() else startUpdates()
+        viewModelScope.launch { if (networkPolicy.isAllowed()) startUpdates() else waitForWifi() }
     }
 
     fun cancel() {
@@ -134,11 +132,6 @@ class TranslationUpdatesViewModel @Inject constructor(
         updateJob?.cancel()
         updateJob = null
         mutate { if (it.busy) it.copy(status = Status.Idle) else it }
-    }
-
-    private fun isUnmetered(): Boolean {
-        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == true
     }
 
     // The job outlives this page; ACCESS_NETWORK_STATE is already declared and is not a runtime permission.
@@ -163,6 +156,7 @@ class TranslationUpdatesViewModel @Inject constructor(
                     return@launch
                 }
             }
+            emitViewAction(ViewAction.Completed(selected.size))
             checkForUpdates()
         }
     }
