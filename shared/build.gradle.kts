@@ -42,6 +42,10 @@ kotlin {
         nodejs()
     }
 
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(Dependencies.Kotlin.coroutinesCore)

@@ -40,6 +40,7 @@ class SpeechNotification(
 ) {
     private val appContext = context.applicationContext
     private val manager = appContext.getSystemService(NotificationManager::class.java)
+    @Suppress("DEPRECATION") // The flags are only needed below API 26.
     private val mediaSession = MediaSession(appContext, "USFM Bible reading").apply {
         setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS or MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS)
         setCallback(object : MediaSession.Callback() {

@@ -83,7 +83,10 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release create "$GITHUB_REF_NAME" "$NAME.apk" "$NAME-with-WEB.apk" --generate-notes
+      run: gh release create "$GITHUB_REF_NAME" "$NAME.apk" "$NAME-with-WEB.apk" --generate-notes --latest=false
+        # Runs for several tags can overlap, so mark the highest version (not the last one published) as Latest.
+        newest=$(gh release list --limit 100 --json tagName --jq '.[].tagName' | sort -V | tail -n1)
+        gh release edit "$newest" --latest
 
   # Self-hosted F-Droid repo with only this release's APK, indexed with the release keystore.
   fdroid:
@@ -135,7 +138,7 @@ jobs:
         mv site/repo pages/fdroid/repo
         cp fdroid/index.html pages/index.html
         ls -R pages
-    - uses: actions/upload-pages-artifact@v3
+    - uses: actions/upload-pages-artifact@v5
       with:
         path: pages
 
@@ -150,4 +153,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - id: deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5
