@@ -38,10 +38,7 @@ class ChapterSelectionFragment : BaseFragment<FragmentChapterSelectionBinding, C
             when (viewEvent) {
                 is ChapterSelectionView.ViewEvent.SelectBook -> viewModel.selectChapter(bookToSelect = viewEvent.bookIndex, chapterToSelect = 0)
                 is ChapterSelectionView.ViewEvent.SelectChapter -> selectChapterStart(viewEvent.bookIndex, viewEvent.chapterIndex)
-                is ChapterSelectionView.ViewEvent.OpenVerses -> if (viewModel.isCurrentChapter(viewEvent.bookIndex, viewEvent.chapterIndex)) {
-                    // Opening the verses would move nothing, so tapping the chapter being read closes the picker at its start.
-                    selectChapterStart(viewEvent.bookIndex, viewEvent.chapterIndex)
-                } else viewLifecycleOwner.lifecycleScope.launch {
+                is ChapterSelectionView.ViewEvent.OpenVerses -> viewLifecycleOwner.lifecycleScope.launch {
                     // Like picking a book, the reader moves straight to the chapter while the drawer stays open.
                     viewModel.openChapter(viewEvent.bookIndex, viewEvent.chapterIndex)
                     val verseCount = viewModel.verseCount(viewEvent.bookIndex, viewEvent.chapterIndex)

@@ -77,8 +77,6 @@ class ChapterSelectionViewModel @Inject constructor(
         bibleReadingManager.readVerses(translation, bookIndex, chapterIndex).maxOfOrNull { it.verseIndex.verseIndex + 1 } ?: 0
     }.getOrDefault(0)
 
-    fun isCurrentChapter(bookIndex: Int, chapterIndex: Int) = currentChapter == bookIndex to chapterIndex
-
     /** Moves the reader to the chapter's start, unless it is already being read. */
     fun openChapter(bookIndex: Int, chapterIndex: Int) {
         if (currentChapter != bookIndex to chapterIndex) selectChapter(bookIndex, chapterIndex)
