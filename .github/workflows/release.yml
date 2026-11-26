@@ -83,7 +83,8 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh release create "$GITHUB_REF_NAME" "$NAME.apk" "$NAME-with-WEB.apk" --generate-notes --latest=false
+      run: |
+        gh release create "$GITHUB_REF_NAME" "$NAME.apk" "$NAME-with-WEB.apk" --generate-notes --latest=false
         # Runs for several tags can overlap, so mark the highest version (not the last one published) as Latest.
         newest=$(gh release list --limit 100 --json tagName --jq '.[].tagName' | sort -V | tail -n1)
         gh release edit "$newest" --latest
