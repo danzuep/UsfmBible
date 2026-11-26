@@ -31,6 +31,7 @@ import com.github.danzuep.usfmbible.databinding.ActivitySettingsBinding
 import com.github.danzuep.usfmbible.ui.toast
 import com.github.danzuep.usfmbible.infra.BaseActivity
 import com.github.danzuep.usfmbible.ui.AppLanguage
+import com.github.danzuep.usfmbible.ui.sortedByLanguageName
 import com.github.danzuep.usfmbible.ui.highlightSwatch
 import com.github.danzuep.usfmbible.ui.indeterminateProgressDialog
 import com.github.danzuep.usfmbible.ui.listDialog
@@ -183,7 +184,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
     }
 
     private fun selectLanguage() {
-        val codes = listOf<String?>(null) + AppLanguage.CODES
+        val codes = listOf<String?>(null) + AppLanguage.CODES.sortedByLanguageName(AppLanguage::nativeName)
         listDialog(
             title = R.string.settings_title_language,
             items = codes.map { it?.let(AppLanguage::nativeName) ?: getString(R.string.settings_text_language_system) }.toTypedArray(),
