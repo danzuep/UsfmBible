@@ -1,13 +1,54 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UsfmBible on F-Droid</title>
-<h1>UsfmBible</h1>
-<p>Add this repository in F-Droid (Settings, Repositories) to install and update UsfmBible:</p>
-<p><a id="u"></a></p>
+<title>UsfmBible - free offline Bible reader for Android</title>
+<meta name="description" content="Read hundreds of free eBible.org translations offline, with search, notes and parallel verses.">
+<style>
+  body{font-family:system-ui,sans-serif;max-width:46rem;margin:0 auto;padding:1rem;line-height:1.5;color:#222}
+  header{text-align:center;padding:1.5rem 0}
+  .btn{display:inline-block;margin:.25rem;padding:.7rem 1.2rem;border-radius:.5rem;background:#1565c0;color:#fff;text-decoration:none;font-weight:600}
+  .btn.alt{background:#455a64}
+  .shots{display:flex;gap:.5rem;overflow-x:auto}
+  .shots img{height:24rem;border-radius:.5rem}
+  code{word-break:break-all}
+  @media (prefers-color-scheme:dark){body{background:#121212;color:#e0e0e0}a{color:#90caf9}}
+</style>
+<header>
+  <h1>UsfmBible</h1>
+  <p>A free, ad-free Bible reader for Android. Download translations from <a href="https://ebible.org">eBible.org</a> and read them offline.</p>
+  <p>
+    <a class="btn" id="fdroid" href="https://danzuep.github.io/UsfmBible/fdroid/repo">Get it on F-Droid</a>
+    <a class="btn alt" href="https://github.com/danzuep/UsfmBible/releases/latest">Download APK</a>
+  </p>
+</header>
+<h2>Features</h2>
+<ul>
+  <li>Hundreds of free translations in many languages, including right-to-left scripts</li>
+  <li>Works offline once a translation is downloaded</li>
+  <li>Search, verse notes, parallel verses and reading progress</li>
+  <li>Day and night themes</li>
+</ul>
+<div class="shots">
+  <img alt="Reading" src="https://raw.githubusercontent.com/danzuep/UsfmBible/main/fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot-01-reading-day-startup.jpg">
+  <img alt="Search" src="https://raw.githubusercontent.com/danzuep/UsfmBible/main/fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot-04-search-light.jpg">
+  <img alt="Parallel verses" src="https://raw.githubusercontent.com/danzuep/UsfmBible/main/fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot-07-verse-parallel.jpg">
+</div>
+<h2>Install with F-Droid</h2>
+<ol>
+  <li>Install <a href="https://f-droid.org">F-Droid</a>.</li>
+  <li>Tap the button above (or add the repository below in Settings, Repositories).</li>
+  <li>Install UsfmBible and receive updates automatically.</li>
+</ol>
+<p>Repository: <a id="u" href="https://danzuep.github.io/UsfmBible/fdroid/repo">https://danzuep.github.io/UsfmBible/fdroid/repo</a></p>
+<h2>Feedback</h2>
+<p>Found a bug or have an idea? <a href="https://github.com/danzuep/UsfmBible/issues/new">Open an issue</a> or browse the <a href="https://github.com/danzuep/UsfmBible">source code</a>.</p>
 <script>
-  var u = location.origin + location.pathname.replace(/[^/]*$/, '') + 'fdroid/repo';
-  var a = document.getElementById('u');
-  a.href = 'fdroidrepos://' + u.replace(/^https?:\/\//, '');
-  a.textContent = u;
+  // On Android, open F-Droid directly; elsewhere the buttons fall back to the repo URL.
+  if (/Android/i.test(navigator.userAgent)) {
+    var link = 'fdroidrepos://danzuep.github.io/UsfmBible/fdroid/repo';
+    document.getElementById('fdroid').href = link;
+    document.getElementById('u').href = link;
+  }
 </script>
+</html>
