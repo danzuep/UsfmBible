@@ -33,7 +33,7 @@ import com.github.danzuep.usfmbible.core.TranslationInfo
 import com.github.danzuep.usfmbible.core.TranslationManager
 import com.github.danzuep.usfmbible.core.containsAnyKeyword
 import com.github.danzuep.usfmbible.core.repository.remote.TranslationTableRow
-import com.github.danzuep.usfmbible.core.repository.remote.parseTranslationCsv
+import com.github.danzuep.usfmbible.core.repository.remote.android.TranslationCatalog
 import com.github.danzuep.usfmbible.core.toKeywords
 import com.github.danzuep.usfmbible.ui.TranslationInfoComparator
 import com.github.danzuep.usfmbible.ui.languageDisplayName
@@ -112,8 +112,7 @@ class TranslationsViewModel @Inject constructor(
 
     private val translationRows: Map<String, TranslationTableRow> by lazy {
         runCatching {
-            val csv = application.assets.open("translations.csv").use { it.readBytes().toString(Charsets.UTF_8) }
-            parseTranslationCsv(csv, "https://ebible.org/").associateBy { it.id.replace(Regex("[^A-Za-z0-9]"), "_") }
+            TranslationCatalog.rows(application, "https://ebible.org/").associateBy { it.id.replace(Regex("[^A-Za-z0-9]"), "_") }
         }.getOrDefault(emptyMap())
     }
 
@@ -186,8 +185,7 @@ class TranslationsViewModel @Inject constructor(
         viewModelScope.launch {
             val details = runCatching {
                 withContext(coroutineDispatcherProvider.default) {
-                    val csv = application.assets.open("translations.csv").use { it.readBytes().toString(Charsets.UTF_8) }
-                    parseTranslationCsv(csv, "https://ebible.org/")
+                    TranslationCatalog.rows(application, "https://ebible.org/")
                         .firstOrNull { it.id == translation.shortName }
                         ?.let { row ->
                             buildList {

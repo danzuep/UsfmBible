@@ -143,6 +143,7 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
             return@withTransaction emptyList()
         }
 
+        val keywords = query.keyword.toKeywords()
         select(tableName(query.translation)) {
             (if (query.includeOldTestament && !query.includeNewTestament) {
                 // Old Testament only
@@ -161,7 +162,6 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
             )
         }.filter { verse ->
             // Headings and notes are stored with the text but not searchable, so each keyword must match the displayed text.
-            val keywords = query.keyword.toKeywords()
             keywords.all { verse.text.text.contains(it, ignoreCase = true) }
                     && (!query.wholeWords || keywords.all { verse.text.text.containsWholeWord(it) })
         }

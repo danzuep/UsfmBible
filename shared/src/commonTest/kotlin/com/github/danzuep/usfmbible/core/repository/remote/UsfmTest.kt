@@ -21,6 +21,7 @@ import com.github.danzuep.usfmbible.core.RUBY_SEPARATOR
 import com.github.danzuep.usfmbible.core.Bible
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class UsfmTest {
     private fun ruby(base: String, reading: String) = "$RUBY_MARK$base$RUBY_SEPARATOR$reading$RUBY_MARK"
@@ -191,6 +192,15 @@ class UsfmTest {
         assertEquals(1, translation.verses.getValue(Pair(Bible.CANON_BOOK_COUNT, 0)).size)
         assertEquals("Tobit", translation.bookNames[Bible.CANON_BOOK_COUNT])
         assertEquals(Bible.BOOK_COUNT, BOOK_CODES.size)
+    }
+
+    @Test
+    fun `test readUsfmBook() skips resource forks and unknown books`() {
+        val usfm = "\\id TOB\n\\c 1\n\\v 1 Text.".encodeToByteArray()
+        assertEquals("TOB", readUsfmBook("01TOB.usfm", usfm)?.code)
+        assertNull(readUsfmBook("__MACOSX/._01TOB.usfm", usfm))
+        assertNull(readUsfmBook("copr.htm", usfm))
+        assertNull(readUsfmBook("99XXA.usfm", "\\id XXA\n\\c 1\n\\v 1 Text.".encodeToByteArray()))
     }
 
     @Test

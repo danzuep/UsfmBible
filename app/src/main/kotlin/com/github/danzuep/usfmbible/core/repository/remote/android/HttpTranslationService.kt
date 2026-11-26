@@ -25,7 +25,6 @@ import kotlinx.coroutines.withContext
 import com.github.danzuep.usfmbible.core.repository.remote.RemoteTranslation
 import com.github.danzuep.usfmbible.core.repository.remote.DEFAULT_DOWNLOAD_SITE
 import com.github.danzuep.usfmbible.core.repository.remote.RemoteTranslationInfo
-import com.github.danzuep.usfmbible.core.repository.remote.parseTranslationCsv
 import com.github.danzuep.usfmbible.core.repository.remote.RemoteTranslationService
 import com.github.danzuep.usfmbible.core.repository.remote.parseTranslationTable
 import com.github.danzuep.usfmbible.core.repository.remote.readUsfmZip
@@ -58,7 +57,7 @@ class HttpTranslationService(private val context: Context) : RemoteTranslationSe
 
     // The default site is read from the bundled CSV, other sites are scraped.
     private fun readTable(site: String) = if (site == DEFAULT_DOWNLOAD_SITE) {
-        parseTranslationCsv(context.assets.open("translations.csv").use { it.readBytes().toString(Charsets.UTF_8) }, site)
+        TranslationCatalog.rows(context, site)
     } else {
         parseTranslationTable(fetchText(site), site)
     }

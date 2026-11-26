@@ -207,6 +207,9 @@ class BibleReadingRepository(private val localReadingStorage: LocalReadingStorag
             localReadingStorage.readVerses(translationShortName, verseIndexes)
 
     suspend fun search(query: VerseSearchQuery): List<Verse> = localReadingStorage.search(query)
+
+    /** Drops cached verses and book names, e.g. when the system is low on memory. */
+    fun clearCache() = cache.clear()
 }
 
 private class LruStringCache(maxSize: Int) : LruCache<String, List<String>>(maxSize) {
@@ -222,11 +225,20 @@ private class LruVerseCache(maxSize: Int) : LruCache<String, List<Verse>>(maxSiz
             key.length * 4 + value.sumOf { 12 + (it.text.translationShortName.length + it.text.text.length) * 4 }
 }
 
+private const val MAX_CACHE_BYTES = 32L * 1024L * 1024L
+
 private class BibleReadingCache {
-    private val maxMemory = maxCacheBytes()
+    // Capped so that large-heap devices don't hoard memory and small-heap devices keep room for the UI.
+    private val maxMemory = minOf(maxCacheBytes(), MAX_CACHE_BYTES)
     private val bookNamesCache: LruStringCache = LruStringCache((maxMemory / 16L).toInt())
     private val bookShortNamesCache: LruStringCache = LruStringCache((maxMemory / 16L).toInt())
     private val versesCache: LruVerseCache = LruVerseCache((maxMemory / 8L).toInt())
+
+    fun clear() {
+        bookNamesCache.clear()
+        bookShortNamesCache.clear()
+        versesCache.clear()
+    }
 
     fun getBookNames(key: String): List<String>? = bookNamesCache.get(key)
 

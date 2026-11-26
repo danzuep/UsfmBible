@@ -25,12 +25,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.github.danzuep.usfmbible.core.Settings
 import com.github.danzuep.usfmbible.core.SettingsManager
+import com.github.danzuep.usfmbible.core.repository.BibleReadingRepository
 import javax.inject.Inject
 
 @HiltAndroidApp
 class App : BaseApp() {
     @Inject
     lateinit var settingsManager: SettingsManager
+
+    @Inject
+    lateinit var bibleReadingRepository: BibleReadingRepository
 
     @Inject
     lateinit var appScope: CoroutineScope
@@ -46,5 +50,11 @@ class App : BaseApp() {
             }
             AppCompatDelegate.setDefaultNightMode(systemNightMode)
         }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_BACKGROUND) bibleReadingRepository.clearCache()
     }
 }
