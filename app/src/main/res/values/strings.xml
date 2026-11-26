@@ -202,6 +202,8 @@
     <string name="title_translation_updates">↻</string>
     <string name="checkbox_select_all">☑</string>
     <string name="button_update">↻</string>
+    <string name="button_check_on_wifi">📶↻</string>
+    <string name="text_network_blocked">📶 ✗</string>
     <string name="text_checking_for_updates">…</string>
     <string name="text_up_to_date">✓</string>
     <string name="text_update_check_failed">⚠</string>
