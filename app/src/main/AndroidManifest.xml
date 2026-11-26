@@ -91,6 +91,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".settings.SettingsActivity" />
+        <activity android:name=".translations.TranslationUpdatesActivity" />
         <activity android:name=".translations.TranslationsActivity" android:exported="true">
             <!-- Opens .usfm/.sfm books and zips of them, matched by extension because there is no registered MIME type. -->
             <intent-filter>

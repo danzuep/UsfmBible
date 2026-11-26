@@ -33,13 +33,7 @@ import com.github.danzuep.usfmbible.core.TranslationInfo
 import com.github.danzuep.usfmbible.core.TranslationManager
 import com.github.danzuep.usfmbible.core.containsAnyKeyword
 import com.github.danzuep.usfmbible.core.repository.remote.TranslationTableRow
-import com.github.danzuep.usfmbible.core.repository.remote.UpdateStatus
 import com.github.danzuep.usfmbible.core.repository.remote.android.TranslationCatalog
-import com.github.danzuep.usfmbible.core.repository.remote.android.TranslationVersions
-import com.github.danzuep.usfmbible.core.repository.remote.android.fetchLastModified
-import com.github.danzuep.usfmbible.core.repository.remote.siteOrigin
-import com.github.danzuep.usfmbible.core.repository.remote.updateStatus
-import com.github.danzuep.usfmbible.core.repository.remote.usfmZipUrl
 import com.github.danzuep.usfmbible.core.toKeywords
 import com.github.danzuep.usfmbible.ui.TranslationInfoComparator
 import com.github.danzuep.usfmbible.ui.languageDisplayName
@@ -75,8 +69,6 @@ class TranslationsViewModel @Inject constructor(
 ) {
     sealed class ViewAction {
         object GoBack : ViewAction()
-        /** The result of [checkForUpdates]: [updates] have a newer version, or may have one when their version is unknown. */
-        data class UpdatesChecked(val updates: List<TranslationInfo>, val failed: Boolean) : ViewAction()
     }
 
     data class ViewState(
@@ -111,7 +103,6 @@ class TranslationsViewModel @Inject constructor(
 
     private val translationComparator = TranslationInfoComparator(TranslationInfoComparator.SORT_ORDER_LANGUAGE_THEN_NAME)
     private var downloadTranslationJob: Job? = null
-    private val updateQueue = ArrayDeque<TranslationInfo>()
 
     private var loadedDownloadedTranslations: List<TranslationInfo> = emptyList()
     private var loadedAvailableTranslations: List<TranslationInfo> = emptyList()
@@ -327,36 +318,8 @@ class TranslationsViewModel @Inject constructor(
         }
     }
 
-    /** Asks the download sites whether the installed translations changed. Only runs when the user asks for it. */
-    fun checkForUpdates() {
-        viewModelScope.launch {
-            val (updates, failed) = withContext(coroutineDispatcherProvider.default) {
-                val origins = translationManager.readDownloadSites().mapNotNull { siteOrigin(it) }.distinct()
-                val versions = TranslationVersions(application)
-                var reachable = false
-                val updates = loadedDownloadedTranslations.filter { translation ->
-                    val remote = origins.firstNotNullOfOrNull { origin ->
-                        runCatching { fetchLastModified(usfmZipUrl(origin, translation.shortName)) }
-                            .onFailure { e -> Logger.withTag(tag).w(e) { "Failed to check ${translation.shortName} at $origin" } }
-                            .getOrNull()?.also { reachable = true }
-                    }
-                    updateStatus(versions.installed(translation.shortName), remote) != UpdateStatus.UP_TO_DATE && remote != null
-                }
-                updates to (!reachable && loadedDownloadedTranslations.isNotEmpty())
-            }
-            emitViewAction(ViewAction.UpdatesChecked(updates, failed))
-        }
-    }
-
-    /** Downloads the newest version of each of [translations] again, one after the other. */
-    fun updateTranslations(translations: List<TranslationInfo>) {
-        updateQueue.clear()
-        updateQueue.addAll(translations)
-        updateQueue.removeFirstOrNull()?.let { downloadTranslation(it, reinstall = true) }
-    }
-
-    fun downloadTranslation(translationToDownload: TranslationInfo, reinstall: Boolean = false) {
-        if (translationToDownload.downloaded && !reinstall) {
+    fun downloadTranslation(translationToDownload: TranslationInfo) {
+        if (translationToDownload.downloaded) {
             updateViewState { it.copy(error = ViewState.Error.TranslationAlreadyInstalledError) }
             return
         }
@@ -371,15 +334,13 @@ class TranslationsViewModel @Inject constructor(
                     101 -> {
                         viewModelScope.launch { loadTranslations(forceRefresh = false) }
                         updateViewState { it.copy(translationDownloadingState = ViewState.TranslationDownloadingState.Completed(successful = true)) }
-                        if (reinstall) updateQueue.removeFirstOrNull()?.let { downloadTranslation(it, reinstall = true) }
-                        else emitViewAction(ViewAction.GoBack)
+                        emitViewAction(ViewAction.GoBack)
                     }
                     else -> throw IllegalArgumentException("Unsupported downloading progress: $progress")
                 }
             }
             .catch { e ->
                 Logger.withTag(tag).e(e) { "Failed to download translation" }
-                updateQueue.clear()
                 updateViewState { current ->
                     current.copy(
                         translationDownloadingState = ViewState.TranslationDownloadingState.Completed(successful = false),

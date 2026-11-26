@@ -199,9 +199,15 @@
         <item>📖</item>
     </string-array>
     <string name="action_check_for_updates">↻</string>
-    <string name="toast_checking_for_updates">…</string>
-    <string name="toast_up_to_date">✓</string>
-    <string name="toast_update_check_failed">⚠</string>
-    <string name="dialog_title_updates_available">↻</string>
+    <string name="title_translation_updates">↻</string>
+    <string name="checkbox_select_all">☑</string>
+    <string name="checkbox_wait_for_wifi">📶</string>
     <string name="button_update">↻</string>
+    <string name="text_checking_for_updates">…</string>
+    <string name="text_up_to_date">✓</string>
+    <string name="text_update_check_failed">⚠</string>
+    <string name="text_waiting_for_wifi">📶…</string>
+    <string name="text_updating">↻ %1$s %2$d%%</string>
+    <string name="text_update_failed">⚠ %1$s</string>
+    <string name="text_update_version_unknown">?</string>
 </resources>

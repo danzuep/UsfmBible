@@ -42,6 +42,7 @@ import com.github.danzuep.usfmbible.reading.toolbar.ReadingToolbarViewModel
 import com.github.danzuep.usfmbible.search.SearchActivity
 import com.github.danzuep.usfmbible.settings.SettingsActivity
 import com.github.danzuep.usfmbible.tests.BaseActivityTest
+import com.github.danzuep.usfmbible.translations.TranslationUpdatesActivity
 import com.github.danzuep.usfmbible.translations.TranslationsActivity
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -75,6 +76,7 @@ class NavigatorTest : BaseActivityTest() {
         testNavigate<NotesActivity>(Navigator.SCREEN_NOTES)
         testNavigate<SettingsActivity>(Navigator.SCREEN_SETTINGS)
         testNavigate<TimelineActivity>(Navigator.SCREEN_TIMELINE)
+        testNavigate<TranslationUpdatesActivity>(Navigator.SCREEN_TRANSLATION_UPDATES)
     }
 
     private inline fun <reified A : Activity> testNavigate(@Navigator.Companion.Screen screen: Int) {

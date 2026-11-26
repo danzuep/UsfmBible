@@ -31,6 +31,7 @@ import com.github.danzuep.usfmbible.reading.ReadingActivity
 import com.github.danzuep.usfmbible.search.SearchActivity
 import com.github.danzuep.usfmbible.settings.SettingsActivity
 import com.github.danzuep.usfmbible.timeline.TimelineActivity
+import com.github.danzuep.usfmbible.translations.TranslationUpdatesActivity
 import com.github.danzuep.usfmbible.translations.TranslationsActivity
 
 class Navigator {
@@ -46,11 +47,12 @@ class Navigator {
         const val SCREEN_TIMELINE = 8
         const val SCREEN_RATE_ME = 9
         const val SCREEN_WEBSITE = 10
+        const val SCREEN_TRANSLATION_UPDATES = 11
 
         @IntDef(
                 SCREEN_READING, SCREEN_SEARCH, SCREEN_TRANSLATIONS, SCREEN_READING_PROGRESS,
                 SCREEN_BOOKMARKS, SCREEN_HIGHLIGHTS, SCREEN_NOTES, SCREEN_SETTINGS, SCREEN_TIMELINE,
-                SCREEN_RATE_ME, SCREEN_WEBSITE
+                SCREEN_RATE_ME, SCREEN_WEBSITE, SCREEN_TRANSLATION_UPDATES
         )
         @Retention(AnnotationRetention.SOURCE)
         annotation class Screen
@@ -67,6 +69,7 @@ class Navigator {
             SCREEN_NOTES -> Intent(activity, NotesActivity::class.java)
             SCREEN_SETTINGS -> Intent(activity, SettingsActivity::class.java)
             SCREEN_TIMELINE -> Intent(activity, TimelineActivity::class.java)
+            SCREEN_TRANSLATION_UPDATES -> Intent(activity, TranslationUpdatesActivity::class.java)
             SCREEN_RATE_ME -> Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://github.com/danzuep/UsfmBible"))
             SCREEN_WEBSITE -> Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://ebible.org/about.php"))
             else -> throw IllegalArgumentException("Unknown screen - $screen")

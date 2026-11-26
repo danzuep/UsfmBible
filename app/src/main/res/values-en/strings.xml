@@ -117,9 +117,15 @@
         <item>By book</item>
     </string-array>
     <string name="action_check_for_updates">Check for updates</string>
-    <string name="toast_checking_for_updates">Checking for updates…</string>
-    <string name="toast_up_to_date">Translations are up to date</string>
-    <string name="toast_update_check_failed">Could not check for updates</string>
-    <string name="dialog_title_updates_available">Newer versions may be available</string>
+    <string name="title_translation_updates">Updates</string>
+    <string name="checkbox_select_all">Select all</string>
+    <string name="checkbox_wait_for_wifi">Wait for Wi-Fi</string>
     <string name="button_update">Update</string>
+    <string name="text_checking_for_updates">Checking for updates…</string>
+    <string name="text_up_to_date">All translations are up to date</string>
+    <string name="text_update_check_failed">Could not check for updates</string>
+    <string name="text_waiting_for_wifi">Waiting for Wi-Fi…</string>
+    <string name="text_updating">Updating %1$s… %2$d%%</string>
+    <string name="text_update_failed">Could not update %1$s</string>
+    <string name="text_update_version_unknown">Newer versions may be available. Ones marked with ? could not be compared, so they may already be current.</string>
 </resources>
