@@ -301,7 +301,13 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 .firstOrNull()
             ?: return null
         val result = engine.setLanguage(locale)
-        return locale.takeIf { result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED }
+        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) return null
+        // setLanguage alone can keep the previous voice, so pin a voice of exactly this locale.
+        engine.voices.orEmpty()
+            .filter { it.locale == locale && !it.features.orEmpty().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
+            .minByOrNull { if (it.isNetworkConnectionRequired) 1 else 0 }
+            ?.let(engine::setVoice)
+        return locale
     }
 
     private class UtteranceId(val generation: Int, val position: Int)
