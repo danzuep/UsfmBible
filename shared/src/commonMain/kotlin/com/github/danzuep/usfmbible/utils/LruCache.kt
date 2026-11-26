@@ -41,4 +41,11 @@ open class LruCache<K : Any, V : Any>(private val maxSize: Int) {
             }
         }
     }
+
+    fun clear() {
+        synchronizedBlock(map) {
+            map.clear()
+            size = 0
+        }
+    }
 }
