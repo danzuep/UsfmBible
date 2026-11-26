@@ -9,9 +9,6 @@
 
         <item name="windowActionModeOverlay">true</item>
 
-        <!-- DrawerLayout paints this behind the status bar and camera cutout, light so the dark status icons show. -->
-        <item name="colorPrimaryDark">@color/status_bar_light</item>
-
         <!-- No system scrim behind the status and navigation bars. -->
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>
