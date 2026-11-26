@@ -928,6 +928,11 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             startSpeech(spokenVerse)
         }
 
+        // Navigating elsewhere (menu, search, reference) while speaking retargets the speech there, instead of being pulled back.
+        val navigatedAwayFromSpeech = speech != Speech.OFF && spokenVerse.isValid() && status.currentVerseIndex.isValid() &&
+            status.currentVerseIndex != spokenVerse && (status.currentVerseIndex == pendingVerseJump ||
+            status.currentVerseIndex.bookIndex != spokenVerse.bookIndex || status.currentVerseIndex.chapterIndex != spokenVerse.chapterIndex)
+
         with(viewBinding) {
             versePagerAdapter.setCurrent(
                 verseIndex = status.currentVerseIndex,
@@ -949,6 +954,11 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
                 val verse = status.currentVerseIndex
                 verseViewPager.post { versePagerAdapter.scrollToVerse(verse) }
             }
+        }
+        if (navigatedAwayFromSpeech) {
+            speechRevealRequest++
+            speechRevealPending = false
+            moveSpeech(status.currentVerseIndex)
         }
         hideVerseDetail()
 
