@@ -116,7 +116,13 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                     }
                     R.id.action_upload_translation -> {
                         selectFileForUploadLauncher.launch(Intent.createChooser(
-                            Intent(Intent.ACTION_GET_CONTENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),
+                            // The picker filters by MIME type only; USFM/SFM files are usually reported as one of these.
+                            Intent(Intent.ACTION_OPEN_DOCUMENT).setType("application/zip")
+                                .putExtra(Intent.EXTRA_MIME_TYPES, arrayOf(
+                                    "application/zip", "application/x-zip-compressed",
+                                    "text/plain", "text/x-usfm", "application/octet-stream"
+                                ))
+                                .addCategory(Intent.CATEGORY_OPENABLE),
                             getString(R.string.action_upload_translation)
                         ))
                         true
