@@ -1,0 +1,4 @@
+- Check for updates to installed translations
+- Choose a text-to-speech voice and enjoy smoother read-aloud
+- Pick a verse from the chapter list
+- Lower memory use on low-spec phones
