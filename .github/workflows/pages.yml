@@ -33,7 +33,7 @@ jobs:
     - name: Keep the published F-Droid repo
       run: |
         run_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=github-pages&per_page=100" \
-          --jq '[.artifacts[] | select(.expired == false)] | first | .workflow_run.id')
+          --jq '[.artifacts[] | select(.expired == false)] | sort_by(.created_at) | last | .workflow_run.id')
         if [ -z "$run_id" ] || [ "$run_id" = null ]; then echo "::error::No previous Pages artifact found, publish a release first"; exit 1; fi
         mkdir previous
         gh run download "$run_id" -n github-pages -D previous
