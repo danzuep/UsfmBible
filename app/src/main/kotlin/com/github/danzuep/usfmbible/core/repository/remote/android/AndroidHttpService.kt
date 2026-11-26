@@ -99,6 +99,17 @@ private fun fetchContentLength(url: String): Long {
     }
 }
 
+/** The `Last-Modified` header of [url] from a HEAD request, or null when the server does not send one. */
+internal fun fetchLastModified(url: String): String? {
+    val connection = getHttpConnection(url).apply { requestMethod = "HEAD" }
+    try {
+        if (connection.responseCode !in 200..299) throw IOException("HTTP ${connection.responseCode} for $url")
+        return connection.getHeaderField("Last-Modified")
+    } finally {
+        connection.disconnect()
+    }
+}
+
 private fun HttpURLConnection.supportsRangeRequests(): Boolean =
         getHeaderField("accept-ranges") == "bytes" && contentLength > 0L
 

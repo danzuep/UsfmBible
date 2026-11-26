@@ -116,4 +116,25 @@
         <item>By date</item>
         <item>By book</item>
     </string-array>
+    <string name="action_check_for_updates">Check for updates</string>
+    <string name="title_translation_updates">Updates</string>
+    <string name="checkbox_select_all">Select all</string>
+    <string name="button_update">Update</string>
+    <string name="text_checking_for_updates">Checking for updates…</string>
+    <string name="text_up_to_date">All translations are up to date</string>
+    <string name="text_update_check_failed">Could not check for updates</string>
+    <string name="text_waiting_for_wifi">Will update when on Wi-Fi, even if you leave this page…</string>
+    <string name="text_updating">Updating %1$s… %2$d%%</string>
+    <string name="text_update_failed">Could not update %1$s</string>
+    <string name="text_update_version_unknown">Newer versions may be available. Ones marked with ? could not be compared, so they may already be current.</string>
+    <plurals name="toast_translations_updated">
+        <item quantity="one">Updated %d translation</item>
+        <item quantity="other">Updated %d translations</item>
+    </plurals>
+    <string name="text_network_blocked">The data policy in Settings does not allow this network. Connect to Wi-Fi or change it.</string>
+    <string name="settings_title_data_policy">Data policy</string>
+    <string name="settings_text_data_policy_wifi">Wi-Fi</string>
+    <string name="settings_text_data_policy_mobile">+Mobile</string>
+    <string name="settings_text_data_policy_roaming">+Roaming</string>
+    <string name="toast_translations_updated_job">Translations updated</string>
 </resources>

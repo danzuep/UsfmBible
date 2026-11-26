@@ -42,6 +42,7 @@ class MetadataDao(sqliteHelper: SQLiteOpenHelper) {
         const val KEY_SHOW_SEARCH_BUTTON = "showSearchButton"
         const val KEY_DEFAULT_HIGHLIGHT_COLOR = "defaultHighlightColor"
         const val KEY_RUBY_ON = "rubyOn"
+        const val KEY_DATA_POLICY = "dataPolicy"
         const val KEY_TRANSLATION_LIST_REFRESH_TIMESTAMP = "translationListRefreshTimestamp"
         const val KEY_DOWNLOAD_SITES = "downloadSites"
         const val KEY_BOOKMARKS_SORT_ORDER = "bookmarksSortOrder"

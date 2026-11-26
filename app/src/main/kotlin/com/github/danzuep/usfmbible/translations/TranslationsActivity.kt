@@ -38,6 +38,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.asExecutor
+import com.github.danzuep.usfmbible.Navigator
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.TranslationInfo
 import com.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
@@ -107,6 +108,10 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                 when (item.itemId) {
                     R.id.action_download_sites -> {
                         showDownloadSitesDialog()
+                        true
+                    }
+                    R.id.action_check_for_updates -> {
+                        navigator.navigate(this@TranslationsActivity, Navigator.SCREEN_TRANSLATION_UPDATES)
                         true
                     }
                     R.id.action_upload_translation -> {
