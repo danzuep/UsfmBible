@@ -303,6 +303,13 @@ class SearchManagerTest : BaseUnitTest() {
     }
 
     @Test
+    fun `test normalizeQuery()`() {
+        assertEquals("Genesis 23:17-18", "  Genesis\u00A023:17-18\u200B ".normalizeQuery())
+        assertEquals("caf\u00E9 bar", "cafe\u0301\u3000bar\n".normalizeQuery())
+        assertEquals("in the beginning", "in \u00ADthe \uFEFF beginning".normalizeQuery())
+    }
+
+    @Test
     fun `test parseReference()`() {
         val bookNames = MockContents.kjvBookNames
         val bookShortNames = MockContents.kjvBookShortNames

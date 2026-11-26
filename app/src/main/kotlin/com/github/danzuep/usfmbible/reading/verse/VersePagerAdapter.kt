@@ -46,6 +46,8 @@ class VersePagerAdapter(
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val inflater = LayoutInflater.from(context)
     private val chapterItems = mutableMapOf<Int, List<BaseItem>>()
+    // Kept so a selection made before its chapter finished loading, e.g. when opening a search result, is applied on load.
+    private val selectedVerses = mutableSetOf<VerseIndex>()
     private val loadingPositions = mutableSetOf<Int>()
     private val livePages = mutableSetOf<Page>()
     private var currentPagePosition = RecyclerView.NO_POSITION
@@ -108,6 +110,13 @@ class VersePagerAdapter(
         val position = indexToPagePosition(bookIndex, chapterIndex)
         loadingPositions.remove(position)
         chapterItems[position] = verses
+        selectedVerses.filter { it.toPagePosition() == position }.forEach { selected ->
+            verses.forEach { item ->
+                if (item is ParagraphItem && item.containsVerse(selected.verseIndex)) {
+                    item.update(VerseUpdate(selected, VerseUpdate.VERSE_SELECTED))
+                }
+            }
+        }
         // Pages in RecyclerView's cache are detached but are reused without rebinding, so they must receive the chapter too.
         livePages.forEach { it.setChapter(position, verses) }
     }
@@ -165,10 +174,12 @@ class VersePagerAdapter(
     }
 
     fun selectVerse(verseIndex: VerseIndex) {
+        selectedVerses.add(verseIndex)
         notifyVerseUpdate(VerseUpdate(verseIndex, VerseUpdate.VERSE_SELECTED))
     }
 
     fun deselectVerse(verseIndex: VerseIndex) {
+        selectedVerses.remove(verseIndex)
         notifyVerseUpdate(VerseUpdate(verseIndex, VerseUpdate.VERSE_DESELECTED))
     }
 

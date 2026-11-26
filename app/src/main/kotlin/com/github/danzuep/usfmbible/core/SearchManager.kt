@@ -26,6 +26,7 @@ import com.github.danzuep.usfmbible.core.repository.BibleReadingRepository
 import com.github.danzuep.usfmbible.core.repository.VerseAnnotationRepository
 import com.github.danzuep.usfmbible.core.repository.remote.BOOK_CODES
 import com.github.danzuep.usfmbible.utils.firstNotEmpty
+import java.text.Normalizer
 import java.util.*
 
 class SearchManager(
@@ -43,7 +44,8 @@ class SearchManager(
         searchConfiguration.value = config
     }
 
-    suspend fun search(keyword: String): SearchResult = withContext(Dispatchers.Default) {
+    suspend fun search(query: String): SearchResult = withContext(Dispatchers.Default) {
+        val keyword = query.normalizeQuery()
         val config = searchConfiguration.value
         val currentTranslation = bibleReadingRepository.currentTranslation.firstNotEmpty()
         if (config.searchByReference) {
@@ -180,6 +182,16 @@ internal fun parseReference(query: String, bookNames: List<String>, bookShortNam
     val end = if (verseEnd.isEmpty()) start else verseEnd.toIntOrNull()?.takeIf { it >= start } ?: return null
     return BibleReference(bookIndex, chapterIndex, (start - 1)..(end - 1))
 }
+
+/**
+ * Prepares pasted or typed text for searching: composes Unicode (NFC), turns non-breaking and other Unicode spaces into plain spaces,
+ * removes invisible formatting characters (zero-width, soft hyphen, direction marks, BOM) and collapses whitespace.
+ */
+internal fun String.normalizeQuery(): String =
+        Normalizer.normalize(this, Normalizer.Form.NFC)
+                .replace(Regex("[\\p{Cf}\\u00AD]"), "")
+                .replace(Regex("[\\p{Z}\\s]+"), " ")
+                .trim()
 
 private fun String.normalizeBookName(): String =
         lowercase(Locale.getDefault()).replace(".", "").trim().split(Regex("\\s+")).joinToString(" ")
