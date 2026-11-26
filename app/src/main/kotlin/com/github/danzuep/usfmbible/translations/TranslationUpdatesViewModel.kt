@@ -3,17 +3,12 @@ package com.github.danzuep.usfmbible.translations
 import android.app.Application
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import com.github.danzuep.usfmbible.core.Settings
 import com.github.danzuep.usfmbible.core.SettingsManager
 import com.github.danzuep.usfmbible.core.TranslationInfo
 import com.github.danzuep.usfmbible.core.TranslationManager
 import com.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
-import com.github.danzuep.usfmbible.core.repository.remote.UpdateStatus
 import com.github.danzuep.usfmbible.core.repository.remote.android.NetworkPolicy
-import com.github.danzuep.usfmbible.core.repository.remote.android.TranslationVersions
-import com.github.danzuep.usfmbible.core.repository.remote.android.fetchLastModified
-import com.github.danzuep.usfmbible.core.repository.remote.siteOrigin
-import com.github.danzuep.usfmbible.core.repository.remote.updateStatus
-import com.github.danzuep.usfmbible.core.repository.remote.usfmZipUrl
 import com.github.danzuep.usfmbible.infra.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -44,7 +39,6 @@ class TranslationUpdatesViewModel @Inject constructor(
         object Checking : Status()
         object UpToDate : Status()
         object CheckFailed : Status()
-        object NetworkBlocked : Status()
         object WaitingForWifi : Status()
         data class Updating(val name: String, val progress: Int) : Status()
         data class UpdateFailed(val name: String) : Status()
@@ -78,29 +72,15 @@ class TranslationUpdatesViewModel @Inject constructor(
         mutate { it.copy(status = Status.Checking, items = emptyList()) }
         viewModelScope.launch {
             if (!networkPolicy.isAllowed()) {
-                mutate { it.copy(status = Status.NetworkBlocked) }
+                // Check and update later, on an unmetered network, even if the user leaves this page.
+                TranslationUpdateJobService.schedule(application, emptyList())
+                mutate { it.copy(status = Status.WaitingForWifi) }
                 return@launch
             }
             val result = runCatching {
-                withContext(coroutineDispatcherProvider.default) {
-                    translationManager.reload(false)
-                    val installed = translationManager.downloadedTranslations().first()
-                    val origins = translationManager.readDownloadSites().mapNotNull { siteOrigin(it) }.distinct()
-                    val versions = TranslationVersions(application)
-                    var reachable = false
-                    val items = installed.mapNotNull { translation ->
-                        val remote = origins.firstNotNullOfOrNull { origin ->
-                            runCatching { fetchLastModified(usfmZipUrl(origin, translation.shortName)) }
-                                .onFailure { e -> Logger.withTag(tag).w(e) { "Failed to check ${translation.shortName} at $origin" } }
-                                .getOrNull()?.also { reachable = true }
-                        }
-                        val status = updateStatus(versions.installed(translation.shortName), remote)
-                        if (remote == null || status == UpdateStatus.UP_TO_DATE) null
-                        else Item(translation, unknownVersion = status == UpdateStatus.UNKNOWN)
-                    }
-                    if (!reachable && installed.isNotEmpty()) null else items
-                }
+                withContext(coroutineDispatcherProvider.default) { findTranslationUpdates(application, translationManager) }
             }.onFailure { e -> Logger.withTag(tag).e(e) { "Failed to check for updates" } }.getOrNull()
+                ?.map { Item(it.translation, it.unknownVersion) }
             mutate {
                 when {
                     result == null -> it.copy(status = Status.CheckFailed)
@@ -125,6 +105,15 @@ class TranslationUpdatesViewModel @Inject constructor(
     fun update() {
         if (state.busy || state.items.none { it.checked }) return
         viewModelScope.launch { if (networkPolicy.isAllowed()) startUpdates() else waitForWifi() }
+    }
+
+    suspend fun dataPolicy(): Int = settingsManager.settings().first().dataPolicy
+
+    fun saveDataPolicy(@Settings.Companion.DataPolicy dataPolicy: Int) {
+        viewModelScope.launch {
+            settingsManager.saveSettings(settingsManager.settings().first().copy(dataPolicy = dataPolicy))
+            if (!state.busy) checkForUpdates()
+        }
     }
 
     fun cancel() {

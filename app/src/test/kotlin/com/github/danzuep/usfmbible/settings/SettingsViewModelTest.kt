@@ -122,7 +122,6 @@ class SettingsViewModelTest : BaseUnitTest() {
         nightModeStringRes = R.string.settings_text_night_mode_system,
         showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
-        dataPolicy = Settings.DEFAULT.dataPolicy,
         defaultHighlightColor = Highlight.COLOR_NONE,
         backupState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
         restoreState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
@@ -525,17 +524,6 @@ class SettingsViewModelTest : BaseUnitTest() {
         settingsViewModel.saveRubyOn(rubyOn = false)
 
         coVerify(exactly = 1) { settingsManager.saveSettings(Settings.DEFAULT.copy(rubyOn = false)) }
-    }
-
-    @Test
-    fun `test saveDataPolicy()`() = runTest {
-        every { settingsManager.settings() } returns flowOf(Settings.DEFAULT)
-        coEvery { settingsManager.saveSettings(Settings.DEFAULT.copy(dataPolicy = Settings.DATA_POLICY_WIFI)) } returns Unit
-
-        settingsViewModel.saveDataPolicy(Settings.DATA_POLICY_MOBILE)
-        settingsViewModel.saveDataPolicy(Settings.DATA_POLICY_WIFI)
-
-        coVerify(exactly = 1) { settingsManager.saveSettings(Settings.DEFAULT.copy(dataPolicy = Settings.DATA_POLICY_WIFI)) }
     }
 
     @Test

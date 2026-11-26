@@ -3,11 +3,14 @@ package com.github.danzuep.usfmbible.translations
 import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.google.android.material.checkbox.MaterialCheckBox
 import dagger.hilt.android.AndroidEntryPoint
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.databinding.ActivityTranslationUpdatesBinding
 import com.github.danzuep.usfmbible.infra.BaseActivity
+import com.github.danzuep.usfmbible.ui.listDialog
 import com.github.danzuep.usfmbible.ui.toast
 
 @AndroidEntryPoint
@@ -25,6 +28,13 @@ class TranslationUpdatesActivity : BaseActivity<
 
     override fun initializeView() = with(viewBinding) {
         toolbar.setNavigationOnClickListener { navigator.goBack(this@TranslationUpdatesActivity) }
+        toolbar.inflateMenu(R.menu.menu_translation_updates)
+        toolbar.setOnMenuItemClickListener { item ->
+            if (item.itemId == R.id.action_data_policy) {
+                selectDataPolicy()
+                true
+            } else false
+        }
         selectAll.setOnClickListener { viewModel.setAllChecked(selectAll.isChecked) }
         updateButton.setOnClickListener {
             val state = viewModel.currentState
@@ -44,7 +54,7 @@ class TranslationUpdatesActivity : BaseActivity<
         val status = viewState.status
         loadingSpinner.isVisible = status is TranslationUpdatesViewModel.Status.Checking
         updatesScroll.isVisible = viewState.items.isNotEmpty()
-        updateButton.isVisible = viewState.items.isNotEmpty()
+        updateButton.isVisible = viewState.items.isNotEmpty() || status is TranslationUpdatesViewModel.Status.WaitingForWifi
 
         status.message(viewState.items.any { it.unknownVersion })?.let {
             statusText.text = it
@@ -79,13 +89,24 @@ class TranslationUpdatesActivity : BaseActivity<
         }
     }
 
+    private fun selectDataPolicy() {
+        lifecycleScope.launch {
+            listDialog(
+                title = R.string.settings_title_data_policy,
+                items = arrayOf(R.string.settings_text_data_policy_wifi, R.string.settings_text_data_policy_mobile, R.string.settings_text_data_policy_roaming)
+                    .map { getString(it) }.toTypedArray(),
+                selected = viewModel.dataPolicy(),
+                onSelected = viewModel::saveDataPolicy,
+            )
+        }
+    }
+
     private var shownRows: List<Pair<String, Boolean>> = emptyList()
 
     private fun TranslationUpdatesViewModel.Status.message(hasUnknown: Boolean): String? = when (this) {
         is TranslationUpdatesViewModel.Status.Checking -> getString(R.string.text_checking_for_updates)
         is TranslationUpdatesViewModel.Status.UpToDate -> getString(R.string.text_up_to_date)
         is TranslationUpdatesViewModel.Status.CheckFailed -> getString(R.string.text_update_check_failed)
-        is TranslationUpdatesViewModel.Status.NetworkBlocked -> getString(R.string.text_network_blocked)
         is TranslationUpdatesViewModel.Status.WaitingForWifi -> getString(R.string.text_waiting_for_wifi)
         is TranslationUpdatesViewModel.Status.Updating -> getString(R.string.text_updating, name, progress)
         is TranslationUpdatesViewModel.Status.UpdateFailed -> getString(R.string.text_update_failed, name)

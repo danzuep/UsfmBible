@@ -61,7 +61,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         keepScreenOn.setOnCheckedChangeByUserListener(viewModel::saveKeepScreenOn)
         showSearchButton.setOnCheckedChangeByUserListener(viewModel::saveShowSearchButton)
         ruby.setOnCheckedChangeByUserListener(viewModel::saveRubyOn)
-        dataPolicy.setOnSingleClickListener(::selectDataPolicy)
         fontSize.setOnSingleClickListener(viewModel::selectFontSizeScale)
         nightMode.setOnSingleClickListener(viewModel::selectNightMode)
         language.setOnSingleClickListener(::selectLanguage)
@@ -102,8 +101,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         keepScreenOn.isChecked = viewState.keepScreenOn
         showSearchButton.isChecked = viewState.showSearchButton
         ruby.isChecked = viewState.rubyOn
-        shownDataPolicy = viewState.dataPolicy
-        dataPolicy.setDescription(DATA_POLICY_NAMES[viewState.dataPolicy])
 
         nightMode.setDescription(viewState.nightModeStringRes)
         language.setDescription(AppLanguage.selectedCode()?.let(AppLanguage::nativeName) ?: getString(R.string.settings_text_language_system))
@@ -127,7 +124,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         reading.setTextSize(bodyTextSizePx)
         showSearchButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
         ruby.setTextSize(TypedValue.COMPLEX_UNIT_PX, bodyTextSizePx.toFloat())
-        dataPolicy.setTextSize(bodyTextSizePx, captionTextSizePx)
         defaultHighlightColor.setTextSize(bodyTextSizePx, captionTextSizePx)
         backupRestore.setTextSize(bodyTextSizePx)
         backup.setTextSize(bodyTextSizePx, captionTextSizePx)
@@ -198,17 +194,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         )
     }
 
-    private var shownDataPolicy = Settings.DEFAULT.dataPolicy
-
-    private fun selectDataPolicy() {
-        listDialog(
-            title = R.string.settings_title_data_policy,
-            items = DATA_POLICY_NAMES.map { getString(it) }.toTypedArray(),
-            selected = shownDataPolicy,
-            onSelected = viewModel::saveDataPolicy,
-        )
-    }
-
     private fun SettingsViewModel.ViewState.NightModeSelection.handle() {
         listDialog(
             title = R.string.settings_title_pick_night_mode,
@@ -238,6 +223,3 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         }
     }
 }
-
-// Indexed by the data policy value.
-private val DATA_POLICY_NAMES = listOf(R.string.settings_text_data_policy_wifi, R.string.settings_text_data_policy_mobile, R.string.settings_text_data_policy_roaming)

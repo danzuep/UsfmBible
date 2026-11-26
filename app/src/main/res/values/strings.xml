@@ -213,7 +213,6 @@
         <item quantity="one">✓ %d</item>
         <item quantity="other">✓ %d</item>
     </plurals>
-    <string name="text_network_blocked">📶 ✗</string>
     <string name="settings_title_data_policy">📶</string>
     <string name="settings_text_data_policy_wifi">📶</string>
     <string name="settings_text_data_policy_mobile">+📱</string>

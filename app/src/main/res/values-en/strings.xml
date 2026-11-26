@@ -131,7 +131,6 @@
         <item quantity="one">Updated %d translation</item>
         <item quantity="other">Updated %d translations</item>
     </plurals>
-    <string name="text_network_blocked">The data policy in Settings does not allow this network. Connect to Wi-Fi or change it.</string>
     <string name="settings_title_data_policy">Data policy</string>
     <string name="settings_text_data_policy_wifi">Wi-Fi</string>
     <string name="settings_text_data_policy_mobile">+Mobile</string>
