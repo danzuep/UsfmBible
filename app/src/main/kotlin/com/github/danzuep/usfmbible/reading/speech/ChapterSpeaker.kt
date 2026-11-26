@@ -22,6 +22,7 @@ import android.os.Looper
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import com.github.danzuep.usfmbible.core.Bible
 import com.github.danzuep.usfmbible.core.VerseIndex
 import com.github.danzuep.usfmbible.ui.languageMatchesLocale
@@ -124,6 +125,13 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
             preferences.edit().apply { if (value == null) remove(KEY_LANGUAGE) else putString(KEY_LANGUAGE, value) }.apply()
         }
 
+    /** The name of the specific voice the user selected, which takes priority over [selectedLanguage], or null for automatic. */
+    var selectedVoice: String?
+        get() = preferences.getString(KEY_VOICE, null)
+        set(value) {
+            preferences.edit().apply { if (value == null) remove(KEY_VOICE) else putString(KEY_VOICE, value) }.apply()
+        }
+
     var playbackSpeed: Float
         get() = preferences.getFloat(KEY_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
         set(value) {
@@ -170,9 +178,9 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         if (ready) engine.stop()
     }
 
-    /** The languages the installed voices can speak, for the user to choose from. */
-    fun availableLanguages(callback: (List<Locale>) -> Unit) = whenEngineReady {
-        callback(supportedLocales().sortedBy { it.displayName })
+    /** The installed voices, for the user to choose from, so that voices of one language can be told apart. */
+    fun availableVoices(callback: (List<Voice>) -> Unit) = whenEngineReady {
+        callback(installedVoices().sortedWith(compareBy({ it.locale.displayName }, { it.name })))
     }
 
     fun shutdown() {
@@ -292,8 +300,13 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private fun supportedLocales(): List<Locale> =
         engine.availableLanguages.orEmpty().filter { engine.isLanguageAvailable(it) >= TextToSpeech.LANG_AVAILABLE }
 
-    /** The selected language, or else the installed voice language matching the translation, preferring the user's region. */
+    private fun installedVoices(): List<Voice> =
+        engine.voices.orEmpty().filter { !it.features.orEmpty().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
+
+    /** The selected voice or language, or else the installed voice language matching the translation, preferring the user's region. */
     private fun resolveLocale(translationLanguage: String): Locale? {
+        val voice = selectedVoice?.let { name -> installedVoices().firstOrNull { it.name == name } }
+        if (voice != null && engine.setVoice(voice) == TextToSpeech.SUCCESS) return voice.locale
         val locale = selectedLanguage?.let(Locale::forLanguageTag)
             ?: supportedLocales()
                 .filter { languageMatchesLocale(translationLanguage, it) }
@@ -303,8 +316,8 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         val result = engine.setLanguage(locale)
         if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) return null
         // setLanguage alone can keep the previous voice, so pin a voice of exactly this locale.
-        engine.voices.orEmpty()
-            .filter { it.locale == locale && !it.features.orEmpty().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
+        installedVoices()
+            .filter { it.locale == locale }
             .minByOrNull { if (it.isNetworkConnectionRequired) 1 else 0 }
             ?.let(engine::setVoice)
         return locale
@@ -390,6 +403,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private companion object {
         const val PREFERENCES = "speech"
         const val KEY_LANGUAGE = "language"
+        const val KEY_VOICE = "voice"
         const val KEY_PLAYBACK_SPEED = "playback_speed_v2"
         const val DEFAULT_PLAYBACK_SPEED = 1f
         const val MAX_UTTERANCE_LENGTH = 1000

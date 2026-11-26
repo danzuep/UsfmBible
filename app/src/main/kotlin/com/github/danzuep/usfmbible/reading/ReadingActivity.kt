@@ -850,11 +850,14 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
 
     private fun selectSpeechLanguage() {
-        speaker.availableLanguages { locales ->
-            val tags = listOf<String?>(null) + locales.map(Locale::toLanguageTag)
-            val names = listOf(getString(R.string.speech_language_automatic)) + locales.map { it.displayName }
-            listDialog(R.string.action_speech_language, names.toTypedArray(), tags.indexOf(speaker.selectedLanguage).coerceAtLeast(0), { which ->
-                speaker.selectedLanguage = tags[which]
+        speaker.availableVoices { voices ->
+            val names = listOf(getString(R.string.speech_language_automatic)) +
+                voices.map { "${it.locale.displayName} · ${it.name}" + if (it.isNetworkConnectionRequired) " ☁" else "" }
+            val checked = voices.indexOfFirst { it.name == speaker.selectedVoice } + 1
+            listDialog(R.string.action_speech_language, names.toTypedArray(), checked, { which ->
+                val voice = voices.getOrNull(which - 1)
+                speaker.selectedVoice = voice?.name
+                speaker.selectedLanguage = voice?.locale?.toLanguageTag()
                 if (speech == Speech.PLAYING) startSpeech(spokenVerse)
             })
         }
@@ -927,6 +930,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         // language, so go back to the voice matching the new translation and restart with the new text.
         if (speech != Speech.OFF && previousTranslation != null && previousTranslation != status.currentTranslation && spokenVerse.isValid()) {
             speaker.selectedLanguage = null
+            speaker.selectedVoice = null
             if (speech == Speech.PLAYING) {
                 startSpeech(spokenVerse)
             } else {
