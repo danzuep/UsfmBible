@@ -4,11 +4,11 @@
 {{- $full := (resources.Get (printf "%s/full_description.txt" $a)).Content -}}
 {{- $icon := resources.Get (printf "%s/images/icon.png" $a) -}}
 {{- $shots := resources.Match "**/en-US/images/phoneScreenshots/*" -}}
-{{- $parts := split $full "<ul>" -}}
-{{- $intro := index $parts 0 | chomp -}}
-{{- $rest := split (index $parts 1) "</ul>" -}}
-{{- $items := findRE `(?s)<li>.*?</li>` (index $rest 0) -}}
-{{- $outro := index $rest 1 | chomp -}}
+{{- $lines := split $full "\n" -}}
+{{- $items := slice -}}
+{{- range $lines }}{{ if hasPrefix . "• " }}{{ $items = $items | append (strings.TrimPrefix "• " .) }}{{ end }}{{ end -}}
+{{- $intro := index (split $full "\n•") 0 | chomp -}}
+{{- $outro := index (last 1 (split (strings.TrimRight "\n" $full) "\n\n")) 0 -}}
 <!doctype html>
 <html lang="en">
 <head>
@@ -62,7 +62,7 @@
 <p class="lead" style="text-align:center">{{ $intro }}</p>
 <h2>Features</h2>
 <div class="grid">
-{{ range $items }}{{ $t := . | replaceRE `</?li>` "" | strings.TrimSpace }}{{ $kv := split $t ": " }}
+{{ range $items }}{{ $kv := split . ": " }}
   <div class="card"><h3>{{ index $kv 0 }}</h3><p>{{ delimit (after 1 $kv) ": " | safeHTML }}</p></div>
 {{ end }}</div>
 <p class="note">{{ $outro }}</p>

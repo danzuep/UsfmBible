@@ -75,3 +75,23 @@ F-Droid
 -------
 
 Store listing text, icon and changelogs live in `fastlane/metadata/android/en-US/`. Add `changelogs/<versionCode>.txt` (versionCode is `major*10000 + minor*100 + patch`, e.g. `2701` for v0.27.1) for each release. To get listed, open a merge request to [fdroiddata](https://gitlab.com/fdroid/fdroiddata) using `docs/com.github.danzuep.usfmbible.yml` as the metadata file. The metadata requests upstream-signed publishing by referencing each regular GitHub release APK in its build entry and allowlisting its signing certificate. Once F-Droid verifies that its build matches the APK, it can publish it with the GitHub signing key, allowing updates between channels. Until that check passes, don't assume cross-channel updates will work.
+
+Google Play
+-----------
+
+The same `fastlane/metadata/android/en-US/` listing feeds F-Droid, the [website](WEBSITE.md) and Google Play (`fastlane/Fastfile`, `fastlane/Appfile`, `Gemfile`). Keep it within Play's limits:
+
+- `title.txt` up to 30 characters, `short_description.txt` up to 80, `full_description.txt` up to 4000 and plain text (bullets are `• ` lines, because Play does not render `<ul>`).
+- `changelogs/<versionCode>.txt` up to 500 characters; `changelogs/default.txt` is the fallback.
+- `images/icon.png` 512x512, `images/featureGraphic.png` 1024x500, and 2 to 8 `images/phoneScreenshots/` whose height is at most twice their width.
+
+Setup: create the app in Play Console, link a service account with release permissions (Setup > API access) and export its JSON key as `SUPPLY_JSON_KEY`. Google Play needs an Android App Bundle signed with the upload key, which is the release keystore; CI currently builds only APKs, so build one with `./gradlew bundleRelease -PappVersion=X.Y.Z` first.
+
+```
+bundle install
+bundle exec fastlane validate                  # check the listing without publishing
+bundle exec fastlane metadata                  # upload text and images
+bundle exec fastlane internal aab:app/build/outputs/bundle/release/app-release.aab
+```
+
+`internal` uploads a draft to the internal testing track, so add testers and roll it out in Play Console.
