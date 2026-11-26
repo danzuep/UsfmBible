@@ -75,11 +75,6 @@
                 android:paddingEnd="@dimen/padding"
                 android:text="@string/settings_title_ruby" />
 
-            <com.github.danzuep.usfmbible.settings.widgets.SettingButton
-                android:id="@+id/data_policy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:settingButtonTitle="@string/settings_title_data_policy" />
 
             <com.github.danzuep.usfmbible.settings.widgets.SettingButton
                 android:id="@+id/default_highlight_color"

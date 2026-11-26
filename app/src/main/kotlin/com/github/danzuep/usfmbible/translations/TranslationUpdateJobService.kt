@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 /**
  * Updates translations once the device is on an unmetered network (e.g. Wi-Fi), when mobile data is off, roaming or unavailable, using the platform [JobScheduler] so no
- * extra library is needed. Scheduled only when the user asks on the updates page; interrupted downloads resume later.
+ * extra library is needed. Scheduled only when the user opens the updates page or asks to update; interrupted downloads resume later.
  */
 @AndroidEntryPoint
 class TranslationUpdateJobService : JobService() {
@@ -41,9 +41,13 @@ class TranslationUpdateJobService : JobService() {
             var failed = false
             runCatching {
                 translationManager.reload(false)
-                translationManager.downloadedTranslations().first().filter { it.shortName in shortNames }.forEach {
-                    translationManager.downloadTranslation(it).collect {}
+                // No names means the check itself was deferred, so find what is outdated now.
+                val targets = if (shortNames.isEmpty()) {
+                    findTranslationUpdates(applicationContext, translationManager).orEmpty().map { it.translation }
+                } else {
+                    translationManager.downloadedTranslations().first().filter { it.shortName in shortNames }
                 }
+                targets.forEach { translationManager.downloadTranslation(it).collect {} }
             }.onFailure { e ->
                 Logger.withTag(TAG).e(e) { "Failed to update translations" }
                 failed = true

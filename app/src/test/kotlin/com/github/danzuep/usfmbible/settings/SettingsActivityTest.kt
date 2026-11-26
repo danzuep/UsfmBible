@@ -41,7 +41,6 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 import com.github.danzuep.usfmbible.R
 import com.github.danzuep.usfmbible.core.Highlight
-import com.github.danzuep.usfmbible.core.Settings
 import com.github.danzuep.usfmbible.NavigationModule
 import com.github.danzuep.usfmbible.Navigator
 import com.github.danzuep.usfmbible.databinding.ActivitySettingsBinding
@@ -165,7 +164,6 @@ class SettingsActivityTest : BaseActivityTest() {
             simpleReadingModeOn = true,
             showSearchButton = false,
             rubyOn = false,
-            dataPolicy = Settings.DATA_POLICY_MOBILE,
             defaultHighlightColor = Highlight.COLOR_NONE,
             backupState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = true),
             restoreState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
@@ -200,7 +198,6 @@ class SettingsActivityTest : BaseActivityTest() {
             simpleReadingModeOn = true,
             showSearchButton = false,
             rubyOn = false,
-            dataPolicy = Settings.DATA_POLICY_MOBILE,
             defaultHighlightColor = Highlight.COLOR_NONE,
             backupState = SettingsViewModel.ViewState.BackupRestoreState.Idle,
             restoreState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = false),
