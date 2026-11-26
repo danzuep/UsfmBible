@@ -69,7 +69,11 @@ class HttpTranslationService(private val context: Context) : RemoteTranslationSe
         var lastError: Exception? = null
         for (origin in sites.mapNotNull { siteOrigin(it) }.distinct()) {
             try {
-                download(downloadProgress, usfmZipUrl(origin, translationInfo.shortName), translationInfo.size, destination)
+                val url = usfmZipUrl(origin, translationInfo.shortName)
+                // Read before downloading, so a file published in between is reported as an update next time.
+                val version = runCatching { fetchLastModified(url) }.getOrNull()
+                download(downloadProgress, url, translationInfo.size, destination)
+                TranslationVersions(context).save(translationInfo.shortName, version)
                 return@withContext FileInputStream(destination).use { toRemoteTranslation(translationInfo, it) }
             } catch (e: Exception) {
                 Logger.withTag(TAG).w(e) { "Failed to download ${translationInfo.shortName} from $origin" }

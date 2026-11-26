@@ -8,6 +8,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_check_for_updates"
+        android:title="@string/action_check_for_updates"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_upload_translation"
         android:title="@string/action_upload_translation"
         app:showAsAction="never" />

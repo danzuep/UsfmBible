@@ -116,4 +116,10 @@
         <item>By date</item>
         <item>By book</item>
     </string-array>
+    <string name="action_check_for_updates">Check for updates</string>
+    <string name="toast_checking_for_updates">Checking for updates…</string>
+    <string name="toast_up_to_date">Translations are up to date</string>
+    <string name="toast_update_check_failed">Could not check for updates</string>
+    <string name="dialog_title_updates_available">Newer versions may be available</string>
+    <string name="button_update">Update</string>
 </resources>

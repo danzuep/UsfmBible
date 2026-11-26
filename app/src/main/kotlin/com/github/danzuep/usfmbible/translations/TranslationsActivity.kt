@@ -109,6 +109,11 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                         showDownloadSitesDialog()
                         true
                     }
+                    R.id.action_check_for_updates -> {
+                        viewModel.checkForUpdates()
+                        toast(R.string.toast_checking_for_updates)
+                        true
+                    }
                     R.id.action_upload_translation -> {
                         selectFileForUploadLauncher.launch(Intent.createChooser(
                             Intent(Intent.ACTION_GET_CONTENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),
@@ -278,8 +283,22 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
         uploadDialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = form.uploadShortName.text?.isNotEmpty() == true
     }
 
+    private fun showUpdatesChecked(result: TranslationsViewModel.ViewAction.UpdatesChecked) {
+        when {
+            result.failed -> toast(R.string.toast_update_check_failed)
+            result.updates.isEmpty() -> toast(R.string.toast_up_to_date)
+            else -> AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_title_updates_available)
+                .setMessage(result.updates.joinToString("\n") { "• ${it.name}" })
+                .setPositiveButton(R.string.button_update) { _, _ -> viewModel.updateTranslations(result.updates) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+
     override fun onViewActionEmitted(viewAction: TranslationsViewModel.ViewAction) = when (viewAction) {
         TranslationsViewModel.ViewAction.GoBack -> navigator.goBack(this)
+        is TranslationsViewModel.ViewAction.UpdatesChecked -> showUpdatesChecked(viewAction)
     }
 
     override fun onViewStateUpdated(viewState: TranslationsViewModel.ViewState): Unit = with(viewBinding) {
