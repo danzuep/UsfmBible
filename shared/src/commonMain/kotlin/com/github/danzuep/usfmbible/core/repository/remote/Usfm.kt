@@ -206,17 +206,19 @@ fun parseUsfm(content: String): ScriptureBook {
     return ScriptureBook(requireNotNull(code) { "Missing \\id marker" }, name, chapters)
 }
 
+/** Parses a zip entry as a USFM book of the canon or deuterocanon in [BOOK_CODES], or returns null if it is none. */
+fun readUsfmBook(name: String, content: ByteArray): ScriptureBook? {
+    val lowercaseName = name.lowercase()
+    // Zips made on a Mac carry "__MACOSX/._*.usfm" resource forks, and any file that is not valid USFM must not fail the rest.
+    if (!(lowercaseName.endsWith(".usfm") || lowercaseName.endsWith(".sfm")) || lowercaseName.startsWith("__macosx/") || lowercaseName.substringAfterLast('/').startsWith("._")) return null
+    val book = runCatching { parseUsfm(content.decodeToString()) }.getOrNull() ?: return null
+    return book.takeIf { it.code in BOOK_CODES }
+}
+
 /** Reads the USFM books out of the (file name, bytes) entries of a zip as published by eBible.org, keyed by USFM code. Only books of the canon and deuterocanon in [BOOK_CODES] are kept. */
 fun readUsfmBooks(entries: Sequence<Pair<String, ByteArray>>): Map<String, ScriptureBook> {
     val books = hashMapOf<String, ScriptureBook>()
-    for ((name, content) in entries) {
-        val lowercaseName = name.lowercase()
-        // Zips made on a Mac carry "__MACOSX/._*.usfm" resource forks, and any file that is not valid USFM must not fail the rest.
-        if ((lowercaseName.endsWith(".usfm") || lowercaseName.endsWith(".sfm")) && !lowercaseName.startsWith("__macosx/") && !lowercaseName.substringAfterLast('/').startsWith("._")) {
-            val book = runCatching { parseUsfm(content.decodeToString()) }.getOrNull() ?: continue
-            if (book.code in BOOK_CODES) books[book.code] = book
-        }
-    }
+    for ((name, content) in entries) readUsfmBook(name, content)?.let { books[it.code] = it }
     return books
 }
 
