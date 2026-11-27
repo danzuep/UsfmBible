@@ -17,7 +17,6 @@
 
 package io.github.danzuep.usfmbible.reading.chapter
 
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -94,3 +93,5 @@ class ChapterSelectionViewModel(
         updateViewState { current -> if (current.error == error) current.copy(error = null) else null }
     }
 }
+
+data class ChapterSelectionItem(val bookIndex: Int, val bookName: String, val chapterCount: Int)

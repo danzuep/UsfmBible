@@ -33,7 +33,7 @@ import io.github.danzuep.usfmbible.infra.BaseActivity
 import io.github.danzuep.usfmbible.ui.dialog
 import io.github.danzuep.usfmbible.ui.fadeIn
 import io.github.danzuep.usfmbible.utils.localized
-import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel.ViewAction, TimelineViewModel.ViewState, TimelineViewModel>() {
@@ -46,7 +46,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     private val selectedVerses = linkedSetOf<VerseIndex>()
     private var selectionMode = false
 
-    override val viewModel: TimelineViewModel by viewModels { container.viewModelFactory }
+    override val viewModel: TimelineViewModel by viewModelOf()
 
     override val viewBinding: ActivityTimelineBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTimelineBinding.inflate(layoutInflater) }
 

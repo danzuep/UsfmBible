@@ -27,7 +27,7 @@ import io.github.danzuep.usfmbible.databinding.ActivityReadingProgressBinding
 import io.github.danzuep.usfmbible.infra.BaseActivity
 import io.github.danzuep.usfmbible.ui.dialog
 import io.github.danzuep.usfmbible.ui.fadeIn
-import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, ReadingProgressViewModel.ViewAction, ReadingProgressViewModel.ViewState, ReadingProgressViewModel>() {
@@ -37,7 +37,7 @@ class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, Rea
     private lateinit var adapter: ReadingProgressAdapter
     private var pendingScrollToCurrentBook = false
 
-    override val viewModel: ReadingProgressViewModel by viewModels { container.viewModelFactory }
+    override val viewModel: ReadingProgressViewModel by viewModelOf()
 
     override val viewBinding: ActivityReadingProgressBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityReadingProgressBinding.inflate(layoutInflater) }
 

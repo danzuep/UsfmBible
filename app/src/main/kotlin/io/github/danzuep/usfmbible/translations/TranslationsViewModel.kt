@@ -22,7 +22,6 @@ import android.net.Uri
 import io.github.danzuep.usfmbible.core.repository.remote.UsfmMetadata
 import io.github.danzuep.usfmbible.core.repository.remote.cleanShortName
 import io.github.danzuep.usfmbible.core.repository.remote.parseUsfmMetadata
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.R

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package io.github.danzuep.usfmbible.utils
+package io.github.danzuep.usfmbible.ui
 
-import java.text.NumberFormat
-import java.util.Locale
+// The web site shows the language names of the translation catalog instead.
+actual fun languageDisplayName(language: String): String = language.split("_")[0]
 
-/** Formats a chapter or verse number with the digits of the current locale. */
-fun Int.localized(): String = NumberFormat.getIntegerInstance(Locale.getDefault().withNativeDigits()).apply { isGroupingUsed = false }.format(this)
+actual fun languageDisplayNameWithNative(language: String): String = languageDisplayName(language)
+
+actual fun languageMatchesUserLocale(language: String): Boolean = false

@@ -22,7 +22,6 @@ import android.net.Uri
 import androidx.annotation.Px
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.viewModelScope
 import java.io.IOException
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

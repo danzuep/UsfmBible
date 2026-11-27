@@ -17,7 +17,6 @@
 
 package io.github.danzuep.usfmbible.progress
 
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.core.Bible

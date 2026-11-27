@@ -25,7 +25,7 @@ import io.github.danzuep.usfmbible.databinding.FragmentReadingToolbarBinding
 import io.github.danzuep.usfmbible.infra.BaseFragment
 import io.github.danzuep.usfmbible.ui.showCopyright
 import io.github.danzuep.usfmbible.ui.toast
-import androidx.fragment.app.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, ReadingToolbarViewModel.ViewAction, ReadingToolbarViewModel.ViewState, ReadingToolbarViewModel>() {
@@ -35,7 +35,7 @@ class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, Readi
 
     var onTitleClicked: (() -> Unit)? = null
 
-    override val viewModel: ReadingToolbarViewModel by viewModels { requireContext().container.viewModelFactory }
+    override val viewModel: ReadingToolbarViewModel by viewModelOf()
 
     override val viewBinding: FragmentReadingToolbarBinding by lazy(LazyThreadSafetyMode.NONE) { FragmentReadingToolbarBinding.inflate(layoutInflater) }
 

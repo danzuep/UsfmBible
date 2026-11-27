@@ -55,5 +55,17 @@ kotlin {
             implementation(kotlin("test"))
             implementation(Dependencies.Kotlin.coroutinesTest)
         }
+        // The JVM and Android targets share the java.util based actuals, so they are written once.
+        val jvmAndroidSources = "src/jvmAndroidMain/kotlin"
+        jvmMain { kotlin.srcDir(jvmAndroidSources) }
+        named("androidMain") { kotlin.srcDir(jvmAndroidSources) }
+        // View model tests mock the managers, which only works on the JVM.
+        jvmTest.dependencies {
+            implementation(Dependencies.mockk)
+        }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    jvmArgs("--enable-native-access=ALL-UNNAMED", "--sun-misc-unsafe-memory-access=allow", "-Xshare:off")
 }

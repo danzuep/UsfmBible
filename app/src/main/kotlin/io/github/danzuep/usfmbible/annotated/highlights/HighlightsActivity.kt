@@ -30,7 +30,7 @@ import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.VerseAnnotationManager
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
-import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class HighlightsViewModel(
@@ -68,5 +68,5 @@ class HighlightsViewModel(
 }
 
 class HighlightsActivity : AnnotatedVerseActivity<Highlight, HighlightsViewModel>(R.string.title_highlights) {
-    override val viewModel: HighlightsViewModel by viewModels { container.viewModelFactory }
+    override val viewModel: HighlightsViewModel by viewModelOf()
 }

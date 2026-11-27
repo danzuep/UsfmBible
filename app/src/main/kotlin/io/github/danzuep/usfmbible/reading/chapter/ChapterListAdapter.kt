@@ -159,5 +159,3 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
         }
     }
 }
-
-data class ChapterSelectionItem(val bookIndex: Int, val bookName: String, val chapterCount: Int)

@@ -1,7 +1,6 @@
 package io.github.danzuep.usfmbible.translations
 
 import android.app.Application
-import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager

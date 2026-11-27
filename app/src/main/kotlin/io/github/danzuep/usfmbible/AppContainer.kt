@@ -19,13 +19,12 @@ package io.github.danzuep.usfmbible
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import kotlin.reflect.KClass
+import io.github.danzuep.usfmbible.infra.BaseViewModel
 import io.github.danzuep.usfmbible.annotated.bookmarks.BookmarksViewModel
 import io.github.danzuep.usfmbible.annotated.highlights.HighlightsViewModel
 import io.github.danzuep.usfmbible.annotated.notes.NotesViewModel
@@ -74,7 +73,7 @@ import io.github.danzuep.usfmbible.translations.TranslationsViewModel
  * Manual dependency graph, shared by the whole app. Everything is created lazily on first use, so nothing is built at
  * app start unless it is requested. Members are open so tests can substitute them.
  */
-open class AppContainer(private val application: Application) {
+open class AppContainer(protected val application: Application) {
     open val navigator: Navigator by lazy { Navigator() }
     val appScope: CoroutineScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val timeProvider: TimeProvider by lazy { DefaultTimeProvider() }
@@ -107,31 +106,26 @@ open class AppContainer(private val application: Application) {
     val settingsManager by lazy { SettingsManager(settingsRepository) }
     val translationManager by lazy { TranslationManager(translationRepository) }
 
-    open val viewModelFactory: ViewModelProvider.Factory by lazy {
-        viewModelFactory {
-            initializer { ReadingProgressViewModel(bibleReadingManager, readingProgressManager, settingsManager, coroutineDispatcherProvider) }
-            initializer {
-                ReadingViewModel(
-                    bibleReadingManager, readingProgressManager, translationManager, bookmarkManager, highlightManager, noteManager,
-                    settingsManager, timeProvider, application,
-                )
-            }
-            initializer { SearchViewModel(bibleReadingManager, searchManager, settingsManager, coroutineDispatcherProvider, application) }
-            initializer { SettingsViewModel(backupManager, settingsManager, application, coroutineDispatcherProvider) }
-            initializer { TimelineViewModel(bibleReadingManager, settingsManager, coroutineDispatcherProvider, application) }
-            initializer { TranslationUpdatesViewModel(translationManager, settingsManager, application, coroutineDispatcherProvider) }
-            initializer { TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, application, coroutineDispatcherProvider) }
-            initializer { ChapterSelectionViewModel(bibleReadingManager) }
-            initializer { ReadingToolbarViewModel(bibleReadingManager, translationManager, application) }
-            initializer {
-                BookmarksViewModel(bibleReadingManager, bookmarkManager, settingsManager, coroutineDispatcherProvider, timeProvider, application)
-            }
-            initializer {
-                HighlightsViewModel(bibleReadingManager, highlightManager, settingsManager, coroutineDispatcherProvider, timeProvider, application)
-            }
-            initializer { NotesViewModel(bibleReadingManager, noteManager, settingsManager, coroutineDispatcherProvider, timeProvider, application) }
-        }
-    }
+    /** Builds the view model of a screen; tests override this to hand out test doubles. */
+    @Suppress("UNCHECKED_CAST")
+    open fun <VM : BaseViewModel<*, *>> createViewModel(type: KClass<VM>): VM = when (type) {
+        ReadingProgressViewModel::class -> ReadingProgressViewModel(bibleReadingManager, readingProgressManager, settingsManager, coroutineDispatcherProvider)
+        ReadingViewModel::class -> ReadingViewModel(
+            bibleReadingManager, readingProgressManager, translationManager, bookmarkManager, highlightManager, noteManager,
+            settingsManager, timeProvider, application,
+        )
+        SearchViewModel::class -> SearchViewModel(bibleReadingManager, searchManager, settingsManager, coroutineDispatcherProvider, application)
+        SettingsViewModel::class -> SettingsViewModel(backupManager, settingsManager, application, coroutineDispatcherProvider)
+        TimelineViewModel::class -> TimelineViewModel(bibleReadingManager, settingsManager, coroutineDispatcherProvider, application)
+        TranslationUpdatesViewModel::class -> TranslationUpdatesViewModel(translationManager, settingsManager, application, coroutineDispatcherProvider)
+        TranslationsViewModel::class -> TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, application, coroutineDispatcherProvider)
+        ChapterSelectionViewModel::class -> ChapterSelectionViewModel(bibleReadingManager)
+        ReadingToolbarViewModel::class -> ReadingToolbarViewModel(bibleReadingManager, translationManager, application)
+        BookmarksViewModel::class -> BookmarksViewModel(bibleReadingManager, bookmarkManager, settingsManager, coroutineDispatcherProvider, timeProvider, application)
+        HighlightsViewModel::class -> HighlightsViewModel(bibleReadingManager, highlightManager, settingsManager, coroutineDispatcherProvider, timeProvider, application)
+        NotesViewModel::class -> NotesViewModel(bibleReadingManager, noteManager, settingsManager, coroutineDispatcherProvider, timeProvider, application)
+        else -> error("No view model registered for $type")
+    } as VM
 }
 
 /** Implemented by the [Application] that owns the [AppContainer], so tests can supply their own. */

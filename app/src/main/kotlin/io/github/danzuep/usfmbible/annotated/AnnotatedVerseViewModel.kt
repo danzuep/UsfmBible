@@ -22,7 +22,6 @@ import io.github.danzuep.usfmbible.utils.localized
 import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
