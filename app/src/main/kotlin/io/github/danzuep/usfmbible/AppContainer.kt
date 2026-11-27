@@ -137,7 +137,7 @@ open class AppContainer(protected val application: Application) {
         SearchViewModel::class -> SearchViewModel(bibleReadingManager, searchManager, settingsManager, coroutineDispatcherProvider, application)
         SettingsViewModel::class -> SettingsViewModel(backupManager, settingsManager, application, coroutineDispatcherProvider)
         TimelineViewModel::class -> TimelineViewModel(bibleReadingManager, settingsManager, coroutineDispatcherProvider, application)
-        TranslationUpdatesViewModel::class -> TranslationUpdatesViewModel(translationManager, translationUpdateChecker, translationUpdateScheduler, networkPolicy, settingsManager, application, coroutineDispatcherProvider)
+        TranslationUpdatesViewModel::class -> TranslationUpdatesViewModel(translationManager, translationUpdateChecker, translationUpdateScheduler, networkPolicy, settingsManager, coroutineDispatcherProvider)
         TranslationsViewModel::class -> TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, translationCatalog, application, coroutineDispatcherProvider)
         ChapterSelectionViewModel::class -> ChapterSelectionViewModel(bibleReadingManager)
         ReadingToolbarViewModel::class -> ReadingToolbarViewModel(bibleReadingManager, translationManager, application)

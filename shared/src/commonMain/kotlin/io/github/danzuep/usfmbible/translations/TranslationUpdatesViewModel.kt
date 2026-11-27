@@ -1,6 +1,5 @@
 package io.github.danzuep.usfmbible.translations
 
-import android.app.Application
 import co.touchlab.kermit.Logger
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager
@@ -23,7 +22,6 @@ class TranslationUpdatesViewModel(
     private val scheduler: TranslationUpdateScheduler,
     private val networkPolicy: NetworkPolicy,
     private val settingsManager: SettingsManager,
-    private val application: Application,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
 ) : BaseViewModel<TranslationUpdatesViewModel.ViewAction, TranslationUpdatesViewModel.ViewState>(
     initialViewState = ViewState(),
