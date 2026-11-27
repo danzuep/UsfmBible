@@ -17,6 +17,7 @@
 
 package io.github.danzuep.usfmbible.settings
 
+import androidx.annotation.StringRes
 import android.content.Intent
 import android.util.TypedValue
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,10 +44,10 @@ import io.github.danzuep.usfmbible.container
 
 class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel.ViewAction, SettingsViewModel.ViewState, SettingsViewModel>() {
     private val createFileForBackupLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) viewModel.backup(result.data?.data)
+        if (result.resultCode == RESULT_OK) viewModel.backup(result.data?.data?.toString())
     }
     private val selectFileForRestoreLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) viewModel.restore(result.data?.data)
+        if (result.resultCode == RESULT_OK) viewModel.restore(result.data?.data?.toString())
     }
 
     private var indeterminateProgressDialog: AlertDialog? = null
@@ -101,7 +102,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
         showSearchButton.isChecked = viewState.showSearchButton
         ruby.isChecked = viewState.rubyOn
 
-        nightMode.setDescription(viewState.nightModeStringRes)
+        nightMode.setDescription(nightModeStringRes(viewState.nightMode))
         language.setDescription(AppLanguage.selectedCode()?.let(AppLanguage::nativeName) ?: getString(R.string.settings_text_language_system))
         defaultHighlightColor.setDescription(highlightSwatch(viewState.defaultHighlightColor))
         version.setDescription(viewState.version)
@@ -196,7 +197,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
     private fun SettingsViewModel.ViewState.NightModeSelection.handle() {
         listDialog(
             title = R.string.settings_title_pick_night_mode,
-            items = availableModes.map { getString(it.stringRes) }.toTypedArray(),
+            items = availableModes.map { getString(nightModeStringRes(it.nightMode)) }.toTypedArray(),
             selected = currentPosition,
             onSelected = { which -> viewModel.saveNightMode(availableModes[which].nightMode) },
             onDismiss = viewModel::markNightModeSelectionAsDismissed
@@ -221,4 +222,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
             viewModel.markErrorAsShown(this)
         }
     }
+}
+
+@StringRes
+private fun nightModeStringRes(@Settings.Companion.NightMode nightMode: Int): Int = when (nightMode) {
+    Settings.NIGHT_MODE_ON -> R.string.settings_text_night_mode_on
+    Settings.NIGHT_MODE_OFF -> R.string.settings_text_night_mode_off
+    else -> R.string.settings_text_night_mode_system
 }

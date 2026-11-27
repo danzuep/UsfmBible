@@ -17,41 +17,35 @@
 
 package io.github.danzuep.usfmbible.settings
 
-import android.app.Application
-import android.net.Uri
-import androidx.annotation.Px
-import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatDelegate
-import java.io.IOException
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.BackupManager
+import io.github.danzuep.usfmbible.core.DocumentReader
+import io.github.danzuep.usfmbible.core.DocumentWriter
 import io.github.danzuep.usfmbible.core.Highlight
+import io.github.danzuep.usfmbible.ui.PlatformUi
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager
-import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.infra.BaseViewModel
-import io.github.danzuep.usfmbible.ui.getPrimaryTextSize
-import io.github.danzuep.usfmbible.ui.getSecondaryTextSize
-import io.github.danzuep.usfmbible.utils.appVersionName
 import co.touchlab.kermit.Logger
 
 class SettingsViewModel(
     private val backupManager: BackupManager,
     private val settingsManager: SettingsManager,
-    private val application: Application,
+    private val platform: PlatformUi,
+    private val documentReader: DocumentReader,
+    private val documentWriter: DocumentWriter,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider
 ) : BaseViewModel<SettingsViewModel.ViewAction, SettingsViewModel.ViewState>(
     initialViewState = ViewState(
         fontSizeScale = Settings.DEFAULT.fontSizeScale,
-        bodyTextSizePx = Settings.DEFAULT.getPrimaryTextSize(application.resources).roundToInt(),
-        captionTextSizePx = Settings.DEFAULT.getSecondaryTextSize(application.resources).roundToInt(),
+        bodyTextSizePx = platform.textSizes(Settings.DEFAULT).bodyPx,
+        captionTextSizePx = platform.textSizes(Settings.DEFAULT).captionPx,
         keepScreenOn = Settings.DEFAULT.keepScreenOn,
-        nightModeStringRes = nightModeStringResource(Settings.DEFAULT.nightMode),
+        nightMode = Settings.DEFAULT.nightMode,
         simpleReadingModeOn = Settings.DEFAULT.simpleReadingModeOn,
         showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
@@ -74,10 +68,10 @@ class SettingsViewModel(
 
     data class ViewState(
         val fontSizeScale: Float,
-        @Px val bodyTextSizePx: Int,
-        @Px val captionTextSizePx: Int,
+        val bodyTextSizePx: Int,
+        val captionTextSizePx: Int,
         val keepScreenOn: Boolean,
-        @StringRes val nightModeStringRes: Int,
+        @Settings.Companion.NightMode val nightMode: Int,
         val simpleReadingModeOn: Boolean,
         val showSearchButton: Boolean,
         val rubyOn: Boolean,
@@ -97,15 +91,15 @@ class SettingsViewModel(
         }
 
         data class FontSizeScaleSelection(
-            @Px val currentBodyTextSizePx: Int,
-            @Px val currentCaptionTextSizePx: Int,
+            val currentBodyTextSizePx: Int,
+            val currentCaptionTextSizePx: Int,
             val currentScale: Float,
             val minScale: Float,
             val maxScale: Float,
         )
 
         data class NightModeSelection(val currentPosition: Int, val availableModes: List<NightMode>) {
-            data class NightMode(@Settings.Companion.NightMode val nightMode: Int, @StringRes val stringRes: Int)
+            data class NightMode(@Settings.Companion.NightMode val nightMode: Int)
         }
 
         data class HighlightColorSelection(val currentPosition: Int, val availableColors: List<HighlightColor>) {
@@ -120,14 +114,14 @@ class SettingsViewModel(
     }
 
     init {
-        updateViewState { it.copy(version = runCatching { application.appVersionName }.getOrDefault("")) }
+        updateViewState { it.copy(version = runCatching { platform.appVersion }.getOrDefault("")) }
 
         settingsManager.settings().onEach { settings ->
             updateViewState { current ->
                 current.copy(
                     fontSizeScale = settings.fontSizeScale,
-                    bodyTextSizePx = settings.getPrimaryTextSize(application.resources).roundToInt(),
-                    captionTextSizePx = settings.getSecondaryTextSize(application.resources).roundToInt(),
+                    bodyTextSizePx = platform.textSizes(settings).bodyPx,
+                    captionTextSizePx = platform.textSizes(settings).captionPx,
                     keepScreenOn = settings.keepScreenOn,
                     nightModeStringRes = nightModeStringResource(settings.nightMode),
                     simpleReadingModeOn = settings.simpleReadingModeOn,
@@ -180,14 +174,7 @@ class SettingsViewModel(
                 }
 
                 // This will restart the activity, so do it AFTER the settings are successfully saved.
-                AppCompatDelegate.setDefaultNightMode(
-                    when (nightMode) {
-                        Settings.NIGHT_MODE_ON -> AppCompatDelegate.MODE_NIGHT_YES
-                        Settings.NIGHT_MODE_OFF -> AppCompatDelegate.MODE_NIGHT_NO
-                        Settings.NIGHT_MODE_FOLLOW_SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                        else -> throw IllegalArgumentException("Unsupported night mode - $nightMode")
-                    }
-                )
+                platform.applyNightMode(nightMode)
             }.onFailure { e ->
                 Logger.withTag(tag).e(e) { "Failed to save settings" }
                 updateViewState { it.copy(error = ViewState.Error.SettingsUpdatingError) }
@@ -214,8 +201,8 @@ class SettingsViewModel(
     fun selectFontSizeScale() {
         viewModelScope.launch {
             val currentSettings = settingsManager.settings().first()
-            @Px val currentBodyTextSizePx = currentSettings.getPrimaryTextSize(application.resources).roundToInt()
-            @Px val currentCaptionTextSizePx = currentSettings.getSecondaryTextSize(application.resources).roundToInt()
+            val currentBodyTextSizePx = platform.textSizes(currentSettings).bodyPx
+            val currentCaptionTextSizePx = platform.textSizes(currentSettings).captionPx
             val currentFontSizeScale = currentSettings.fontSizeScale
             updateViewState { currentViewState ->
                 currentViewState.copy(
@@ -235,9 +222,9 @@ class SettingsViewModel(
         viewModelScope.launch {
             val currentNightMode = settingsManager.settings().first().nightMode
             val availableModes = listOf(
-                ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_ON, R.string.settings_text_night_mode_on),
-                ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_OFF, R.string.settings_text_night_mode_off),
-                ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_FOLLOW_SYSTEM, R.string.settings_text_night_mode_system),
+                ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_ON),
+                ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_OFF),
+                ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_FOLLOW_SYSTEM),
             )
             val currentPosition = availableModes.indexOfFirst { it.nightMode == currentNightMode }
             updateViewState { it.copy(nightModeSelection = ViewState.NightModeSelection(currentPosition, availableModes)) }
@@ -270,7 +257,7 @@ class SettingsViewModel(
         emitViewAction(ViewAction.RequestUriForRestore)
     }
 
-    fun backup(uri: Uri?) {
+    fun backup(uri: String?) {
         if (uri == null) {
             updateViewState { it.copy(error = ViewState.Error.BackupError) }
             return
@@ -279,9 +266,7 @@ class SettingsViewModel(
 
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             runCatching {
-                application.contentResolver.openOutputStream(uri)
-                    ?.use { it.write(backupManager.prepareForBackup().toByteArray(Charsets.UTF_8)) }
-                    ?: throw IOException("Failed to open Uri for backup - $uri")
+                documentWriter.writeBytes(uri, backupManager.prepareForBackup().encodeToByteArray())
                 updateViewState { it.copy(backupState = ViewState.BackupRestoreState.Completed(successful = true)) }
             }.onFailure { e ->
                 Logger.withTag(tag).e(e) { "Failed to backup data" }
@@ -295,7 +280,7 @@ class SettingsViewModel(
         }
     }
 
-    fun restore(uri: Uri?) {
+    fun restore(uri: String?) {
         if (uri == null) {
             updateViewState { it.copy(error = ViewState.Error.RestoreError) }
             return
@@ -304,9 +289,7 @@ class SettingsViewModel(
 
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             runCatching {
-                application.contentResolver.openInputStream(uri)
-                    ?.use { backupManager.restore(it.readBytes().toString(Charsets.UTF_8)) }
-                    ?: throw IOException("Failed to open Uri for restore - $uri")
+                backupManager.restore(documentReader.readBytes(uri).decodeToString())
                 updateViewState { it.copy(restoreState = ViewState.BackupRestoreState.Completed(successful = true)) }
             }.onFailure { e ->
                 Logger.withTag(tag).e(e) { "Failed to restore data" }
@@ -351,12 +334,4 @@ class SettingsViewModel(
     fun markErrorAsShown(error: ViewState.Error) {
         updateViewState { current -> if (current.error == error) current.copy(error = null) else null }
     }
-}
-
-@StringRes
-private fun nightModeStringResource(@Settings.Companion.NightMode nightMode: Int): Int = when (nightMode) {
-    Settings.NIGHT_MODE_ON -> R.string.settings_text_night_mode_on
-    Settings.NIGHT_MODE_OFF -> R.string.settings_text_night_mode_off
-    Settings.NIGHT_MODE_FOLLOW_SYSTEM -> R.string.settings_text_night_mode_system
-    else -> throw IllegalArgumentException("Unknown night mode - $nightMode")
 }

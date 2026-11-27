@@ -17,6 +17,8 @@
 
 package io.github.danzuep.usfmbible.settings
 
+import io.github.danzuep.usfmbible.infra.AndroidDocumentReader
+import io.github.danzuep.usfmbible.infra.AndroidPlatformUi
 import android.app.Application
 import android.content.ContentResolver
 import android.content.pm.PackageInfo
@@ -93,7 +95,7 @@ class SettingsViewModelTest : BaseUnitTest() {
             every { resources } returns this@SettingsViewModelTest.resources
         }
 
-        settingsViewModel = SettingsViewModel(backupManager, settingsManager, app, testCoroutineDispatcherProvider)
+        settingsViewModel = SettingsViewModel(backupManager, settingsManager, AndroidPlatformUi(app), AndroidDocumentReader(app), AndroidDocumentReader(app), testCoroutineDispatcherProvider)
     }
 
     @Test
@@ -108,7 +110,7 @@ class SettingsViewModelTest : BaseUnitTest() {
 
         every { settingsManager.settings() } returns flowOf(Settings.DEFAULT)
 
-        settingsViewModel = SettingsViewModel(backupManager, settingsManager, app, testCoroutineDispatcherProvider)
+        settingsViewModel = SettingsViewModel(backupManager, settingsManager, AndroidPlatformUi(app), AndroidDocumentReader(app), AndroidDocumentReader(app), testCoroutineDispatcherProvider)
 
         assertEquals(createDefaultViewState().copy(version = "version_name"), settingsViewModel.viewState().first())
     }
@@ -119,7 +121,7 @@ class SettingsViewModelTest : BaseUnitTest() {
         captionTextSizePx = Settings.DEFAULT.getSecondaryTextSize(app.resources).roundToInt(),
         keepScreenOn = Settings.DEFAULT.keepScreenOn,
         simpleReadingModeOn = Settings.DEFAULT.simpleReadingModeOn,
-        nightModeStringRes = R.string.settings_text_night_mode_system,
+        nightMode = Settings.NIGHT_MODE_FOLLOW_SYSTEM,
         showSearchButton = Settings.DEFAULT.showSearchButton,
         rubyOn = Settings.DEFAULT.rubyOn,
         defaultHighlightColor = Highlight.COLOR_NONE,
@@ -299,9 +301,9 @@ class SettingsViewModelTest : BaseUnitTest() {
                 nightModeSelection = SettingsViewModel.ViewState.NightModeSelection(
                     currentPosition = 2,
                     availableModes = listOf(
-                        SettingsViewModel.ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_ON, R.string.settings_text_night_mode_on),
-                        SettingsViewModel.ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_OFF, R.string.settings_text_night_mode_off),
-                        SettingsViewModel.ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_FOLLOW_SYSTEM, R.string.settings_text_night_mode_system),
+                        SettingsViewModel.ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_ON),
+                        SettingsViewModel.ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_OFF),
+                        SettingsViewModel.ViewState.NightModeSelection.NightMode(Settings.NIGHT_MODE_FOLLOW_SYSTEM),
                     ),
                 )
             ),
@@ -366,7 +368,7 @@ class SettingsViewModelTest : BaseUnitTest() {
     fun `test backup(), with exception`() = runTest {
         every { app.contentResolver } throws RuntimeException("random exception")
 
-        settingsViewModel.backup(Uri.EMPTY)
+        settingsViewModel.backup(Uri.EMPTY.toString())
         assertEquals(
             createDefaultViewState().copy(
                 backupState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = false),
@@ -395,7 +397,7 @@ class SettingsViewModelTest : BaseUnitTest() {
     fun `test backup(), with openOutputStream returning null`() = runTest {
         every { resolver.openOutputStream(Uri.EMPTY) } returns null
 
-        settingsViewModel.backup(Uri.EMPTY)
+        settingsViewModel.backup(Uri.EMPTY.toString())
         assertEquals(
             createDefaultViewState().copy(
                 backupState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = false),
@@ -418,7 +420,7 @@ class SettingsViewModelTest : BaseUnitTest() {
     fun `test backup(), success`() = runTest {
         coEvery { backupManager.prepareForBackup() } returns "{}"
 
-        settingsViewModel.backup(uri)
+        settingsViewModel.backup(uri.toString())
         assertEquals(
             createDefaultViewState().copy(backupState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = true)),
             settingsViewModel.viewState().first()
@@ -453,7 +455,7 @@ class SettingsViewModelTest : BaseUnitTest() {
     fun `test restore(), with exception`() = runTest {
         every { app.contentResolver } throws RuntimeException("random exception")
 
-        settingsViewModel.restore(Uri.EMPTY)
+        settingsViewModel.restore(Uri.EMPTY.toString())
         assertEquals(
             createDefaultViewState().copy(
                 restoreState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = false),
@@ -482,7 +484,7 @@ class SettingsViewModelTest : BaseUnitTest() {
     fun `test restore(), with openInputStream returning null`() = runTest {
         every { resolver.openInputStream(Uri.EMPTY) } returns null
 
-        settingsViewModel.restore(Uri.EMPTY)
+        settingsViewModel.restore(Uri.EMPTY.toString())
         assertEquals(
             createDefaultViewState().copy(
                 restoreState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = false),
@@ -505,7 +507,7 @@ class SettingsViewModelTest : BaseUnitTest() {
     fun `test restore(), success`() = runTest {
         coEvery { backupManager.restore("{}") } returns Unit
 
-        settingsViewModel.restore(uri)
+        settingsViewModel.restore(uri.toString())
         assertEquals(
             createDefaultViewState().copy(restoreState = SettingsViewModel.ViewState.BackupRestoreState.Completed(successful = true)),
             settingsViewModel.viewState().first()
