@@ -34,6 +34,8 @@ android {
         minSdk = 28
         targetSdk = Versions.Sdk.target
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // CI generates on an emulator; macrobenchmark refuses to run on one otherwise.
+        testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "EMULATOR,LOW-BATTERY"
     }
 
     targetProjectPath = ":app"

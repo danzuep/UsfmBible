@@ -109,10 +109,10 @@ Run `python3 .github/scripts/check-store-assets.py` (needs `pip install pillow`)
 
 ## Baseline Profile
 
-`:baselineprofile` is a macrobenchmark module that records which classes and methods run at startup, so release builds are precompiled and cold start is faster on slow CPUs. Generating it needs a device or emulator (API 28+), which the agent sandbox and normal CI don't have.
+`:baselineprofile` is a macrobenchmark module that records which classes and methods run at startup, so release builds are precompiled and cold start is faster on slow CPUs. Generating it needs a device or emulator (API 28+), so it runs in its own workflow.
 
-1. Connect a device or start an emulator with a translation installed.
-2. Run `./gradlew :app:generateReleaseBaselineProfile`.
-3. Commit the generated `app/src/release/generated/baselineProfiles/` files. Regenerate when startup or the reader changes a lot.
+Run the `Baseline profile` workflow (`gh workflow run baseline-profile.yml --ref <branch>`). It builds the release app with the bundled WEB translation, runs the generator on an API 33 emulator and uploads the `baseline-profile` artifact. Download it (`gh run download <id> -n baseline-profile`) and commit the files under `app/src/release/generated/baselineProfiles/`. Regenerate when startup or the reader changes a lot.
+
+To run it locally instead, connect a device or emulator (API 28+) with a translation installed and run `./gradlew :app:generateReleaseBaselineProfile`.
 
 `androidx.profileinstaller` in the app installs the profile on first run, and release builds pick it up automatically.

@@ -2,7 +2,7 @@
 # androidx.profileinstaller installs it on first run, which helps minSdk 23-27 phones most).
 # H = hot, S = startup, P = post-startup.
 
-# App, Hilt wiring and navigation
+# App, AppContainer wiring and navigation
 HSPLio/github/danzuep/usfmbible/*;->**(**)**
 Lio/github/danzuep/usfmbible/*;
 

@@ -157,7 +157,7 @@ dependencies {
     implementation(Dependencies.AndroidX.View.recyclerView)
     implementation(Dependencies.AndroidX.View.swipeRefreshLayout)
     implementation(Dependencies.AndroidX.View.viewPager2)
-    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    implementation(Dependencies.AndroidX.profileInstaller)
 
 
     implementation(Dependencies.kermit)
