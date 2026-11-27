@@ -123,7 +123,7 @@ class SettingsViewModel(
                     bodyTextSizePx = platform.textSizes(settings).bodyPx,
                     captionTextSizePx = platform.textSizes(settings).captionPx,
                     keepScreenOn = settings.keepScreenOn,
-                    nightModeStringRes = nightModeStringResource(settings.nightMode),
+                    nightMode = settings.nightMode,
                     simpleReadingModeOn = settings.simpleReadingModeOn,
                     showSearchButton = settings.showSearchButton,
                     rubyOn = settings.rubyOn,
