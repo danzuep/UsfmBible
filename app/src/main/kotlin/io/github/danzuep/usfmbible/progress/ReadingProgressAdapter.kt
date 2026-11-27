@@ -41,7 +41,6 @@ import io.github.danzuep.usfmbible.ui.append
 import io.github.danzuep.usfmbible.ui.clearAll
 import io.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerViewAdapter
 import io.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerViewHolder
-import io.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerViewItem
 import io.github.danzuep.usfmbible.ui.setPrimaryTextSize
 import io.github.danzuep.usfmbible.ui.setSpans
 import io.github.danzuep.usfmbible.ui.toCharSequence
@@ -51,57 +50,33 @@ class ReadingProgressAdapter(
     private val inflater: LayoutInflater,
     executor: Executor,
     private val onViewEvent: (ViewEvent) -> Unit,
-) : VerticalRecyclerViewAdapter<ReadingProgressItem, ReadingProgressViewHolder<ReadingProgressItem, *>>(ReadingProgressItem.DiffCallback(), executor) {
+) : VerticalRecyclerViewAdapter<ReadingProgressItem, ReadingProgressViewHolder<ReadingProgressItem, *>>(DiffCallback(), executor) {
     sealed class ViewEvent {
         data class ExpandOrCollapseBook(val bookIndex: Int) : ViewEvent()
         data class OpenVerse(val verseToOpen: VerseIndex) : ViewEvent()
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReadingProgressViewHolder<ReadingProgressItem, *> = when (viewType) {
-        ReadingProgressItem.Summary.VIEW_TYPE -> ReadingProgressViewHolder.Summary(inflater, parent)
-        ReadingProgressItem.Book.VIEW_TYPE -> ReadingProgressViewHolder.Book(inflater, parent, onViewEvent)
-        else -> throw IllegalStateException("Unknown view type - $viewType")
-    } as ReadingProgressViewHolder<ReadingProgressItem, *>
-}
-
-sealed class ReadingProgressItem(viewType: Int) : VerticalRecyclerViewItem(viewType) {
     class DiffCallback : DiffUtil.ItemCallback<ReadingProgressItem>() {
         override fun areItemsTheSame(oldItem: ReadingProgressItem, newItem: ReadingProgressItem): Boolean = when {
-            oldItem is Summary && newItem is Summary -> true
-            oldItem is Book && newItem is Book -> oldItem.bookIndex == newItem.bookIndex
+            oldItem is ReadingProgressItem.Summary && newItem is ReadingProgressItem.Summary -> true
+            oldItem is ReadingProgressItem.Book && newItem is ReadingProgressItem.Book -> oldItem.bookIndex == newItem.bookIndex
             else -> false
         }
 
         override fun areContentsTheSame(oldItem: ReadingProgressItem, newItem: ReadingProgressItem): Boolean = oldItem == newItem
     }
 
-    data class Summary(
-        val settings: Settings,
-        val continuousReadingDays: Int,
-        val chaptersRead: Int,
-        val finishedBooks: Int,
-        val finishedOldTestament: Int,
-        val finishedNewTestament: Int
-    ) : ReadingProgressItem(VIEW_TYPE) {
-        companion object {
-            @JvmField val VIEW_TYPE = R.layout.item_reading_progress_summary
-        }
+    override fun viewTypeOf(item: ReadingProgressItem): Int = when (item) {
+        is ReadingProgressItem.Summary -> R.layout.item_reading_progress_summary
+        is ReadingProgressItem.Book -> R.layout.item_reading_progress_book
     }
 
-    data class Book(
-        val settings: Settings,
-        val bookName: String,
-        val bookIndex: Int,
-        val chaptersRead: List<Boolean>,
-        val chaptersReadCount: Int,
-        val expanded: Boolean,
-        val isCurrentBook: Boolean = false,
-    ) : ReadingProgressItem(VIEW_TYPE) {
-        companion object {
-            @JvmField val VIEW_TYPE = R.layout.item_reading_progress_book
-        }
-    }
+    @Suppress("UNCHECKED_CAST")
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReadingProgressViewHolder<ReadingProgressItem, *> = when (viewType) {
+        R.layout.item_reading_progress_summary -> ReadingProgressViewHolder.Summary(inflater, parent)
+        R.layout.item_reading_progress_book -> ReadingProgressViewHolder.Book(inflater, parent, onViewEvent)
+        else -> throw IllegalStateException("Unknown view type - $viewType")
+    } as ReadingProgressViewHolder<ReadingProgressItem, *>
 }
 
 sealed class ReadingProgressViewHolder<Item : ReadingProgressItem, VB : ViewBinding>(viewBinding: VB)

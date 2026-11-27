@@ -28,7 +28,7 @@ import kotlin.test.assertTrue
 class ReadingProgressItemTest : BaseUnitTest() {
     @Test
     fun `test DiffCallback`() {
-        val diffCallback = ReadingProgressItem.DiffCallback()
+        val diffCallback = ReadingProgressAdapter.DiffCallback()
 
         assertTrue(diffCallback.areItemsTheSame(
             ReadingProgressItem.Summary(Settings.DEFAULT, 0, 0, 0, 0, 0),
@@ -80,11 +80,5 @@ class ReadingProgressItemTest : BaseUnitTest() {
             ReadingProgressItem.Summary(Settings.DEFAULT, 0, 0, 0, 0, 0),
             ReadingProgressItem.Book(Settings.DEFAULT, "", 0, emptyList(), 0, false)
         ))
-    }
-
-    @Test
-    fun `test viewType`() {
-        assertEquals(R.layout.item_reading_progress_summary, ReadingProgressItem.Summary(Settings.DEFAULT, 0, 0, 0, 0, 0).viewType)
-        assertEquals(R.layout.item_reading_progress_book, ReadingProgressItem.Book(Settings.DEFAULT, "", 0, emptyList(), 0, false).viewType)
     }
 }

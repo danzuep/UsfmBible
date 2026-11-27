@@ -67,7 +67,7 @@ class ReadingProgressAdapterTest : BaseUnitTest() {
 
     @Test
     fun `test onCreateViewHolder()`() {
-        adapter.onCreateViewHolder(FrameLayout(context), ReadingProgressItem.Summary.VIEW_TYPE) as ReadingProgressViewHolder.Summary
-        adapter.onCreateViewHolder(FrameLayout(context), ReadingProgressItem.Book.VIEW_TYPE) as ReadingProgressViewHolder.Book
+        adapter.onCreateViewHolder(FrameLayout(context), R.layout.item_reading_progress_summary) as ReadingProgressViewHolder.Summary
+        adapter.onCreateViewHolder(FrameLayout(context), R.layout.item_reading_progress_book) as ReadingProgressViewHolder.Book
     }
 }
