@@ -23,7 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Px
 import androidx.appcompat.app.AlertDialog
 import kotlin.math.roundToInt
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.databinding.ActivitySettingsBinding
@@ -56,7 +56,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
     override val viewBinding: ActivitySettingsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySettingsBinding.inflate(layoutInflater) }
 
     override fun initializeView() = with(viewBinding) {
-        toolbar.setNavigationOnClickListener { navigator.goBack(this@SettingsActivity) }
+        toolbar.setNavigationOnClickListener { navigator.goBack() }
         keepScreenOn.setOnCheckedChangeByUserListener(viewModel::saveKeepScreenOn)
         showSearchButton.setOnCheckedChangeByUserListener(viewModel::saveShowSearchButton)
         ruby.setOnCheckedChangeByUserListener(viewModel::saveRubyOn)
@@ -71,8 +71,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
     }
 
     override fun onViewActionEmitted(viewAction: SettingsViewModel.ViewAction) = when (viewAction) {
-        SettingsViewModel.ViewAction.OpenRateMe -> navigator.navigate(this, Navigator.SCREEN_RATE_ME)
-        SettingsViewModel.ViewAction.OpenWebsite -> navigator.navigate(this, Navigator.SCREEN_WEBSITE)
+        SettingsViewModel.ViewAction.OpenRateMe -> navigator.navigate(Screen.RATE_ME)
+        SettingsViewModel.ViewAction.OpenWebsite -> navigator.navigate(Screen.WEBSITE)
         SettingsViewModel.ViewAction.RequestUriForBackup -> {
             try {
                 createFileForBackupLauncher.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).setType("application/json").addCategory(Intent.CATEGORY_OPENABLE))

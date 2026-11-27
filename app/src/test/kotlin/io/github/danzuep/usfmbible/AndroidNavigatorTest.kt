@@ -21,7 +21,6 @@ import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.mockk
@@ -48,8 +47,8 @@ import org.robolectric.Shadows
 import io.github.danzuep.usfmbible.tests.TestContainer
 
 @RunWith(RobolectricTestRunner::class)
-class NavigatorTest : BaseActivityTest() {
-    private lateinit var navigator: Navigator
+class AndroidNavigatorTest : BaseActivityTest() {
+    private lateinit var navigator: AndroidNavigator
 
     val readingToolbarViewModel: ReadingToolbarViewModel = mockk(relaxed = true)
 
@@ -60,26 +59,26 @@ class NavigatorTest : BaseActivityTest() {
     @BeforeTest
     override fun setup() {
         super.setup()
-        navigator = Navigator()
+        navigator = AndroidNavigator(ApplicationProvider.getApplicationContext())
     }
 
     @Test
     fun `test navigate(), internal activities`() {
-        testNavigate<ReadingActivity>(Navigator.SCREEN_READING)
-        testNavigate<SearchActivity>(Navigator.SCREEN_SEARCH)
-        testNavigate<TranslationsActivity>(Navigator.SCREEN_TRANSLATIONS)
-        testNavigate<ReadingProgressActivity>(Navigator.SCREEN_READING_PROGRESS)
-        testNavigate<BookmarksActivity>(Navigator.SCREEN_BOOKMARKS)
-        testNavigate<HighlightsActivity>(Navigator.SCREEN_HIGHLIGHTS)
-        testNavigate<NotesActivity>(Navigator.SCREEN_NOTES)
-        testNavigate<SettingsActivity>(Navigator.SCREEN_SETTINGS)
-        testNavigate<TimelineActivity>(Navigator.SCREEN_TIMELINE)
-        testNavigate<TranslationUpdatesActivity>(Navigator.SCREEN_TRANSLATION_UPDATES)
+        testNavigate<ReadingActivity>(Screen.READING)
+        testNavigate<SearchActivity>(Screen.SEARCH)
+        testNavigate<TranslationsActivity>(Screen.TRANSLATIONS)
+        testNavigate<ReadingProgressActivity>(Screen.READING_PROGRESS)
+        testNavigate<BookmarksActivity>(Screen.BOOKMARKS)
+        testNavigate<HighlightsActivity>(Screen.HIGHLIGHTS)
+        testNavigate<NotesActivity>(Screen.NOTES)
+        testNavigate<SettingsActivity>(Screen.SETTINGS)
+        testNavigate<TimelineActivity>(Screen.TIMELINE)
+        testNavigate<TranslationUpdatesActivity>(Screen.TRANSLATION_UPDATES)
     }
 
-    private inline fun <reified A : Activity> testNavigate(@Navigator.Companion.Screen screen: Int) {
+    private inline fun <reified A : Activity> testNavigate(screen: Screen) {
         withActivity<ReadingActivity> { activity ->
-            navigator.navigate(activity, screen)
+            navigator.navigate(screen)
 
             val nextStartedIntent = Shadows.shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
             assertEquals(A::class.java.name, nextStartedIntent.component?.className)
@@ -89,7 +88,7 @@ class NavigatorTest : BaseActivityTest() {
     @Test
     fun `test navigate(), SCREEN_NOTES`() {
         withActivity<ReadingActivity> { activity ->
-            navigator.navigate(activity, Navigator.SCREEN_NOTES, Bundle().apply { putString("test_key", "value") })
+            navigator.navigate(Screen.NOTES, mapOf("test_key" to "value"))
 
             val nextStartedIntent = Shadows.shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
             assertEquals(NotesActivity::class.java.name, nextStartedIntent.component?.className)
@@ -101,7 +100,7 @@ class NavigatorTest : BaseActivityTest() {
     @Test
     fun `test navigate(), SCREEN_RATE_ME`() {
         withActivity<ReadingActivity> { activity ->
-            navigator.navigate(activity, Navigator.SCREEN_RATE_ME)
+            navigator.navigate(Screen.RATE_ME)
 
             val nextStartedIntent = Shadows.shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
             assertEquals(Intent.ACTION_VIEW, nextStartedIntent.action)
@@ -112,7 +111,7 @@ class NavigatorTest : BaseActivityTest() {
     @Test
     fun `test navigate(), SCREEN_WEBSITE`() {
         withActivity<ReadingActivity> { activity ->
-            navigator.navigate(activity, Navigator.SCREEN_WEBSITE)
+            navigator.navigate(Screen.WEBSITE)
 
             val nextStartedIntent = Shadows.shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
             assertEquals(Intent.ACTION_VIEW, nextStartedIntent.action)
@@ -120,17 +119,10 @@ class NavigatorTest : BaseActivityTest() {
         }
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun `test navigate(), with unknown screen`() {
-        withActivity<ReadingActivity> { activity ->
-            navigator.navigate(activity, -1)
-        }
-    }
-
     @Test
     fun `test goBack()`() {
         withActivity<ReadingActivity> { activity ->
-            navigator.goBack(activity)
+            navigator.goBack()
             // Verify that onBackPressedDispatcher.onBackPressed() was called
             // The activity should not be finishing immediately as onBackPressedDispatcher
             // may handle the back press asynchronously

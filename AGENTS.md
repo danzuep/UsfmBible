@@ -13,7 +13,7 @@ Don't spend time trying to work around this (no installing the SDK, mirrors or o
 | Goal | How |
 |------|-----|
 | Build and unit tests (`./gradlew testDebugUnitTest assembleDebug`, about 4 min) | Push the branch and open a PR (`gh pr create`). `Android CI` runs only when `app/`, `buildSrc/`, Gradle or workflow files change, and on pushes to `main`. It has no `workflow_dispatch`. |
-| Shared module tests (`./gradlew :shared:jvmTest`, about 1 min) | `Shared tests` workflow, runs when `shared/` or Gradle files change. Tests live in `shared/src/commonTest`. The JVM and Node (`:shared:jsNodeTest`) targets run them, so they need no Android SDK. Kotlin-only changes should rely on this job, not `Android CI`. |
+| Shared module tests (`./gradlew :shared:jvmTest`, about 1 min) | `Shared tests` workflow, runs when `shared/` or Gradle files change. Tests live in `shared/src/commonTest`. The JVM target runs them, so they need no Android SDK. Kotlin-only changes should rely on this job, not `Android CI`. |
 | Emulator smoke test of the release APK (about 4-8 min) | `gh workflow run smoke-test.yml --ref <branch>` |
 | Emulator instrumented tests (`app/src/androidTest`, same workflow as the smoke test, separate `instrumented` job) | `gh workflow run smoke-test.yml --ref <branch>`. They run inside the app, so they can seed data with the shared `CoreVerse` builder and read the rendered views, against the minimal John 1-2 and Hebrews 1-2 translation. Artifact: `instrumented-results`. To position the reader, run `CoreReader` on a storage that saves through the app's singleton `BibleReadingRepository` (read from `(applicationContext as ContainerHolder).container.bibleReadingRepository`, see `CoreReaderTest`), because the repository caches the position in memory and ignores writes made through a separate `AndroidDatabase`. |
 | APK size breakdown (dex per package, R8 `usage.txt`, dependency tree; artifact `apk-size`) | `gh workflow run apk-size.yml --ref <branch>` (once the workflow is on `main`) |
@@ -30,9 +30,10 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
   - `core/` holds managers and repositories (`repository/local` for SQLite, `repository/remote` for downloads and USFM parsing).
   - Feature packages (`reading`, `search`, `translations`, `settings`, `annotated`, `progress`, `preview`) each have an Activity plus a `ViewModel` with a single `ViewState`, one-shot `ViewAction`s and a typed `Error`, on `infra/BaseViewModel` and `infra/BaseActivity`.
   - Strong's Numbers, cross references and the old JSON download flow were removed; translations now come from eBible.org USFM zips, with a redistributable catalog in `app/src/main/assets/translations.csv` refreshed monthly by `update-translation-catalog.yml`.
+- Android is a thin shell: platform services sit behind interfaces in `shared` (`Navigator`/`Screen`, `SpeechEngine`/`SpeechPreferences` behind `ChapterSpeaker`, `NetworkPolicy`, `TranslationCatalog`, `TranslationVersions`, `TranslationUpdateScheduler`, `TranslationUpdateChecker`, and the `Local*Storage`/`RemoteTranslationService` storage and download interfaces). Their Android implementations (`AndroidNavigator`, `AndroidSpeech.kt`, `AndroidDownloads.kt`, `Android*Storage`, `HttpTranslationService`) are built only in `AppContainer`. New platform behaviour should get an interface in `shared` first, with its logic tested in `shared/src/commonTest`.
 - Dependency injection is manual, with no library: `AppContainer.kt` lazily builds every dependency and the `ViewModelProvider.Factory`, and `App` owns it. Activities and fragments read `container` (a `Context` extension) and use `by viewModels { container.viewModelFactory }`. Robolectric tests extend `BaseActivityTest`/`BaseFragmentTest` and override `createContainer` to return a `TestContainer` with a mock navigator and/or view models.
 - `buildSrc/src/main/kotlin/Configurations.kt` pins plugin and library versions. The app version comes from the release tag (`-PappVersion`), not from this file.
-- `web/` is the GitHub Pages reader (Kotlin/JS) and the USFM-to-JSON converter, its Pages workflow was removed in favour of the F-Droid repo (`fdroid.yml`, [docs/FDROID.md](docs/FDROID.md)); see [docs/WEB.md](docs/WEB.md). The Android-free core (managers, repositories, USFM parser) lives in `shared/src/commonMain`, with `expect`/`actual` helpers in `utils/Platform*.kt`.
+- The Android-free core (managers, repositories, USFM parser) lives in `shared/src/commonMain`, with `expect`/`actual` helpers in `utils/Platform*.kt`.
 - `docs/RELEASING.md` covers releases and signing; `.github/scripts/` holds the smoke-test helpers; `shared/src/commonMain/.../testing` has fluent builders (`CoreVerse`, `CoreSettings`) for JVM tests.
 
 ## Testing conventions
@@ -43,6 +44,7 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
 
 ## Repository facts
 
+- Database schema changes need a `Migration` appended to `AndroidDatabase.MIGRATIONS` (the version is `MIGRATIONS.size + 1`), so installs keep bookmarks, notes, progress and translations. Never drop tables to change the schema.
 - `main` is protected. Open PRs; the maintainer merges them.
 - Merging a PR auto-tags the next version from the PR title prefix (`major:`, `minor:`, `patch:`; any other title creates no tag) and starts the release. See `.github/workflows/auto-tag.yml`.
 - Known-bad dependency versions that broke CI on JDK 25: Robolectric 4.17. Keep Robolectric 4.16.1 (`buildSrc/src/main/kotlin/Configurations.kt`).

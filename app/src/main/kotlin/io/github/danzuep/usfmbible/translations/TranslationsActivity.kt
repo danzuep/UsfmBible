@@ -35,7 +35,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.asExecutor
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.TranslationInfo
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
@@ -74,7 +74,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     override val viewBinding: ActivityTranslationsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTranslationsBinding.inflate(layoutInflater) }
 
     override fun initializeView() {
-        viewBinding.toolbar.setNavigationOnClickListener { navigator.goBack(this) }
+        viewBinding.toolbar.setNavigationOnClickListener { navigator.goBack() }
         adapter = TranslationsAdapter(
             inflater = layoutInflater,
             executor = coroutineDispatcherProvider.default.asExecutor()
@@ -109,7 +109,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                         true
                     }
                     R.id.action_check_for_updates -> {
-                        navigator.navigate(this@TranslationsActivity, Navigator.SCREEN_TRANSLATION_UPDATES)
+                        navigator.navigate(Screen.TRANSLATION_UPDATES)
                         true
                     }
                     R.id.action_upload_translation -> {
@@ -288,7 +288,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     }
 
     override fun onViewActionEmitted(viewAction: TranslationsViewModel.ViewAction) = when (viewAction) {
-        TranslationsViewModel.ViewAction.GoBack -> navigator.goBack(this)
+        TranslationsViewModel.ViewAction.GoBack -> navigator.goBack()
     }
 
     override fun onViewStateUpdated(viewState: TranslationsViewModel.ViewState): Unit = with(viewBinding) {
@@ -369,7 +369,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
                 title = R.string.dialog_title_error,
                 message = R.string.dialog_message_failed_to_load_translation_list,
                 onPositive = { _, _ -> viewModel.loadTranslations(forceRefresh = true) },
-                onNegative = { _, _ -> navigator.goBack(this@TranslationsActivity) },
+                onNegative = { _, _ -> navigator.goBack() },
                 onDismiss = { viewModel.markErrorAsShown(this) },
             )
         }

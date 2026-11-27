@@ -2,10 +2,8 @@ package io.github.danzuep.usfmbible.translations
 
 import android.app.job.JobInfo
 import android.app.job.JobParameters
-import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.os.PersistableBundle
@@ -27,7 +25,7 @@ import io.github.danzuep.usfmbible.container
  * extra library is needed. Scheduled only when the user opens the updates page or asks to update; interrupted downloads resume later.
  */
 class TranslationUpdateJobService : JobService() {
-    val translationManager: TranslationManager
+    private val translationManager: TranslationManager
         get() = container.translationManager
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -41,7 +39,7 @@ class TranslationUpdateJobService : JobService() {
                 translationManager.reload(false)
                 // No names means the check itself was deferred, so find what is outdated now.
                 val targets = if (shortNames.isEmpty()) {
-                    findTranslationUpdates(applicationContext, translationManager).orEmpty().map { it.translation }
+                    container.translationUpdateChecker.find().orEmpty().map { it.translation }
                 } else {
                     translationManager.downloadedTranslations().first().filter { it.shortName in shortNames }
                 }
@@ -69,19 +67,13 @@ class TranslationUpdateJobService : JobService() {
 
     companion object {
         private const val TAG = "TranslationUpdateJob"
-        private const val JOB_ID = 2031
+        const val JOB_ID = 2031
         private const val KEY_SHORT_NAMES = "shortNames"
 
-        fun schedule(context: Context, shortNames: List<String>) {
-            val job = JobInfo.Builder(JOB_ID, ComponentName(context, TranslationUpdateJobService::class.java))
+        fun jobInfo(component: ComponentName, shortNames: List<String>): JobInfo =
+            JobInfo.Builder(JOB_ID, component)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
                 .setExtras(PersistableBundle().apply { putStringArray(KEY_SHORT_NAMES, shortNames.toTypedArray()) })
                 .build()
-            context.getSystemService(JobScheduler::class.java).schedule(job)
-        }
-
-        fun cancel(context: Context) = context.getSystemService(JobScheduler::class.java).cancel(JOB_ID)
-
-        fun isPending(context: Context): Boolean = context.getSystemService(JobScheduler::class.java).getPendingJob(JOB_ID) != null
     }
 }

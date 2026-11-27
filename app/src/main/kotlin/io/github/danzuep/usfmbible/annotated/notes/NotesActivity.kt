@@ -18,7 +18,6 @@
 package io.github.danzuep.usfmbible.annotated.notes
 
 import android.app.Application
-import android.os.Bundle
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseActivity
@@ -69,5 +68,5 @@ class NotesViewModel(
 class NotesActivity : AnnotatedVerseActivity<Note, NotesViewModel>(R.string.title_notes) {
     override val viewModel: NotesViewModel by viewModelOf()
 
-    override fun extrasForOpeningVerse(): Bundle = ReadingActivity.bundleForOpenNote()
+    override fun extrasForOpeningVerse(): Map<String, Any?> = ReadingActivity.extrasForOpenNote()
 }

@@ -29,6 +29,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.annotated.bookmarks.BookmarksActivity
 import io.github.danzuep.usfmbible.annotated.bookmarks.BookmarksViewModel
 import io.github.danzuep.usfmbible.core.Constants
@@ -79,10 +80,10 @@ class AnnotatedVerseActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), OpenReadingScreen`() {
         every { viewModel.viewAction() } returns flowOf(AnnotatedVerseViewModel.ViewAction.OpenReadingScreen)
-        every { mockNavigator.navigate(any(), Navigator.SCREEN_READING) } returns Unit
+        every { mockNavigator.navigate(Screen.READING, any()) } returns Unit
 
         withActivity<BookmarksActivity> { activity ->
-            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_READING) }
+            verify(exactly = 1) { mockNavigator.navigate(Screen.READING, any()) }
         }
     }
 

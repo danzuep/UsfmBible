@@ -20,7 +20,7 @@ package io.github.danzuep.usfmbible.progress
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.asExecutor
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.databinding.ActivityReadingProgressBinding
@@ -42,7 +42,7 @@ class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, Rea
     override val viewBinding: ActivityReadingProgressBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityReadingProgressBinding.inflate(layoutInflater) }
 
     override fun initializeView() {
-        viewBinding.toolbar.setNavigationOnClickListener { navigator.goBack(this) }
+        viewBinding.toolbar.setNavigationOnClickListener { navigator.goBack() }
         adapter = ReadingProgressAdapter(
             inflater = layoutInflater,
             executor = coroutineDispatcherProvider.default.asExecutor()
@@ -56,7 +56,7 @@ class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, Rea
     }
 
     override fun onViewActionEmitted(viewAction: ReadingProgressViewModel.ViewAction) = when (viewAction) {
-        ReadingProgressViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(this, Navigator.SCREEN_READING)
+        ReadingProgressViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(Screen.READING)
     }
 
     override fun onViewStateUpdated(viewState: ReadingProgressViewModel.ViewState): Unit = with(viewBinding) {
@@ -82,7 +82,7 @@ class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, Rea
                 title = R.string.dialog_title_error,
                 message = R.string.dialog_message_failed_to_load_reading_progress,
                 onPositive = { _, _ -> viewModel.loadReadingProgress() },
-                onNegative = { _, _ -> navigator.goBack(this@ReadingProgressActivity) },
+                onNegative = { _, _ -> navigator.goBack() },
                 onDismiss = { viewModel.markErrorAsShown(this) }
             )
         }

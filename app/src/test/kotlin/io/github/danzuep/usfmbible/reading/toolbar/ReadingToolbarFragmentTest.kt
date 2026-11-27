@@ -28,6 +28,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.databinding.FragmentReadingToolbarBinding
 import io.github.danzuep.usfmbible.reading.ReadingActivity
@@ -51,23 +52,23 @@ class ReadingToolbarFragmentTest : BaseFragmentTest() {
 
     @Test
     fun `test toolbar ViewEvent`() {
-        `verify toolbar ViewEvent`(R.id.action_bookmarks, Navigator.SCREEN_BOOKMARKS)
-        `verify toolbar ViewEvent`(R.id.action_highlights, Navigator.SCREEN_HIGHLIGHTS)
-        `verify toolbar ViewEvent`(R.id.action_notes, Navigator.SCREEN_NOTES)
-        `verify toolbar ViewEvent`(R.id.action_reading_progress, Navigator.SCREEN_READING_PROGRESS)
-        `verify toolbar ViewEvent`(R.id.action_search, Navigator.SCREEN_SEARCH)
-        `verify toolbar ViewEvent`(R.id.action_settings, Navigator.SCREEN_SETTINGS)
-        `verify toolbar ViewEvent`(R.id.action_timeline, Navigator.SCREEN_TIMELINE)
+        `verify toolbar ViewEvent`(R.id.action_bookmarks, Screen.BOOKMARKS)
+        `verify toolbar ViewEvent`(R.id.action_highlights, Screen.HIGHLIGHTS)
+        `verify toolbar ViewEvent`(R.id.action_notes, Screen.NOTES)
+        `verify toolbar ViewEvent`(R.id.action_reading_progress, Screen.READING_PROGRESS)
+        `verify toolbar ViewEvent`(R.id.action_search, Screen.SEARCH)
+        `verify toolbar ViewEvent`(R.id.action_settings, Screen.SETTINGS)
+        `verify toolbar ViewEvent`(R.id.action_timeline, Screen.TIMELINE)
     }
 
-    private fun `verify toolbar ViewEvent`(@IdRes menuItemId: Int, @Navigator.Companion.Screen screen: Int) {
-        every { mockNavigator.navigate(any(), screen) } returns Unit
+    private fun `verify toolbar ViewEvent`(@IdRes menuItemId: Int, screen: Screen) {
+        every { mockNavigator.navigate(screen, any()) } returns Unit
 
         withFragment<ReadingToolbarFragment, ReadingActivity> { fragment ->
             val viewBinding: FragmentReadingToolbarBinding = fragment.getProperty("viewBinding")
             val onMenuItemClickListener: Toolbar.OnMenuItemClickListener = (viewBinding.toolbar as Toolbar).getProperty("mOnMenuItemClickListener")
             assertTrue(onMenuItemClickListener.onMenuItemClick(viewBinding.toolbar.menu.findItem(menuItemId)))
-            verify(exactly = 1) { mockNavigator.navigate(any(), screen) }
+            verify(exactly = 1) { mockNavigator.navigate(screen, any()) }
         }
     }
 

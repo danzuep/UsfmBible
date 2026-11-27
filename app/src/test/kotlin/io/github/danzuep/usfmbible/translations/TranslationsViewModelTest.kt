@@ -17,6 +17,7 @@
 
 package io.github.danzuep.usfmbible.translations
 
+import io.github.danzuep.usfmbible.core.repository.remote.android.AssetTranslationCatalog
 import android.app.Application
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -72,7 +73,7 @@ class TranslationsViewModelTest : BaseUnitTest() {
         application = mockk()
         every { application.getString(R.string.header_available_translations) } returns "AVAILABLE TRANSLATIONS"
 
-        translationsViewModel = TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, application, testCoroutineDispatcherProvider)
+        translationsViewModel = TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, AssetTranslationCatalog(application), application, testCoroutineDispatcherProvider)
     }
 
     @Test

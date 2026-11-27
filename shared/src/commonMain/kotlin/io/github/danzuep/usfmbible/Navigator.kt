@@ -14,12 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.github.danzuep.usfmbible
 
-package io.github.danzuep.usfmbible.ui
+enum class Screen {
+    READING, SEARCH, TRANSLATIONS, READING_PROGRESS, BOOKMARKS, HIGHLIGHTS, NOTES, SETTINGS, TIMELINE, RATE_ME, WEBSITE, TRANSLATION_UPDATES
+}
 
-// The web site shows the language names of the translation catalog instead.
-actual fun languageDisplayName(language: String): String = language.split("_")[0]
+/** Moves between screens of the app, so screens and view models don't depend on how the platform shows them. */
+interface Navigator {
+    /** Opens [screen] on top of the current one; [extras] are the values the screen starts with, by key. */
+    fun navigate(screen: Screen, extras: Map<String, Any?> = emptyMap())
 
-actual fun languageDisplayNameWithNative(language: String): String = languageDisplayName(language)
-
-actual fun languageMatchesUserLocale(language: String): Boolean = false
+    fun goBack()
+}
