@@ -92,8 +92,9 @@ bundle install
 bundle exec fastlane validate                  # check the listing without publishing
 bundle exec fastlane metadata                  # upload text and images
 bundle exec fastlane internal aab:app/build/outputs/bundle/release/app-release.aab
+bundle exec fastlane closed aab:app/build/outputs/bundle/release/app-release.aab   # closed testing ("alpha")
 ```
 
 Run `python3 .github/scripts/check-store-assets.py` (needs `pip install pillow`) to check all of these limits; the `Website` workflow runs it on pull requests. Add new screenshots as-is and run it with `--fix`, which pads any screenshot taller than 2:1 with black side bars instead of cropping it.
 
-`internal` uploads a draft to the internal testing track, so add testers and roll it out in Play Console.
+`internal` and `closed` upload a draft to the internal or closed testing track, so add testers and roll it out in Play Console. See [STORE_LISTING.md](STORE_LISTING.md) for the screenshot plan, copy rationale and the tester checklist.

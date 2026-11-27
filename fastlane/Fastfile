@@ -34,4 +34,17 @@ platform :android do
       skip_upload_screenshots: true
     )
   end
+
+  desc "Upload a signed AAB and its changelog to the closed testing track (Play's \"alpha\" track), e.g. fastlane closed aab:app-release.aab"
+  lane :closed do |options|
+    aab = options[:aab] || UI.user_error!("Pass aab:<path to the signed .aab>")
+    upload_to_play_store(
+      track: "alpha",
+      aab: aab,
+      release_status: "draft",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
 end

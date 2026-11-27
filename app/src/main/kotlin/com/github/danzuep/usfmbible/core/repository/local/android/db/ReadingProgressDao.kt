@@ -65,7 +65,7 @@ class ReadingProgressDao(sqliteHelper: SQLiteOpenHelper) {
                     .toList { row ->
                         ReadingProgress.ChapterReadingStatus(row.getInt(COLUMN_BOOK_INDEX), row.getInt(COLUMN_CHAPTER_INDEX),
                                 row.getInt(COLUMN_READ_COUNT), row.getLong(COLUMN_TIME_SPENT_IN_MILLS), row.getLong(COLUMN_LAST_READING_TIMESTAMP))
-                    }
+                    }.filter { it.isValid() } // drops books outside the canon saved by older versions
 
     @WorkerThread
     fun read(bookIndex: Int, chapterIndex: Int): ReadingProgress.ChapterReadingStatus =

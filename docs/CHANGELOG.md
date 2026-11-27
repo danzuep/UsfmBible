@@ -13,6 +13,11 @@ CHANGELOG
 - Tap a chapter to pick a verse (long press to open it), with the book and chapter shown above the verse grid.
 - Group the reading timeline by date or by book, and make it the first overflow menu item.
 
+#### Unreleased
+- Remove the deuterocanon from the reader; many eBible.org downloads still include it.
+- The website link in Settings opens the home page, and a missing browser no longer crashes the app.
+- Add a privacy policy page to the website.
+
 #### v0.43 (2026-11-19)
 - Read chapters aloud with Android text to speech, with highlighted verse, media controls, speeds up to 5x and chapter-to-chapter playback.
 - Manage reading history in bulk and add selected verses to it.

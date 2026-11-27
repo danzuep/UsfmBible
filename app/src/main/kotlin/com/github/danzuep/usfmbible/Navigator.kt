@@ -18,6 +18,7 @@
 package com.github.danzuep.usfmbible
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -33,6 +34,7 @@ import com.github.danzuep.usfmbible.settings.SettingsActivity
 import com.github.danzuep.usfmbible.timeline.TimelineActivity
 import com.github.danzuep.usfmbible.translations.TranslationUpdatesActivity
 import com.github.danzuep.usfmbible.translations.TranslationsActivity
+import com.github.danzuep.usfmbible.ui.toast
 
 class Navigator {
     companion object {
@@ -48,6 +50,9 @@ class Navigator {
         const val SCREEN_RATE_ME = 9
         const val SCREEN_WEBSITE = 10
         const val SCREEN_TRANSLATION_UPDATES = 11
+
+        /** The home page, also the store listing's website and support link. */
+        const val HOME_PAGE_URL = "https://danzuep.github.io/UsfmBible/"
 
         @IntDef(
                 SCREEN_READING, SCREEN_SEARCH, SCREEN_TRANSLATIONS, SCREEN_READING_PROGRESS,
@@ -71,11 +76,16 @@ class Navigator {
             SCREEN_TIMELINE -> Intent(activity, TimelineActivity::class.java)
             SCREEN_TRANSLATION_UPDATES -> Intent(activity, TranslationUpdatesActivity::class.java)
             SCREEN_RATE_ME -> Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://github.com/danzuep/UsfmBible"))
-            SCREEN_WEBSITE -> Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://ebible.org/about.php"))
+            SCREEN_WEBSITE -> Intent(Intent.ACTION_VIEW).setData(Uri.parse(HOME_PAGE_URL))
             else -> throw IllegalArgumentException("Unknown screen - $screen")
         }
         extras?.let { intent.putExtras(it) }
-        activity.startActivity(intent)
+        try {
+            activity.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // Web links need a browser, which not every device has.
+            activity.toast(R.string.toast_no_browser)
+        }
     }
 
     fun goBack(activity: Activity) {

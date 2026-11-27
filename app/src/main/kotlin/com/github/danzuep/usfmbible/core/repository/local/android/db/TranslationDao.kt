@@ -150,10 +150,10 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
                 COLUMN_BOOK_INDEX less Bible.OLD_TESTAMENT_COUNT
             } else if (!query.includeOldTestament && query.includeNewTestament) {
                 // New Testament only
-                (COLUMN_BOOK_INDEX greaterEq Bible.OLD_TESTAMENT_COUNT) and (COLUMN_BOOK_INDEX less Bible.CANON_BOOK_COUNT)
+                COLUMN_BOOK_INDEX greaterEq Bible.OLD_TESTAMENT_COUNT
             } else {
-                // The whole Bible, with the deuterocanon
-                noOp()
+                // The whole Bible; books beyond the canon may remain in translations installed by older versions
+                COLUMN_BOOK_INDEX less Bible.BOOK_COUNT
             }).withQuery(COLUMN_TEXT, query.keyword)
         }.orderBy(COLUMN_BOOK_INDEX, COLUMN_CHAPTER_INDEX, COLUMN_VERSE_INDEX).toList { row ->
             Verse(

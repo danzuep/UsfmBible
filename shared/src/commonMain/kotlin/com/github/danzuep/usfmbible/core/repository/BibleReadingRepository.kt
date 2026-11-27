@@ -31,12 +31,7 @@ import com.github.danzuep.usfmbible.core.Verse
 import com.github.danzuep.usfmbible.core.VerseIndex
 import com.github.danzuep.usfmbible.core.VerseSearchQuery
 import com.github.danzuep.usfmbible.core.repository.local.LocalReadingStorage
-import com.github.danzuep.usfmbible.core.repository.remote.BOOK_CODES
 import co.touchlab.kermit.Logger
-
-/** Book names saved before the deuterocanon was added only cover the canon, so the rest are named by their USFM code. */
-private fun List<String>.withAllBooks(): List<String> =
-        if (isEmpty() || size >= BOOK_CODES.size) this else this + BOOK_CODES.drop(size)
 
 class BibleReadingRepository(private val localReadingStorage: LocalReadingStorage, appScope: CoroutineScope) {
     companion object {
@@ -175,14 +170,14 @@ class BibleReadingRepository(private val localReadingStorage: LocalReadingStorag
 
     suspend fun readBookNames(translationShortName: String): List<String> {
         return cache.getBookNames(translationShortName)
-                ?: localReadingStorage.readBookNames(translationShortName).withAllBooks().also {
+                ?: localReadingStorage.readBookNames(translationShortName).also {
                     if (it.isNotEmpty()) cache.putBookNames(translationShortName, it)
                 }
     }
 
     suspend fun readBookShortNames(translationShortName: String): List<String> {
         return cache.getBookShortNames(translationShortName)
-                ?: localReadingStorage.readBookShortNames(translationShortName).withAllBooks().also {
+                ?: localReadingStorage.readBookShortNames(translationShortName).also {
                     if (it.isNotEmpty()) cache.putBookShortNames(translationShortName, it)
                 }
     }
