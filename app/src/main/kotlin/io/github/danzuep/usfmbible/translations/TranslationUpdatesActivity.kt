@@ -28,7 +28,7 @@ class TranslationUpdatesActivity : BaseActivity<
     }
 
     override fun initializeView() = with(viewBinding) {
-        toolbar.setNavigationOnClickListener { navigator.goBack(this@TranslationUpdatesActivity) }
+        toolbar.setNavigationOnClickListener { navigator.goBack() }
         toolbar.inflateMenu(R.menu.menu_translation_updates)
         toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.action_data_policy) {

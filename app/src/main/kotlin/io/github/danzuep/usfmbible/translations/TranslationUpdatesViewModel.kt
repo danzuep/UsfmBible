@@ -8,7 +8,9 @@ import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.TranslationInfo
 import io.github.danzuep.usfmbible.core.TranslationManager
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
-import io.github.danzuep.usfmbible.core.repository.remote.android.NetworkPolicy
+import io.github.danzuep.usfmbible.core.repository.remote.NetworkPolicy
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationUpdateChecker
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationUpdateScheduler
 import io.github.danzuep.usfmbible.infra.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
@@ -18,6 +20,9 @@ import kotlinx.coroutines.withContext
 /** Checks the installed translations for newer versions when the page is opened, and updates the ones the user ticks. */
 class TranslationUpdatesViewModel(
     private val translationManager: TranslationManager,
+    private val checker: TranslationUpdateChecker,
+    private val scheduler: TranslationUpdateScheduler,
+    private val networkPolicy: NetworkPolicy,
     private val settingsManager: SettingsManager,
     private val application: Application,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
@@ -61,7 +66,6 @@ class TranslationUpdatesViewModel(
         updateViewState { state }
     }
 
-    private val networkPolicy = NetworkPolicy(application) { settingsManager.settings().first() }
     private var updateJob: Job? = null
 
     init {
@@ -72,11 +76,11 @@ class TranslationUpdatesViewModel(
         mutate { it.copy(status = Status.Checking, items = emptyList()) }
         viewModelScope.launch {
             if (!networkPolicy.isAllowed()) {
-                mutate { it.copy(status = if (TranslationUpdateJobService.isPending(application)) Status.WaitingForWifi else Status.NetworkBlocked) }
+                mutate { it.copy(status = if (scheduler.isPending()) Status.WaitingForWifi else Status.NetworkBlocked) }
                 return@launch
             }
             val result = runCatching {
-                withContext(coroutineDispatcherProvider.default) { findTranslationUpdates(application, translationManager) }
+                withContext(coroutineDispatcherProvider.default) { checker.find() }
             }.onFailure { e -> Logger.withTag(tag).e(e) { "Failed to check for updates" } }.getOrNull()
                 ?.map { Item(it.translation, it.unknownVersion) }
             mutate {
@@ -84,7 +88,7 @@ class TranslationUpdatesViewModel(
                     result == null -> it.copy(status = Status.CheckFailed)
                     result.isEmpty() -> it.copy(status = Status.UpToDate)
                     else -> it.copy(
-                        status = if (TranslationUpdateJobService.isPending(application)) Status.WaitingForWifi else Status.Idle,
+                        status = if (scheduler.isPending()) Status.WaitingForWifi else Status.Idle,
                         items = result,
                     )
                 }
@@ -103,7 +107,7 @@ class TranslationUpdatesViewModel(
     /** Asked for by the user: check and update later, on an unmetered network, even if they leave this page. */
     fun checkWhenOnWifi() {
         if (state.status !is Status.NetworkBlocked) return
-        TranslationUpdateJobService.schedule(application, emptyList())
+        scheduler.schedule(emptyList())
         mutate { it.copy(status = Status.WaitingForWifi) }
     }
 
@@ -122,7 +126,7 @@ class TranslationUpdatesViewModel(
     }
 
     fun cancel() {
-        TranslationUpdateJobService.cancel(application)
+        scheduler.cancel()
         updateJob?.cancel()
         updateJob = null
         mutate { if (it.busy) it.copy(status = Status.Idle) else it }
@@ -130,7 +134,7 @@ class TranslationUpdatesViewModel(
 
     // The job outlives this page; ACCESS_NETWORK_STATE is already declared and is not a runtime permission.
     private fun waitForWifi() {
-        TranslationUpdateJobService.schedule(application, state.items.filter { it.checked }.map { it.translation.shortName })
+        scheduler.schedule(state.items.filter { it.checked }.map { it.translation.shortName })
         mutate { it.copy(status = Status.WaitingForWifi) }
     }
 

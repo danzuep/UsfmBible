@@ -32,7 +32,7 @@ import io.github.danzuep.usfmbible.core.TranslationInfo
 import io.github.danzuep.usfmbible.core.TranslationManager
 import io.github.danzuep.usfmbible.core.containsAnyKeyword
 import io.github.danzuep.usfmbible.core.repository.remote.TranslationTableRow
-import io.github.danzuep.usfmbible.core.repository.remote.android.TranslationCatalog
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationCatalog
 import io.github.danzuep.usfmbible.core.toKeywords
 import io.github.danzuep.usfmbible.ui.TranslationInfoComparator
 import io.github.danzuep.usfmbible.ui.languageDisplayName
@@ -53,6 +53,7 @@ class TranslationsViewModel(
     private val bibleReadingManager: BibleReadingManager,
     private val translationManager: TranslationManager,
     private val settingsManager: SettingsManager,
+    private val catalog: TranslationCatalog,
     private val application: Application,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
 ) : BaseViewModel<TranslationsViewModel.ViewAction, TranslationsViewModel.ViewState>(
@@ -109,7 +110,7 @@ class TranslationsViewModel(
 
     private val translationRows: Map<String, TranslationTableRow> by lazy {
         runCatching {
-            TranslationCatalog.rows(application, "https://ebible.org/").associateBy { it.id.replace(Regex("[^A-Za-z0-9]"), "_") }
+            catalog.rows("https://ebible.org/").associateBy { it.id.replace(Regex("[^A-Za-z0-9]"), "_") }
         }.getOrDefault(emptyMap())
     }
 
@@ -182,7 +183,7 @@ class TranslationsViewModel(
         viewModelScope.launch {
             val details = runCatching {
                 withContext(coroutineDispatcherProvider.default) {
-                    TranslationCatalog.rows(application, "https://ebible.org/")
+                    catalog.rows("https://ebible.org/")
                         .firstOrNull { it.id == translation.shortName }
                         ?.let { row ->
                             buildList {

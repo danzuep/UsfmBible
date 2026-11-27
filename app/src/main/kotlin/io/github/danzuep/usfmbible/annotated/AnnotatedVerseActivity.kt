@@ -17,11 +17,10 @@
 
 package io.github.danzuep.usfmbible.annotated
 
-import android.os.Bundle
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import kotlinx.coroutines.asExecutor
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.VerseAnnotation
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
@@ -45,7 +44,7 @@ abstract class AnnotatedVerseActivity<V : VerseAnnotation, VM : AnnotatedVerseVi
     override val viewBinding: ActivityAnnotatedBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityAnnotatedBinding.inflate(layoutInflater) }
 
     override fun initializeView() = with(viewBinding) {
-        toolbar.setNavigationOnClickListener { navigator.goBack(this@AnnotatedVerseActivity) }
+        toolbar.setNavigationOnClickListener { navigator.goBack() }
         toolbar.initialize(sortOrderUpdated = viewModel::saveSortOrder)
         toolbar.setTitle(toolbarText)
 
@@ -63,7 +62,7 @@ abstract class AnnotatedVerseActivity<V : VerseAnnotation, VM : AnnotatedVerseVi
     }
 
     override fun onViewActionEmitted(viewAction: AnnotatedVerseViewModel.ViewAction) = when (viewAction) {
-        AnnotatedVerseViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(this, Navigator.SCREEN_READING, extrasForOpeningVerse())
+        AnnotatedVerseViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(Screen.READING, extrasForOpeningVerse())
     }
 
     override fun onViewStateUpdated(viewState: AnnotatedVerseViewModel.ViewState): Unit = with(viewBinding) {
@@ -108,7 +107,7 @@ abstract class AnnotatedVerseActivity<V : VerseAnnotation, VM : AnnotatedVerseVi
                 title = R.string.dialog_title_error,
                 message = R.string.dialog_message_failed_to_load_annotated_verses,
                 onPositive = { _, _ -> viewModel.loadAnnotatedVerses() },
-                onNegative = { _, _ -> navigator.goBack(this@AnnotatedVerseActivity) },
+                onNegative = { _, _ -> navigator.goBack() },
                 onDismiss = { viewModel.markErrorAsShown(this) }
             )
         }
@@ -138,5 +137,5 @@ abstract class AnnotatedVerseActivity<V : VerseAnnotation, VM : AnnotatedVerseVi
         }
     }
 
-    protected open fun extrasForOpeningVerse(): Bundle? = null
+    protected open fun extrasForOpeningVerse(): Map<String, Any?> = emptyMap()
 }

@@ -18,7 +18,7 @@
 package io.github.danzuep.usfmbible.reading.toolbar
 
 import androidx.appcompat.widget.Toolbar
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.VerseIndex
 import io.github.danzuep.usfmbible.databinding.FragmentReadingToolbarBinding
@@ -43,14 +43,14 @@ class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, Readi
         viewBinding.toolbar.initialize { viewEvent ->
             when (viewEvent) {
                 is ReadingToolbar.ViewEvent.OpenCopyright -> requireContext().showCopyright(viewEvent.translationShortName)
-                is ReadingToolbar.ViewEvent.OpenTimeline -> navigator.navigate(requireActivity(), Navigator.SCREEN_TIMELINE)
-                is ReadingToolbar.ViewEvent.OpenBookmarks -> navigator.navigate(requireActivity(), Navigator.SCREEN_BOOKMARKS)
-                is ReadingToolbar.ViewEvent.OpenHighlights -> navigator.navigate(requireActivity(), Navigator.SCREEN_HIGHLIGHTS)
-                is ReadingToolbar.ViewEvent.OpenNotes -> navigator.navigate(requireActivity(), Navigator.SCREEN_NOTES)
-                is ReadingToolbar.ViewEvent.OpenReadingProgress -> navigator.navigate(requireActivity(), Navigator.SCREEN_READING_PROGRESS)
-                is ReadingToolbar.ViewEvent.OpenSearch -> navigator.navigate(requireActivity(), Navigator.SCREEN_SEARCH)
-                is ReadingToolbar.ViewEvent.OpenSettings -> navigator.navigate(requireActivity(), Navigator.SCREEN_SETTINGS)
-                is ReadingToolbar.ViewEvent.OpenTranslations -> navigator.navigate(requireActivity(), Navigator.SCREEN_TRANSLATIONS)
+                is ReadingToolbar.ViewEvent.OpenTimeline -> navigator.navigate(Screen.TIMELINE)
+                is ReadingToolbar.ViewEvent.OpenBookmarks -> navigator.navigate(Screen.BOOKMARKS)
+                is ReadingToolbar.ViewEvent.OpenHighlights -> navigator.navigate(Screen.HIGHLIGHTS)
+                is ReadingToolbar.ViewEvent.OpenNotes -> navigator.navigate(Screen.NOTES)
+                is ReadingToolbar.ViewEvent.OpenReadingProgress -> navigator.navigate(Screen.READING_PROGRESS)
+                is ReadingToolbar.ViewEvent.OpenSearch -> navigator.navigate(Screen.SEARCH)
+                is ReadingToolbar.ViewEvent.OpenSettings -> navigator.navigate(Screen.SETTINGS)
+                is ReadingToolbar.ViewEvent.OpenTranslations -> navigator.navigate(Screen.TRANSLATIONS)
                 is ReadingToolbar.ViewEvent.RemoveParallelTranslation -> viewModel.removeParallelTranslation(viewEvent.translationToRemove)
                 is ReadingToolbar.ViewEvent.RequestParallelTranslation -> viewModel.requestParallelTranslation(viewEvent.translationToRequest)
                 is ReadingToolbar.ViewEvent.SelectCurrentTranslation -> viewModel.selectTranslation(viewEvent.translationToSelect)

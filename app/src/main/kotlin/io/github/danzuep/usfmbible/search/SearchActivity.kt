@@ -20,11 +20,10 @@ package io.github.danzuep.usfmbible.search
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import androidx.core.os.bundleOf
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import kotlinx.coroutines.asExecutor
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.databinding.ActivitySearchBinding
@@ -51,7 +50,7 @@ class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewA
     override val viewBinding: ActivitySearchBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySearchBinding.inflate(layoutInflater) }
 
     override fun initializeView() {
-        viewBinding.toolbar.setNavigationOnClickListener { navigator.goBack(this) }
+        viewBinding.toolbar.setNavigationOnClickListener { navigator.goBack() }
         viewBinding.toolbar.initialize(
             onSearchByReferenceChanged = viewModel::searchByReference,
             onIncludeOldTestamentChanged = viewModel::includeOldTestament,
@@ -118,9 +117,9 @@ class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewA
 
     override fun onViewActionEmitted(viewAction: SearchViewModel.ViewAction) = when (viewAction) {
         SearchViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(
-            this, Navigator.SCREEN_READING, bundleOf(ReadingActivity.KEY_SELECT_VERSE to true))
+            Screen.READING, mapOf(ReadingActivity.KEY_SELECT_VERSE to true))
         is SearchViewModel.ViewAction.OpenBook -> navigator.navigate(
-            this, Navigator.SCREEN_READING, bundleOf(ReadingActivity.KEY_OPEN_BOOK to viewAction.bookIndex))
+            Screen.READING, mapOf(ReadingActivity.KEY_OPEN_BOOK to viewAction.bookIndex))
     }
 
     override fun onViewStateUpdated(viewState: SearchViewModel.ViewState): Unit = with(viewBinding) {
@@ -222,7 +221,7 @@ class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewA
                 title = R.string.dialog_title_error,
                 message = R.string.dialog_message_failed_to_search,
                 onPositive = { _, _ -> viewModel.retrySearch() },
-                onNegative = { _, _ -> navigator.goBack(this@SearchActivity) },
+                onNegative = { _, _ -> navigator.goBack() },
                 onDismiss = { viewModel.markErrorAsShown(this) }
             )
         }

@@ -1,7 +1,7 @@
 Store listing and tester readiness
 ==================================
 
-Home page, website and support link for every listing: https://danzuep.github.io/UsfmBible/ (privacy policy: https://danzuep.github.io/UsfmBible/privacy/). The same URL is opened by Settings > About in the app (`Navigator.HOME_PAGE_URL`).
+Home page, website and support link for every listing: https://danzuep.github.io/UsfmBible/ (privacy policy: https://danzuep.github.io/UsfmBible/privacy/). The same URL is opened by Settings > About in the app (`AndroidNavigator.HOME_PAGE_URL`).
 
 Play Console fields not covered by Fastlane: privacy policy URL (above), Data safety form (no data collected or shared, no ads), content rating questionnaire, target audience (not designed for children), app category (Books & Reference), contact email.
 

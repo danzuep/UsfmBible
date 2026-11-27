@@ -20,7 +20,7 @@ import android.widget.Spinner
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.asExecutor
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseAdapter
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
@@ -51,7 +51,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     override val viewBinding: ActivityTimelineBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTimelineBinding.inflate(layoutInflater) }
 
     override fun initializeView() = with(viewBinding) {
-        toolbar.setNavigationOnClickListener { navigator.goBack(this@TimelineActivity) }
+        toolbar.setNavigationOnClickListener { navigator.goBack() }
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_timeline_select_all -> {
@@ -87,7 +87,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     }
 
     override fun onViewActionEmitted(viewAction: TimelineViewModel.ViewAction) = when (viewAction) {
-        TimelineViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(this, Navigator.SCREEN_READING)
+        TimelineViewModel.ViewAction.OpenReadingScreen -> navigator.navigate(Screen.READING)
     }
 
     override fun onViewStateUpdated(viewState: TimelineViewModel.ViewState): Unit = with(viewBinding) {
@@ -206,7 +206,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
                 title = R.string.dialog_title_error,
                 message = R.string.dialog_message_failed_to_load_annotated_verses,
                 onPositive = { _, _ -> viewModel.loadTimeline() },
-                onNegative = { _, _ -> navigator.goBack(this@TimelineActivity) },
+                onNegative = { _, _ -> navigator.goBack() },
                 onDismiss = { viewModel.markErrorAsShown(this) }
             )
         }

@@ -35,6 +35,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.SearchConfiguration
 import io.github.danzuep.usfmbible.core.Settings
@@ -101,10 +102,10 @@ class SearchActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), OpenReadingScreen`() {
         every { viewModel.viewAction() } returns flowOf(SearchViewModel.ViewAction.OpenReadingScreen)
-        every { mockNavigator.navigate(any(), Navigator.SCREEN_READING, any()) } returns Unit
+        every { mockNavigator.navigate(Screen.READING, any()) } returns Unit
 
         withActivity<SearchActivity> { activity ->
-            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_READING, any()) }
+            verify(exactly = 1) { mockNavigator.navigate(Screen.READING, any()) }
         }
     }
 

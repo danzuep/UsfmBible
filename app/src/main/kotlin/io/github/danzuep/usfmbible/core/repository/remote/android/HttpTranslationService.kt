@@ -22,7 +22,10 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.withContext
+import io.github.danzuep.usfmbible.core.repository.remote.NetworkPolicy
 import io.github.danzuep.usfmbible.core.repository.remote.RemoteTranslation
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationCatalog
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationVersions
 import io.github.danzuep.usfmbible.core.repository.remote.DEFAULT_DOWNLOAD_SITE
 import io.github.danzuep.usfmbible.core.repository.remote.RemoteTranslationInfo
 import io.github.danzuep.usfmbible.core.repository.remote.RemoteTranslationService
@@ -43,7 +46,9 @@ private const val TAG = "HttpTranslationService"
 
 class HttpTranslationService(
     private val context: Context,
-    private val networkPolicy: NetworkPolicy = NetworkPolicy(context),
+    private val networkPolicy: NetworkPolicy = AndroidNetworkPolicy(context),
+    private val catalog: TranslationCatalog = AssetTranslationCatalog(context),
+    private val versions: TranslationVersions = AndroidTranslationVersions(context),
 ) : RemoteTranslationService {
     private val cacheDir: File by lazy { File(context.cacheDir, "translations").apply { mkdirs() } }
 
@@ -61,7 +66,7 @@ class HttpTranslationService(
 
     // The default site is read from the bundled CSV, other sites are scraped.
     private fun readTable(site: String) = if (site == DEFAULT_DOWNLOAD_SITE) {
-        TranslationCatalog.rows(context, site)
+        catalog.rows(site)
     } else {
         parseTranslationTable(fetchText(site), site)
     }
@@ -78,7 +83,7 @@ class HttpTranslationService(
                 // Read before downloading, so a file published in between is reported as an update next time.
                 val version = runCatching { fetchLastModified(url) }.getOrNull()
                 download(downloadProgress, url, translationInfo.size, destination)
-                TranslationVersions(context).save(translationInfo.shortName, version)
+                versions.save(translationInfo.shortName, version)
                 return@withContext FileInputStream(destination).use { toRemoteTranslation(translationInfo, it) }
             } catch (e: Exception) {
                 Logger.withTag(TAG).w(e) { "Failed to download ${translationInfo.shortName} from $origin" }

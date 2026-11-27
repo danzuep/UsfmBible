@@ -43,8 +43,8 @@ class ChapterSpeakerTest {
             override fun onLanguageUnavailable(language: String) = Unit
             override fun onError() = Unit
         }
-        val first = ChapterSpeaker(context, listener)
-        val second = ChapterSpeaker(context, listener)
+        val first = AndroidChapterSpeaker(context, listener)
+        val second = AndroidChapterSpeaker(context, listener)
         try {
             first.playbackSpeed = 4f
             assertEquals(4f, second.playbackSpeed)
@@ -71,7 +71,7 @@ class ChapterSpeakerTest {
             override fun onError() { events += "error" }
         }
         ShadowTextToSpeech.addLanguageAvailability(Locale.ENGLISH)
-        val speaker = ChapterSpeaker(context, listener)
+        val speaker = AndroidChapterSpeaker(context, listener)
         try {
             speaker.selectedLanguage = "en"
             val engine = shadowOf(ShadowTextToSpeech.getLastTextToSpeechInstance())
@@ -113,7 +113,7 @@ class ChapterSpeakerTest {
             override fun onError() { events += "error" }
         }
         ShadowTextToSpeech.addLanguageAvailability(Locale.ENGLISH)
-        val speaker = ChapterSpeaker(context, listener)
+        val speaker = AndroidChapterSpeaker(context, listener)
         try {
             speaker.selectedLanguage = "en"
             val engine = shadowOf(ShadowTextToSpeech.getLastTextToSpeechInstance())

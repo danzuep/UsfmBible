@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.flowOf
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.Highlight
 import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.databinding.ActivitySettingsBinding
 import io.github.danzuep.usfmbible.databinding.InnerSettingButtonBinding
 import io.github.danzuep.usfmbible.settings.widgets.SettingButton
@@ -84,20 +85,20 @@ class SettingsActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), OpenRateMe`() {
         every { viewModel.viewAction() } returns flowOf(SettingsViewModel.ViewAction.OpenRateMe)
-        every { mockNavigator.navigate(any(), Navigator.SCREEN_RATE_ME) } returns Unit
+        every { mockNavigator.navigate(Screen.RATE_ME, any()) } returns Unit
 
         withActivity<SettingsActivity> { activity ->
-            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_RATE_ME) }
+            verify(exactly = 1) { mockNavigator.navigate(Screen.RATE_ME, any()) }
         }
     }
 
     @Test
     fun `test onViewActionEmitted(), OpenWebsite`() {
         every { viewModel.viewAction() } returns flowOf(SettingsViewModel.ViewAction.OpenWebsite)
-        every { mockNavigator.navigate(any(), Navigator.SCREEN_WEBSITE) } returns Unit
+        every { mockNavigator.navigate(Screen.WEBSITE, any()) } returns Unit
 
         withActivity<SettingsActivity> { activity ->
-            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_WEBSITE) }
+            verify(exactly = 1) { mockNavigator.navigate(Screen.WEBSITE, any()) }
         }
     }
 
