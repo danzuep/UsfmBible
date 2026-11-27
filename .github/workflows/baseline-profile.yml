@@ -1,6 +1,10 @@
 name: Baseline profile
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'baselineprofile/**'
+      - '.github/workflows/baseline-profile.yml'
 
 jobs:
   generate:
