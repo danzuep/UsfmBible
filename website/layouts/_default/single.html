@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>USFM Bible - {{ .Title }}</title>
+<style>
+  :root{--bg:#f6f8fb;--text:#1d2733;--accent:#1565c0}
+  @media (prefers-color-scheme:dark){:root{--bg:#0f1318;--text:#e6ebf1;--accent:#6cb2ff}}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6;background:var(--bg);color:var(--text)}
+  main{max-width:42rem;margin:0 auto;padding:1rem 1.25rem 3rem}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<p><a href="{{ "" | relURL }}">&larr; USFM Bible</a></p>
+<h1>{{ .Title }}</h1>
+{{ .Content }}
+</main>
+</body>
+</html>

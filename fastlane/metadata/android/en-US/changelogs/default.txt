@@ -1,4 +1,3 @@
-- Check for updates to installed translations
-- Choose a text-to-speech voice and enjoy smoother read-aloud
-- Pick a verse from the chapter list
-- Lower memory use on low-spec phones
+- The website link in Settings now opens the home page: https://danzuep.github.io/UsfmBible/
+- No longer crashes when a device has no web browser
+- Added a privacy policy page

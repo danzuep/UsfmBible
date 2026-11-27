@@ -59,7 +59,7 @@ tasks.register<JavaExec>("convertTranslations") {
     val jvmMain = kotlin.jvm().compilations.getByName("main")
     dependsOn(jvmMain.compileTaskProvider)
     classpath(jvmMain.output.allOutputs, jvmMain.runtimeDependencyFiles)
-    mainClass.set("com.github.danzuep.usfmbible.web.ConvertKt")
+    mainClass.set("io.github.danzuep.usfmbible.web.ConvertKt")
     args(
         rootProject.file("app/src/main/assets/translations.csv").absolutePath,
         translationsDir.get().asFile.absolutePath,

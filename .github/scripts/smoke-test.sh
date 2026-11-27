@@ -3,8 +3,8 @@
 # then searches "jhn1" and checks the search screen stays responsive.
 set -u
 
-APP_ID="com.github.danzuep.usfmbible"
-APP_NAMESPACE="com.github.danzuep.usfmbible"
+APP_ID="io.github.danzuep.usfmbible"
+APP_NAMESPACE="io.github.danzuep.usfmbible"
 
 # Taps the center of the node whose content-desc contains $1 in ui.xml; returns 1 if there is none.
 tap_desc() {

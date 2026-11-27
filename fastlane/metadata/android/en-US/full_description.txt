@@ -13,7 +13,9 @@ A simple, free and open source Bible reader for Android with a minimalist design
 • Your language: the interface is translated into several languages, including right-to-left scripts
 • Tiny install: under 5 MB, no ads, no tracking, no analytics
 • Bring your own Bibles: import USFM files or zips, add your own download sites, and check for updates to installed translations
-• Complete canon: books of the deuterocanon are supported where a translation includes them
+• Private by design: your notes and progress stay on your device, and the app only goes online to download translations
 • Open source: free software you can read, build and improve
 
-Translations come from eBible.org as USFM files, including the public domain World English Bible (WEB). Most other translations are copyrighted with an open licence, so check each one's copyright and permissions.
+Translations come from eBible.org as USFM files, including the public domain World English Bible (WEB). Many downloads also include the deuterocanon books. Most other translations are copyrighted with an open licence, so check each one's copyright and permissions.
+
+Home page, help and privacy policy: https://danzuep.github.io/UsfmBible/
