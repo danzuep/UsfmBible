@@ -48,7 +48,6 @@ object Versions {
         val jvmTarget = java.toString()
         const val core = "2.3.20"
         const val coroutines = "1.11.0"
-        const val serialization = "1.10.0"
     }
 
     object AndroidX {
