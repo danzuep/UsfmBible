@@ -85,7 +85,7 @@ The same `fastlane/metadata/android/en-US/` listing feeds F-Droid, the [website]
 - `changelogs/<versionCode>.txt` up to 500 characters; `changelogs/default.txt` is the fallback.
 - `images/icon.png` 512x512, `images/featureGraphic.png` 1024x500, and 2 to 8 `images/phoneScreenshots/` whose height is at most twice their width (typical 20:9 phone screenshots need padding, see below).
 
-Setup: create the app in Play Console, link a service account with release permissions (Setup > API access) and save its JSON key outside the repo. Set `PLAY_STORE_JSON_KEY` to the key file's path and optionally `ANDROID_PACKAGE_NAME` (default `com.github.danzuep.usfmbible`). Google Play needs an Android App Bundle signed with the upload key, which is the release keystore (`keystore.properties`); CI currently builds only APKs, so `internal` and `closed` build the bundle locally.
+Setup: create the app in Play Console, link a service account with release permissions (Setup > API access) and save its JSON key outside the repo. Set `PLAY_STORE_JSON_KEY` to the key file's path and optionally `ANDROID_PACKAGE_NAME` (default `com.github.danzuep.usfmbible`). Google Play needs an Android App Bundle signed with the upload key, which is the release keystore (`keystore.properties`); The *Release APK* workflow also builds the AAB (artifact `aab`, signed with the release keystore on `v*` tags and the debug key on dry runs, which Play rejects). `internal` and `closed` build it locally instead.
 
 **The first upload must be manual.** The Play Developer API cannot create an app or its first release: create the app in Play Console and upload the first signed AAB by hand to a testing track (accept Play App Signing and complete the App content forms). After that, the lanes below work.
 

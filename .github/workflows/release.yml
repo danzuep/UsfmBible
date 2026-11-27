@@ -60,6 +60,10 @@ jobs:
         ./gradlew testDebugUnitTest || ./gradlew testDebugUnitTest
         ./gradlew assembleRelease ${VERSION:+-PappVersion=$VERSION}
         cp app/build/outputs/apk/release/app-release.apk "$NAME.apk"
+    - name: Build AAB for Google Play
+      run: |
+        ./gradlew bundleRelease ${VERSION:+-PappVersion=$VERSION}
+        cp app/build/outputs/bundle/release/app-release.aab "$NAME.aab"
     - name: Download the WEB Bible to prepackage
       run: |
         mkdir -p bundle-src/translations
@@ -79,6 +83,11 @@ jobs:
       with:
         name: apk
         path: UsfmBible-*.apk
+    # Not attached to the GitHub release: upload it to Play with fastlane or Play Console.
+    - uses: actions/upload-artifact@v7
+      with:
+        name: aab
+        path: UsfmBible-*.aab
     - name: Publish GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       env:
