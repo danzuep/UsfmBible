@@ -1,75 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Modified by Daniel Collingwood, 2026 -->
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/chapter_selection_old_testament"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/background_chapter_selection"
-        android:gravity="center"
-        android:padding="@dimen/padding"
-        android:text="@string/text_chapter_selection_old_testament"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/text_primary"
-        app:layout_constraintEnd_toStartOf="@id/chapter_selection_new_testament"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/chapter_selection_new_testament"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/background_chapter_selection"
-        android:gravity="center"
-        android:padding="@dimen/padding"
-        android:text="@string/text_chapter_selection_new_testament"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/text_primary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/chapter_selection_old_testament"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <io.github.danzuep.usfmbible.reading.chapter.ChapterListView
-        android:id="@+id/chapter_list_view"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/chapter_selection_old_testament" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/verse_selection_book"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/background_chapter_selection"
-        android:gravity="center"
-        android:padding="@dimen/padding"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/text_primary"
-        android:visibility="gone"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout
-        android:id="@+id/verse_selection_panel"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="@android:color/black"
-        android:clickable="true"
-        android:focusable="true"
-        android:orientation="horizontal"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/verse_selection_book">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <GridView
-            android:id="@+id/verse_selection_verses"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/chapter_selection_old_testament"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/background_chapter_selection"
+                android:gravity="center"
+                android:padding="@dimen/padding"
+                android:text="@string/text_chapter_selection_old_testament"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_primary" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/chapter_selection_new_testament"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/background_chapter_selection"
+                android:gravity="center"
+                android:padding="@dimen/padding"
+                android:text="@string/text_chapter_selection_new_testament"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_primary" />
+        </LinearLayout>
+
+        <io.github.danzuep.usfmbible.reading.chapter.ChapterListView
+            android:id="@+id/chapter_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/verse_selection_book"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_chapter_selection"
+            android:gravity="center"
+            android:padding="@dimen/padding"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_primary"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/verse_selection_panel"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:columnWidth="@dimen/chapter_grid_width"
-            android:numColumns="auto_fit"
-            android:stretchMode="columnWidth" />
+            android:background="@android:color/black"
+            android:clickable="true"
+            android:focusable="true"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <GridView
+                android:id="@+id/verse_selection_verses"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:columnWidth="@dimen/chapter_grid_width"
+                android:numColumns="auto_fit"
+                android:stretchMode="columnWidth" />
+        </LinearLayout>
     </LinearLayout>
 </merge>

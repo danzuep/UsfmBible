@@ -149,7 +149,6 @@ dependencies {
     implementation(Dependencies.AndroidX.Lifecycle.common)
     implementation(Dependencies.AndroidX.Lifecycle.runtime)
     implementation(Dependencies.AndroidX.Lifecycle.viewModel)
-    implementation(Dependencies.AndroidX.View.constraintLayout)
     implementation(Dependencies.AndroidX.View.coordinatorLayout)
     implementation(Dependencies.AndroidX.View.drawerLayout)
     implementation(Dependencies.AndroidX.View.recyclerView)

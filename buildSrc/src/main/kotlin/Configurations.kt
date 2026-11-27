@@ -60,7 +60,6 @@ object Versions {
         const val lifecycle = "2.8.7"
 
         object View {
-            const val constraintLayout = "2.2.1"
             const val coordinatorLayout = "1.3.0"
             const val drawerLayout = "1.2.0"
             const val recyclerView = "1.4.0"
@@ -119,7 +118,6 @@ object Dependencies {
         }
 
         object View {
-            const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.AndroidX.View.constraintLayout}"
             const val coordinatorLayout = "androidx.coordinatorlayout:coordinatorlayout:${Versions.AndroidX.View.coordinatorLayout}"
             const val drawerLayout = "androidx.drawerlayout:drawerlayout:${Versions.AndroidX.View.drawerLayout}"
             const val recyclerView = "androidx.recyclerview:recyclerview:${Versions.AndroidX.View.recyclerView}"

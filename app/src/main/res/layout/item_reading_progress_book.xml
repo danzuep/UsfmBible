@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Modified by Daniel Collingwood, 2026 -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -12,7 +11,7 @@
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_alignParentTop="true" />
 
     <io.github.danzuep.usfmbible.progress.ReadingProgressBar
         android:id="@+id/reading_progress_bar"
@@ -20,16 +19,16 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/padding_small"
         android:layout_marginEnd="@dimen/padding"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/divider" />
+        android:layout_alignParentEnd="true"
+        android:layout_below="@id/divider" />
 
     <LinearLayout
         android:id="@+id/chapters"
         android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="@id/reading_progress_bar"
-        app:layout_constraintTop_toBottomOf="@id/reading_progress_bar" />
+        android:layout_alignEnd="@id/reading_progress_bar"
+        android:layout_below="@id/reading_progress_bar" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/book_name"
@@ -37,10 +36,11 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/padding"
         android:background="@drawable/background_book_name"
+        android:gravity="center_vertical"
         android:padding="@dimen/padding_small"
         android:textColor="?attr/colorOnSurface"
-        app:layout_constraintBottom_toBottomOf="@id/reading_progress_bar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/reading_progress_bar"
+        android:layout_alignBottom="@id/reading_progress_bar"
+        android:layout_alignParentStart="true"
+        android:layout_alignTop="@id/reading_progress_bar"
         tools:text="Genesis" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>
