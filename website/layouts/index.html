@@ -66,6 +66,7 @@
   <div class="card"><h3>{{ index $kv 0 }}</h3><p>{{ delimit (after 1 $kv) ": " | safeHTML }}</p></div>
 {{ end }}</div>
 <p class="note">{{ $outro }}</p>
+<p class="note">Works on Android 6.0 (API 23) and newer, which covers 99.7% of Android devices.</p>
 <h2>See it in action</h2>
 <div class="shots">
 {{ range $shots }}<img loading="lazy" alt="" src="{{ .RelPermalink }}">

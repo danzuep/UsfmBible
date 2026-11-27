@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import com.android.ide.common.vectordrawable.Svg2Vector
+import java.io.ByteArrayOutputStream
 import java.util.Properties
 
 plugins {
@@ -177,4 +179,21 @@ dependencies {
     androidTestImplementation(Dependencies.AndroidX.Test.runner)
 
     baselineProfile(project(":baselineprofile"))
+}
+
+// Regenerates the API 24+ launcher foreground from arts/ic_launcher.svg with the Android Gradle plugin's own Svg2Vector.
+tasks.register("generateLauncherIcon") {
+    val svg = rootProject.file("arts/ic_launcher.svg")
+    val output = file("src/main/res/drawable-v24/ic_launcher_foreground.xml")
+    inputs.file(svg)
+    outputs.file(output)
+    doLast {
+        val xml = ByteArrayOutputStream()
+        val errors = Svg2Vector.parseSvgToXml(svg.toPath(), xml)
+        check(errors.isEmpty()) { errors }
+        output.writeText(
+            xml.toString(Charsets.UTF_8)
+                .replace(Regex("""android:(width|height)="512dp""""), "android:$1=\"108dp\"")
+        )
+    }
 }
