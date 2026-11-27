@@ -4,8 +4,6 @@ name: APK size audit
 # `gh workflow run apk-size.yml --ref <branch>`, then `gh run download <id> -n apk-size`.
 on:
   workflow_dispatch:
-  push:
-    branches: [apk-size-audit]
 
 permissions:
   contents: read
