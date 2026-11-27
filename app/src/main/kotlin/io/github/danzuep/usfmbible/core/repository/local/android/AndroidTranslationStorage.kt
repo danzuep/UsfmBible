@@ -25,13 +25,20 @@ import io.github.danzuep.usfmbible.core.TranslationInfo
 import io.github.danzuep.usfmbible.core.repository.local.LocalTranslationStorage
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase
 import io.github.danzuep.usfmbible.core.repository.local.android.db.MetadataDao
+import io.github.danzuep.usfmbible.ui.saveCopyright
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.zip.ZipInputStream
 
 class AndroidTranslationStorage(private val androidDatabase: AndroidDatabase, private val context: Context? = null) : LocalTranslationStorage {
     companion object {
         /** A database built by the release workflow with the translations already parsed, see docs/RELEASING.md. */
         const val PREBUILT_ASSET = "bundled/bundled.db"
+
+        const val PREBUILT_COPYRIGHT_DIR = "bundled/copyright"
+
+        /** Zipped [PREBUILT_ASSET] (one entry), preferred because SQLite compresses poorly in the APK's default deflate. */
+        const val PREBUILT_ZIP_ASSET = "bundled/bundled.db.zip"
     }
 
     override suspend fun readTranslationListRefreshTimestamp(): Long = withContext(Dispatchers.IO) {
@@ -94,13 +101,28 @@ class AndroidTranslationStorage(private val androidDatabase: AndroidDatabase, pr
         val file = File(context.cacheDir, "prebuilt-translations.db")
         try {
             try {
-                context.assets.open(PREBUILT_ASSET).use { input -> file.outputStream().use { input.copyTo(it) } }
+                ZipInputStream(context.assets.open(PREBUILT_ZIP_ASSET).buffered()).use { zip ->
+                    if (zip.nextEntry == null) return@withContext false
+                    file.outputStream().use { zip.copyTo(it) }
+                }
             } catch (_: FileNotFoundException) {
-                return@withContext false
+                try {
+                    context.assets.open(PREBUILT_ASSET).use { input -> file.outputStream().use { input.copyTo(it) } }
+                } catch (_: FileNotFoundException) {
+                    return@withContext false
+                }
             }
-            installPrebuiltTranslations(file)
+            installPrebuiltTranslations(file).also { if (it) installPrebuiltCopyrights(context) }
         } finally {
             file.delete()
+        }
+    }
+
+    /** Keeps the copyright notices (markdown, one `<short name>.md` per translation) that were bundled next to the database. */
+    private fun installPrebuiltCopyrights(context: Context) {
+        context.assets.list(PREBUILT_COPYRIGHT_DIR)?.filter { it.endsWith(".md") }?.forEach { name ->
+            val markdown = context.assets.open("$PREBUILT_COPYRIGHT_DIR/$name").bufferedReader().use { it.readText() }
+            context.saveCopyright(name.removeSuffix(".md"), markdown)
         }
     }
 

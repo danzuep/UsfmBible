@@ -16,7 +16,8 @@ import kotlin.test.assertTrue
 /**
  * Not a real test: the release workflow runs it with `BUNDLE_DIR` set to a directory holding `list.tsv`
  * (id, name and language separated by tabs) and `translations/<id>.zip` (USFM). It parses the zips once and writes
- * `bundled/bundled.db` (see [AndroidTranslationStorage.PREBUILT_ASSET]) there, so the app does not parse them on first launch.
+ * `bundled/bundled.db` (see [AndroidTranslationStorage.PREBUILT_ASSET]) there, so the app does not parse them on first launch,
+ * plus the copyright notices in `bundled/copyright/<id>.md`.
  */
 @RunWith(RobolectricTestRunner::class)
 class BundledDatabaseGenerator : BaseSqliteTest() {
@@ -42,5 +43,9 @@ class BundledDatabaseGenerator : BaseSqliteTest() {
         val output = File(bundleDir, AndroidTranslationStorage.PREBUILT_ASSET).apply { parentFile!!.mkdirs() }
         context.getDatabasePath(AndroidDatabase.DATABASE_NAME).copyTo(output, overwrite = true)
         assertTrue(output.length() > 0)
+        // The copyright notices the parser saved, bundled so the app can show them offline.
+        File(context.filesDir, "copyright").listFiles()?.forEach {
+            it.copyTo(File(bundleDir, "${AndroidTranslationStorage.PREBUILT_COPYRIGHT_DIR}/${it.name}").apply { parentFile!!.mkdirs() }, overwrite = true)
+        }
     }
 }
