@@ -17,6 +17,7 @@
 
 package io.github.danzuep.usfmbible.settings
 
+import io.github.danzuep.usfmbible.core.Settings
 import android.app.Application
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
