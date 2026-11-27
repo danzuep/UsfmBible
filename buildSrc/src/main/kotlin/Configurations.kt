@@ -48,7 +48,6 @@ object Versions {
         val jvmTarget = java.toString()
         const val core = "2.3.20"
         const val coroutines = "1.11.0"
-        const val serialization = "1.10.0"
     }
 
     object AndroidX {
@@ -94,7 +93,6 @@ object Dependencies {
         const val classpath = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.Kotlin.core}"
         const val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.Kotlin.coroutines}"
         const val coroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.Kotlin.coroutines}"
-        const val serializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.Kotlin.serialization}"
         const val reflect = "org.jetbrains.kotlin:kotlin-reflect:${Versions.Kotlin.core}"
 
         const val test = "org.jetbrains.kotlin:kotlin-test-junit:${Versions.Kotlin.core}"

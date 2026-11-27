@@ -37,11 +37,6 @@ kotlin {
         }
     }
 
-    // Runs commonTest in Node and is the library the `web` module builds on.
-    js {
-        nodejs()
-    }
-
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
