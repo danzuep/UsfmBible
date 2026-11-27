@@ -86,10 +86,12 @@ class SearchManager(
                 emptyList()
             }
         }
-        return@withContext SearchResult(verses.await(), bookmarks.await(), highlights.await(), notes.await(),
+        val foundVerses = verses.await()
+        return@withContext SearchResult(foundVerses.take(MAX_SEARCH_RESULTS), bookmarks.await(), highlights.await(), notes.await(),
                 bookIndex = keyword.trim().takeIf { it.length == 3 }?.let { code ->
                     BOOK_CODES.indexOfFirst { it.equals(code, ignoreCase = true) }.takeIf { it >= 0 }
-                })
+                },
+                truncated = foundVerses.size > MAX_SEARCH_RESULTS)
     }
 
     private suspend fun <V : VerseAnnotation> searchAnnotations(

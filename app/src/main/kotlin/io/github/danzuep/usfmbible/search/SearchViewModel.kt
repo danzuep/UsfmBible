@@ -222,8 +222,8 @@ class SearchViewModel @Inject constructor(
             val toast = if (instantSearch) {
                 null
             } else {
-                application.getString(R.string.toast_search_result,
-                    searchResult.verses.size + searchResult.bookmarks.size + searchResult.highlights.size + searchResult.notes.size)
+                val count = searchResult.verses.size + searchResult.bookmarks.size + searchResult.highlights.size + searchResult.notes.size
+                application.getString(if (searchResult.truncated) R.string.toast_search_result_truncated else R.string.toast_search_result, count)
             }
             updateViewState { current ->
                 current.copy(

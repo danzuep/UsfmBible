@@ -28,6 +28,7 @@
     <string name="toast_deleted">Translation deleted</string>
     <string name="toast_verses_copied">Copied to clipboard.</string>
     <string name="toast_search_result">%1$d result(s) found.</string>
+    <string name="toast_search_result_truncated">%1$d+ result(s) found.</string>
     <string name="toast_backup_restore_succeeded">Successfully finished.</string>
     <string name="toast_unknown_error">Unknown error</string>
 
