@@ -1,5 +1,5 @@
 # ANDROID_PACKAGE_NAME overrides the application id (e.g. for a test app).
-package_name(ENV["ANDROID_PACKAGE_NAME"] || "com.github.danzuep.usfmbible")
+package_name(ENV["ANDROID_PACKAGE_NAME"] || "io.github.danzuep.usfmbible")
 # The Play service account key: PLAY_STORE_JSON_KEY_PATH is the key file, PLAY_STORE_JSON_KEY_DATA its JSON content (e.g. a CI secret).
 json_key_file(ENV["PLAY_STORE_JSON_KEY_PATH"]) if ENV["PLAY_STORE_JSON_KEY_PATH"]
 json_key_data_raw(ENV["PLAY_STORE_JSON_KEY_DATA"]) if ENV["PLAY_STORE_JSON_KEY_DATA"]

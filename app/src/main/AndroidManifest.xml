@@ -35,9 +35,9 @@
             </intent-filter>
         </activity-alias>
 
-        <activity android:name="com.github.danzuep.usfmbible.annotated.bookmarks.BookmarksActivity" />
-        <activity android:name="com.github.danzuep.usfmbible.annotated.highlights.HighlightsActivity" />
-        <activity android:name="com.github.danzuep.usfmbible.annotated.notes.NotesActivity" />
+        <activity android:name="io.github.danzuep.usfmbible.annotated.bookmarks.BookmarksActivity" />
+        <activity android:name="io.github.danzuep.usfmbible.annotated.highlights.HighlightsActivity" />
+        <activity android:name="io.github.danzuep.usfmbible.annotated.notes.NotesActivity" />
         <activity android:name=".progress.ReadingProgressActivity" />
         <activity android:name=".timeline.TimelineActivity" />
         <activity android:name=".reading.ReadingActivity" android:exported="true" android:launchMode="singleTop">

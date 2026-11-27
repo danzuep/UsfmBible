@@ -14,6 +14,7 @@ CHANGELOG
 - Group the reading timeline by date or by book, and make it the first overflow menu item.
 
 #### Unreleased
+- Rename the application id and package from `com.github.danzuep.usfmbible` to `io.github.danzuep.usfmbible`. This installs as a new app, so back up first (Settings > Backup) and restore in the new app.
 - The website link in Settings opens the home page, and a missing browser no longer crashes the app.
 - Add a privacy policy page to the website.
 

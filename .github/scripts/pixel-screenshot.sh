@@ -4,8 +4,8 @@
 # toolbar and chapter picker stay inside the system bars.
 set -u
 
-APP_ID="com.github.danzuep.usfmbible"
-APP_NAMESPACE="com.github.danzuep.usfmbible"
+APP_ID="io.github.danzuep.usfmbible"
+APP_NAMESPACE="io.github.danzuep.usfmbible"
 
 dump_ui() {
   rm -f ui.xml

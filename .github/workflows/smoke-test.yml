@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       test_class:
-        description: 'Run only this instrumented test class (e.g. com.github.danzuep.usfmbible.translations.OpenFileTest for the "Open with" USFM/zip/Markdown tests); blank runs all'
+        description: 'Run only this instrumented test class (e.g. io.github.danzuep.usfmbible.translations.OpenFileTest for the "Open with" USFM/zip/Markdown tests); blank runs all'
         required: false
         default: ''
 

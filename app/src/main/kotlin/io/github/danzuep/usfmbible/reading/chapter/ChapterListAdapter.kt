@@ -1,0 +1,163 @@
+/*
+ * Copyright (C) 2023 Xizhi Zhu
+ * Copyright (C) 2026 Daniel Collingwood
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.github.danzuep.usfmbible.reading.chapter
+
+import android.content.Context
+import android.graphics.Color
+import io.github.danzuep.usfmbible.utils.localized
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseExpandableListAdapter
+import android.widget.TextView
+import androidx.core.view.children
+import androidx.core.view.isVisible
+import io.github.danzuep.usfmbible.R
+import io.github.danzuep.usfmbible.core.Bible
+import io.github.danzuep.usfmbible.databinding.ItemBookNameBinding
+import io.github.danzuep.usfmbible.databinding.ItemChapterRowBinding
+
+class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.ViewEvent) -> Unit) : BaseExpandableListAdapter() {
+    companion object {
+        private const val ROW_CHILD_COUNT = 5
+        private const val NEW_TESTAMENT_SHADE = 0x1AFFFFFF
+        private const val OTHER_BOOKS_SHADE = 0x33FFFFFF
+    }
+
+    private class Tag(var bookIndex: Int, var chapterIndex: Int)
+
+    private val inflater = LayoutInflater.from(context)
+
+    // A tap offers the verses of the chapter; a long press opens the chapter itself.
+    private val onChapterClickedListener = View.OnClickListener { view ->
+        val tag = view.tag as Tag
+        onViewEvent(ChapterSelectionView.ViewEvent.OpenVerses(tag.bookIndex, tag.chapterIndex))
+    }
+
+    private val onChapterLongClickedListener = View.OnLongClickListener { view ->
+        val tag = view.tag as Tag
+        onViewEvent(ChapterSelectionView.ViewEvent.SelectChapter(tag.bookIndex, tag.chapterIndex))
+        true
+    }
+
+    private var currentBookIndex: Int = -1
+    private var currentChapterIndex: Int = -1
+    private val items: ArrayList<ChapterSelectionItem> = ArrayList()
+
+    fun setCurrentChapter(currentBookIndex: Int, currentChapterIndex: Int) {
+        if (this.currentBookIndex == currentBookIndex && this.currentChapterIndex == currentChapterIndex) return
+
+        this.currentBookIndex = currentBookIndex
+        this.currentChapterIndex = currentChapterIndex
+        notifyDataSetChanged()
+    }
+
+    fun setItems(items: List<ChapterSelectionItem>) {
+        if (this.items == items) return
+
+        this.items.clear()
+        this.items.addAll(items)
+        notifyDataSetChanged()
+    }
+
+    override fun hasStableIds(): Boolean = false
+
+    override fun getGroupCount(): Int = if (currentBookIndex >= 0 && currentChapterIndex >= 0) items.size else 0
+
+    override fun getGroupId(groupPosition: Int): Long = groupPosition.toLong()
+
+    override fun getGroup(groupPosition: Int): ChapterSelectionItem = items[groupPosition]
+
+    /** Group positions only cover the listed books, so they can differ from the book indices. */
+    fun groupPositionOf(bookIndex: Int): Int = items.indexOfFirst { it.bookIndex == bookIndex }
+
+    fun firstGroupPositionFrom(bookIndex: Int): Int = items.indexOfFirst { it.bookIndex >= bookIndex }
+
+    override fun getGroupView(groupPosition: Int, isExpanded: Boolean, convertView: View?, parent: ViewGroup?): View {
+        val binding = convertView?.let { ItemBookNameBinding.bind(it) }
+            ?: ItemBookNameBinding.inflate(inflater, parent, false)
+        binding.root.text = getGroup(groupPosition).bookName
+        val bookIndex = getGroup(groupPosition).bookIndex
+        binding.root.isSelected = bookIndex == currentBookIndex
+        // Shade the sections apart; the selected book keeps the selector's own background.
+        binding.root.setBackgroundResource(R.drawable.background_chapter_book_name)
+        if (!binding.root.isSelected) binding.root.setBackgroundColor(sectionShade(bookIndex))
+        return binding.root
+    }
+
+    private fun sectionShade(bookIndex: Int): Int = when {
+        bookIndex < Bible.OLD_TESTAMENT_COUNT -> Color.TRANSPARENT
+        bookIndex < Bible.CANON_BOOK_COUNT -> NEW_TESTAMENT_SHADE
+        else -> OTHER_BOOKS_SHADE
+    }
+
+    override fun isChildSelectable(groupPosition: Int, childPosition: Int): Boolean = true
+
+    override fun getChildrenCount(groupPosition: Int): Int {
+        val chapterCount = getGroup(groupPosition).chapterCount
+        return chapterCount / ROW_CHILD_COUNT + if (chapterCount % ROW_CHILD_COUNT == 0) 0 else 1
+    }
+
+    override fun getChildId(groupPosition: Int, childPosition: Int): Long = (groupPosition * 1000 + childPosition).toLong()
+
+    override fun getChild(groupPosition: Int, childPosition: Int): Int = childPosition
+
+    override fun getChildView(groupPosition: Int, childPosition: Int, isLastChild: Boolean, convertView: View?, parent: ViewGroup?): View {
+        val binding = getChildViewBinding(convertView, parent)
+        binding.bind(groupPosition, childPosition)
+        return binding.root
+    }
+
+    private fun getChildViewBinding(convertView: View?, parent: ViewGroup?): ItemChapterRowBinding {
+        if (convertView != null) {
+            return ItemChapterRowBinding.bind(convertView)
+        }
+
+        val binding = ItemChapterRowBinding.inflate(inflater, parent, false)
+        binding.root.children.forEach { child ->
+            child.setOnClickListener(onChapterClickedListener)
+            child.setOnLongClickListener(onChapterLongClickedListener)
+            child.tag = Tag(-1, -1)
+        }
+        return binding
+    }
+
+    private fun ItemChapterRowBinding.bind(groupPosition: Int, childPosition: Int) {
+        val bookIndex = getGroup(groupPosition).bookIndex
+        val chapterCount = getGroup(groupPosition).chapterCount
+        repeat(ROW_CHILD_COUNT) { i ->
+            val chapterIndex = childPosition * ROW_CHILD_COUNT + i
+            with(root.getChildAt(i) as TextView) {
+                if (chapterIndex >= chapterCount) {
+                    isVisible = false
+                } else {
+                    isVisible = true
+                    isSelected = bookIndex == currentBookIndex && chapterIndex == currentChapterIndex
+                    text = (chapterIndex + 1).localized()
+
+                    with(tag as Tag) {
+                        this.bookIndex = bookIndex
+                        this.chapterIndex = chapterIndex
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class ChapterSelectionItem(val bookIndex: Int, val bookName: String, val chapterCount: Int)
