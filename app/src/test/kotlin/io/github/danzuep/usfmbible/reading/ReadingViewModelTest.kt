@@ -18,7 +18,6 @@
 package io.github.danzuep.usfmbible.reading
 
 import android.app.Application
-import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -138,7 +137,7 @@ class ReadingViewModelTest : BaseUnitTest() {
             MockContents.cuvShortName to MockContents.cuvBookNames,
             readingViewModel.viewState().first().currentReadingStatus?.let { it.currentTranslation to it.bookNames }
         )
-        readingViewModel.viewModelScope.cancel()
+        readingViewModel.clear()
     }
 
     @Test
