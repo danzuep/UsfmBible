@@ -1,0 +1,54 @@
+name: APK size audit
+# Builds the release APK and reports what is left in it after R8: per-package dex size, the largest
+# files and resources, R8's usage.txt (removed code) and the dependency tree. Run it with
+# `gh workflow run apk-size.yml --ref <branch>`, then `gh run download <id> -n apk-size`.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-java@v6
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+    - uses: gradle/actions/setup-gradle@v6
+    - name: Build release APK
+      run: ./gradlew assembleRelease
+    - name: Analyze
+      run: |
+        mkdir -p report
+        apk=app/build/outputs/apk/release/app-release.apk
+        mapping=app/build/outputs/mapping/release/mapping.txt
+        analyzer=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/apkanalyzer | head -n1)
+        cp app/build/outputs/mapping/release/{usage,seeds,configuration}.txt report/ || true
+        cp "$mapping" report/
+        ls -l "$apk" | tee report/apk-size.txt
+        "$analyzer" apk summary "$apk" >> report/apk-size.txt
+        "$analyzer" files list "$apk" > report/files.txt
+        "$analyzer" apk download-size "$apk" >> report/apk-size.txt
+        for dex in $("$analyzer" dex list "$apk"); do
+          "$analyzer" dex packages --defined-only --proguard-mappings "$mapping" --proguard-usage app/build/outputs/mapping/release/usage.txt "$apk" > "report/dex-packages-$(basename "$dex").txt" || true
+        done
+        # Per-file compressed size, largest first.
+        unzip -v "$apk" | sort -k3 -n -r | head -60 > report/largest-files.txt
+        ./gradlew :app:dependencies --configuration releaseRuntimeClasspath > report/dependencies.txt
+        {
+          echo '## APK size'; cat report/apk-size.txt
+          echo '## Largest files'; echo '```'; cat report/largest-files.txt; echo '```'
+          echo '## Top dex packages (first dex)'; echo '```'
+          sort -t$'\t' -k5 -n -r report/dex-packages-classes.dex.txt 2>/dev/null | head -40
+          echo '```'
+          echo '## R8 removed classes by top-level package'; echo '```'
+          grep -E '^[a-zA-Z]' report/usage.txt | grep -v '^ ' | grep ':$' | sed -E 's/\.[A-Za-z0-9_$]+:$//' | awk -F. '{print $1"."$2"."$3"."$4}' | sort | uniq -c | sort -rn | head -30
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+    - uses: actions/upload-artifact@v7
+      with:
+        name: apk-size
+        path: report/
