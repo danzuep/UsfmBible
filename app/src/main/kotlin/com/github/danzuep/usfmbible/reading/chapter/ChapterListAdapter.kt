@@ -36,6 +36,7 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
     companion object {
         private const val ROW_CHILD_COUNT = 5
         private const val NEW_TESTAMENT_SHADE = 0x1AFFFFFF
+        private const val OTHER_BOOKS_SHADE = 0x33FFFFFF
     }
 
     private class Tag(var bookIndex: Int, var chapterIndex: Int)
@@ -101,7 +102,8 @@ class ChapterListAdapter(context: Context, onViewEvent: (ChapterSelectionView.Vi
 
     private fun sectionShade(bookIndex: Int): Int = when {
         bookIndex < Bible.OLD_TESTAMENT_COUNT -> Color.TRANSPARENT
-        else -> NEW_TESTAMENT_SHADE
+        bookIndex < Bible.CANON_BOOK_COUNT -> NEW_TESTAMENT_SHADE
+        else -> OTHER_BOOKS_SHADE
     }
 
     override fun isChildSelectable(groupPosition: Int, childPosition: Int): Boolean = true

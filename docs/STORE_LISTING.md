@@ -26,7 +26,7 @@ Copy and ASO notes
 
 - Title `USFM Bible` (10/30). Short description (73/80) leads with the strongest search terms: free, offline, 1,500+ translations, compare, search, listen.
 - Full description (about 2,300/4,000) repeats the main keywords naturally in bullet lines, states the privacy stance and ends with the home page link. Update `title.txt`, `short_description.txt` and `full_description.txt` only in `fastlane/metadata/android/en-US/`; the website reads them too.
-- The deuterocanon is no longer shown in the reader. The description says many eBible.org downloads include those books.
+- The deuterocanon is supported but only a one-line technical note at the end of the description, not a selling point.
 - Add other locales as `fastlane/metadata/android/<locale>/` (same files). Check the limits with `.github/scripts/check-store-assets.py`.
 
 Once the Play account is active

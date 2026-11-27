@@ -14,7 +14,6 @@ CHANGELOG
 - Group the reading timeline by date or by book, and make it the first overflow menu item.
 
 #### Unreleased
-- Remove the deuterocanon from the reader; many eBible.org downloads still include it.
 - The website link in Settings opens the home page, and a missing browser no longer crashes the app.
 - Add a privacy policy page to the website.
 

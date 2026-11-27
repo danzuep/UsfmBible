@@ -1,4 +1,3 @@
-- Removed the deuterocanon books from the reader (many eBible.org downloads still include them)
 - The website link in Settings now opens the home page: https://danzuep.github.io/UsfmBible/
 - No longer crashes when a device has no web browser
 - Added a privacy policy page

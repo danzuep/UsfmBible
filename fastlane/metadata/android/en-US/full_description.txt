@@ -16,8 +16,6 @@ A simple, free and open source Bible reader for Android with a minimalist design
 • Private by design: your notes and progress stay on your device, and the app only goes online to download translations
 • Open source: free software you can read, build and improve
 
-The reader shows the 66 books of the Protestant canon. Many of the translation downloads on eBible.org also include the deuterocanon books.
-
-Translations come from eBible.org as USFM files, including the public domain World English Bible (WEB). Most other translations are copyrighted with an open licence, so check each one's copyright and permissions.
+Translations come from eBible.org as USFM files, including the public domain World English Bible (WEB). Many downloads also include the deuterocanon books. Most other translations are copyrighted with an open licence, so check each one's copyright and permissions.
 
 Home page, help and privacy policy: https://danzuep.github.io/UsfmBible/

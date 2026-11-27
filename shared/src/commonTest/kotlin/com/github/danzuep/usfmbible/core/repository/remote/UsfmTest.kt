@@ -180,24 +180,25 @@ class UsfmTest {
     }
 
     @Test
-    fun `test readUsfmBooks() ignores books outside the canon`() {
+    fun `test readUsfmBooks() keeps the deuterocanon after the canon`() {
         val entries = sequenceOf(
             "01TOB.usfm" to "\\id TOB\n\\h Tobit\n\\c 1\n\\p\n\\v 1 The book of the words of Tobit.".encodeToByteArray(),
-            "41MAT.usfm" to "\\id MAT\n\\h Matthew\n\\c 1\n\\p\n\\v 1 The book of the genealogy.".encodeToByteArray(),
+            "99XXA.usfm" to "\\id XXA\n\\c 1\n\\v 1 Not a known book.".encodeToByteArray(),
         )
         val books = readUsfmBooks(entries)
-        assertEquals(setOf("MAT"), books.keys)
+        assertEquals(setOf("TOB"), books.keys)
         val translation = toRemoteTranslation(RemoteTranslationInfo("x", "X", "eng", 0L), books)
         assertEquals(Bible.BOOK_COUNT, translation.bookNames.size)
-        assertEquals("Matthew", translation.bookNames[BOOK_CODES.indexOf("MAT")])
+        assertEquals(1, translation.verses.getValue(Pair(Bible.CANON_BOOK_COUNT, 0)).size)
+        assertEquals("Tobit", translation.bookNames[Bible.CANON_BOOK_COUNT])
         assertEquals(Bible.BOOK_COUNT, BOOK_CODES.size)
     }
 
     @Test
     fun `test readUsfmBook() skips resource forks and unknown books`() {
-        val usfm = "\\id MAT\n\\c 1\n\\v 1 Text.".encodeToByteArray()
-        assertEquals("MAT", readUsfmBook("41MAT.usfm", usfm)?.code)
-        assertNull(readUsfmBook("__MACOSX/._41MAT.usfm", usfm))
+        val usfm = "\\id TOB\n\\c 1\n\\v 1 Text.".encodeToByteArray()
+        assertEquals("TOB", readUsfmBook("01TOB.usfm", usfm)?.code)
+        assertNull(readUsfmBook("__MACOSX/._01TOB.usfm", usfm))
         assertNull(readUsfmBook("copr.htm", usfm))
         assertNull(readUsfmBook("99XXA.usfm", "\\id XXA\n\\c 1\n\\v 1 Text.".encodeToByteArray()))
     }
