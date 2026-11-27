@@ -79,7 +79,8 @@ import io.github.danzuep.usfmbible.settings.SettingsViewModel
 import io.github.danzuep.usfmbible.timeline.TimelineViewModel
 import io.github.danzuep.usfmbible.translations.TranslationUpdatesViewModel
 import io.github.danzuep.usfmbible.translations.TranslationsViewModel
-import io.github.danzuep.usfmbible.core.DocumentReader
+import io.github.danzuep.usfmbible.infra.AndroidPlatformUi
+import io.github.danzuep.usfmbible.ui.PlatformUi
 import io.github.danzuep.usfmbible.infra.AndroidDocumentReader
 import io.github.danzuep.usfmbible.infra.AndroidStringResolver
 import io.github.danzuep.usfmbible.ui.StringResolver
@@ -100,7 +101,8 @@ open class AppContainer(protected val application: Application) {
     private val networkPolicy: NetworkPolicy by lazy { AndroidNetworkPolicy(application) { settingsRepository.settings.first() } }
     private val translationCatalog: TranslationCatalog by lazy { AssetTranslationCatalog(application) }
     private val stringResolver: StringResolver by lazy { AndroidStringResolver(application) }
-    private val documentReader: DocumentReader by lazy { AndroidDocumentReader(application) }
+    private val documentReader by lazy { AndroidDocumentReader(application) }
+    private val platformUi: PlatformUi by lazy { AndroidPlatformUi(application) }
     private val translationVersions: TranslationVersions by lazy { AndroidTranslationVersions(application) }
     private val translationUpdateScheduler: TranslationUpdateScheduler by lazy { AndroidTranslationUpdateScheduler(application) }
 
@@ -141,7 +143,7 @@ open class AppContainer(protected val application: Application) {
             settingsManager, timeProvider, application,
         )
         SearchViewModel::class -> SearchViewModel(bibleReadingManager, searchManager, settingsManager, coroutineDispatcherProvider, application)
-        SettingsViewModel::class -> SettingsViewModel(backupManager, settingsManager, application, coroutineDispatcherProvider)
+        SettingsViewModel::class -> SettingsViewModel(backupManager, settingsManager, platformUi, documentReader, documentReader, coroutineDispatcherProvider)
         TimelineViewModel::class -> TimelineViewModel(bibleReadingManager, settingsManager, coroutineDispatcherProvider, application)
         TranslationUpdatesViewModel::class -> TranslationUpdatesViewModel(translationManager, translationUpdateChecker, translationUpdateScheduler, networkPolicy, settingsManager, coroutineDispatcherProvider)
         TranslationsViewModel::class -> TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, translationCatalog, stringResolver, documentReader, coroutineDispatcherProvider)

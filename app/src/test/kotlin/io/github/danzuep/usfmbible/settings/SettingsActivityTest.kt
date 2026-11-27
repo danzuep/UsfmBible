@@ -17,6 +17,7 @@
 
 package io.github.danzuep.usfmbible.settings
 
+import io.github.danzuep.usfmbible.core.Settings
 import android.app.Application
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
@@ -138,7 +139,7 @@ class SettingsActivityTest : BaseActivityTest() {
             bodyTextSizePx = 2,
             captionTextSizePx = 3,
             keepScreenOn = true,
-            nightModeStringRes = R.string.settings_text_night_mode_off,
+            nightMode = Settings.NIGHT_MODE_OFF,
             simpleReadingModeOn = true,
             showSearchButton = false,
             rubyOn = false,
@@ -172,7 +173,7 @@ class SettingsActivityTest : BaseActivityTest() {
             bodyTextSizePx = 2,
             captionTextSizePx = 3,
             keepScreenOn = true,
-            nightModeStringRes = R.string.settings_text_night_mode_off,
+            nightMode = Settings.NIGHT_MODE_OFF,
             simpleReadingModeOn = true,
             showSearchButton = false,
             rubyOn = false,
