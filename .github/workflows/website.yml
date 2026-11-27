@@ -1,4 +1,4 @@
-name: Website check
+name: Website
 
 on:
   pull_request:
