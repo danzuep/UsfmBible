@@ -18,10 +18,8 @@
 package io.github.danzuep.usfmbible.tests
 
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
-import java.util.Calendar
 
 class TestTimeProvider(
-    override var calendar: Calendar = Calendar.getInstance(),
     override var currentTimeMillis: Long = System.currentTimeMillis(),
     override var elapsedRealtime: Long = 0L
 ) : TimeProvider

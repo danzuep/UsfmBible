@@ -38,6 +38,7 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
 ## Testing conventions
 
 - Put logic in the dependency-free `shared` module where possible and unit test all of it in `shared/src/commonTest` (JVM, no Android SDK). Keep Android code thin.
+- View models extend the Android-free `infra/BaseViewModel` in `shared/src/commonMain`; the app wraps them with `viewModelOf()` (`app/.../infra/ViewModels.kt`) and builds them in `AppContainer.createViewModel`. Tests that need mockk go in `shared/src/jvmTest`. View models still in `app/` are being moved over; the item classes must be split from `R.layout`/`DiffUtil` first (the adapter maps item to layout via `viewTypeOf`).
 - Prefer the fluent builders in `shared/src/commonMain/.../testing` (`CoreVerse`, `CoreReader`, `CoreSettings`, `CoreTranslations`) over hand-built fixtures. `CoreReader` can navigate (`toBook`, `toChapter`, `toVerse`), scroll (`scrollToBookEnd`, `scrollChapters`) and `swipe`.
 
 ## Repository facts

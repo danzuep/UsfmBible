@@ -146,7 +146,7 @@ abstract class AnnotatedVerseViewModel<V : VerseAnnotation>(
         bookNames: List<String>,
         bookShortNames: List<String>
     ): List<AnnotatedVerseItem> {
-        val calendar = timeProvider.calendar
+        val calendar = Calendar.getInstance()
         var previousYear = -1
         var previousDayOfYear = -1
 
