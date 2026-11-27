@@ -17,7 +17,6 @@
 
 package io.github.danzuep.usfmbible.translations
 
-import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.tests.BaseUnitTest
 import io.github.danzuep.usfmbible.tests.MockContents
 import kotlin.test.Test
@@ -29,7 +28,7 @@ import io.github.danzuep.usfmbible.core.Settings
 class TranslationsItemTest : BaseUnitTest() {
     @Test
     fun `test DiffCallback`() {
-        val diffCallback = TranslationsItem.DiffCallback()
+        val diffCallback = TranslationsDiffCallback()
 
         assertTrue(diffCallback.areItemsTheSame(
             TranslationsItem.Header(Settings.DEFAULT, "", false),
@@ -73,11 +72,5 @@ class TranslationsItemTest : BaseUnitTest() {
             TranslationsItem.Translation(Settings.DEFAULT, MockContents.kjvTranslationInfo, true),
             TranslationsItem.Header(Settings.DEFAULT, "", false)
         ))
-    }
-
-    @Test
-    fun `test viewType()`() {
-        assertEquals(R.layout.item_title, TranslationsItem.Header(Settings.DEFAULT, "", false).viewType)
-        assertEquals(R.layout.item_translation, TranslationsItem.Translation(Settings.DEFAULT, MockContents.kjvTranslationInfo, true).viewType)
     }
 }

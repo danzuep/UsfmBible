@@ -17,14 +17,14 @@
 
 package io.github.danzuep.usfmbible.translations
 
-import android.app.Application
-import android.net.Uri
 import io.github.danzuep.usfmbible.core.repository.remote.UsfmMetadata
 import io.github.danzuep.usfmbible.core.repository.remote.cleanShortName
 import io.github.danzuep.usfmbible.core.repository.remote.parseUsfmMetadata
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import io.github.danzuep.usfmbible.R
+import io.github.danzuep.usfmbible.core.DocumentReader
+import io.github.danzuep.usfmbible.ui.StringKey
+import io.github.danzuep.usfmbible.ui.StringResolver
 import io.github.danzuep.usfmbible.core.BibleReadingManager
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.TranslationInfo
@@ -53,7 +53,8 @@ class TranslationsViewModel(
     private val translationManager: TranslationManager,
     private val settingsManager: SettingsManager,
     private val catalog: TranslationCatalog,
-    private val application: Application,
+    private val strings: StringResolver,
+    private val documents: DocumentReader,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,
 ) : BaseViewModel<TranslationsViewModel.ViewAction, TranslationsViewModel.ViewState>(
     initialViewState = ViewState(
@@ -153,7 +154,7 @@ class TranslationsViewModel(
         val available = loadedAvailableTranslations.filter { it.matchesFilter() }
         items.addAll(downloaded.toItems(settings, currentTranslation))
         if (available.isNotEmpty()) {
-            items.add(TranslationsItem.Header(settings, application.getString(R.string.header_available_translations), hideDivider = false))
+            items.add(TranslationsItem.Header(settings, strings.get(StringKey.HeaderAvailableTranslations), hideDivider = false))
             items.addAll(available.toItems(settings, currentTranslation))
         }
         return items
@@ -186,18 +187,18 @@ class TranslationsViewModel(
                         .firstOrNull { it.id == translation.shortName }
                         ?.let { row ->
                             buildList {
-                                add(application.getString(R.string.translation_detail_id) to row.id)
-                                if (row.territory.isNotEmpty()) add(application.getString(R.string.translation_detail_territory) to row.territory)
-                                add(application.getString(R.string.translation_detail_language) to row.language)
-                                add(application.getString(R.string.translation_detail_language_english) to row.languageEnglish)
-                                add(application.getString(R.string.translation_detail_vernacular_title) to row.vernacularTitle)
-                                add(application.getString(R.string.translation_detail_english_title) to row.englishTitle)
+                                add(strings.get(StringKey.TranslationDetailId) to row.id)
+                                if (row.territory.isNotEmpty()) add(strings.get(StringKey.TranslationDetailTerritory) to row.territory)
+                                add(strings.get(StringKey.TranslationDetailLanguage) to row.language)
+                                add(strings.get(StringKey.TranslationDetailLanguageEnglish) to row.languageEnglish)
+                                add(strings.get(StringKey.TranslationDetailVernacularTitle) to row.vernacularTitle)
+                                add(strings.get(StringKey.TranslationDetailEnglishTitle) to row.englishTitle)
                             }
                         }
                 }
             }.onFailure { e -> Logger.withTag(tag).e(e) { "Failed to read translation details" } }
                 .getOrNull()
-            onLoaded(details ?: listOf(application.getString(R.string.translation_detail_id) to translation.shortName))
+            onLoaded(details ?: listOf(strings.get(StringKey.TranslationDetailId) to translation.shortName))
         }
     }
 
@@ -254,11 +255,11 @@ class TranslationsViewModel(
     }
 
     /** Passes the metadata in the head of the plain USFM file in [uri] (null for a zip or when it has none) to [onLoaded] on the main thread. */
-    fun readUsfmMetadata(uri: Uri, onLoaded: (UsfmMetadata?) -> Unit) {
+    fun readUsfmMetadata(uri: String, onLoaded: (UsfmMetadata?) -> Unit) {
         viewModelScope.launch {
             val metadata = runCatching {
                 withContext(coroutineDispatcherProvider.default) {
-                    val head = requireNotNull(application.contentResolver.openInputStream(uri)) { "Cannot open $uri" }.use { it.readNBytes(4096) }
+                    val head = documents.readBytes(uri, 4096)
                     // Zips start with "PK".
                     if (head.size >= 2 && head[0] == 'P'.code.toByte() && head[1] == 'K'.code.toByte()) null else parseUsfmMetadata(head.decodeToString())
                 }
@@ -271,7 +272,7 @@ class TranslationsViewModel(
      * Installs the Bible in [uri] (a USFM book or a zip of them) as [shortName], listed under [language] (e.g. `en` or `cmn`).
      * Passes whether it succeeded to [onCompleted] on the main thread.
      */
-    fun uploadTranslation(uri: Uri, name: String, rawShortName: String, language: String, onCompleted: (Boolean, Throwable?) -> Unit) {
+    fun uploadTranslation(uri: String, name: String, rawShortName: String, language: String, onCompleted: (Boolean, Throwable?) -> Unit) {
         val shortName = cleanShortName(rawShortName)
         val problem = when {
             name.isBlank() -> "The name is blank"
@@ -289,7 +290,7 @@ class TranslationsViewModel(
         viewModelScope.launch {
             val result = runCatching {
                 withContext(coroutineDispatcherProvider.default) {
-                    val content = requireNotNull(application.contentResolver.openInputStream(uri)) { "Cannot open $uri" }.use { it.readBytes() }
+                    val content = documents.readBytes(uri)
                     translationManager.importTranslation(TranslationInfo(shortName, name.trim(), language.trim().lowercase(), content.size.toLong(), true), content)
                 }
                 loadTranslations(forceRefresh = false)

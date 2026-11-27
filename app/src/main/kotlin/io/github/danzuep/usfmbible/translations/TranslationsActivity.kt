@@ -232,7 +232,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     }
 
     /** Installs the opened file straight away if it names its translation and language, otherwise asks for them. */
-    private fun openFile(uri: Uri) = viewModel.readUsfmMetadata(uri) { metadata ->
+    private fun openFile(uri: Uri) = viewModel.readUsfmMetadata(uri.toString()) { metadata ->
         val shortName = metadata?.shortName
         val language = metadata?.language
         if (shortName == null || language == null) {
@@ -240,7 +240,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
             return@readUsfmMetadata
         }
         val progress = indeterminateProgressDialog(R.string.dialog_title_uploading)
-        viewModel.uploadTranslation(uri, metadata.name ?: shortName, shortName, language) { successful, error ->
+        viewModel.uploadTranslation(uri.toString(), metadata.name ?: shortName, shortName, language) { successful, error ->
             progress?.dismiss()
             if (successful) toast(R.string.toast_uploaded) else showUploadError(error)
         }
@@ -264,7 +264,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val progress = indeterminateProgressDialog(R.string.dialog_title_uploading)
                 viewModel.uploadTranslation(
-                    uri, form.uploadName.text.toString(), form.uploadShortName.text.toString().trim(), form.uploadLanguage.text.toString()
+                    uri.toString(), form.uploadName.text.toString(), form.uploadShortName.text.toString().trim(), form.uploadLanguage.text.toString()
                 ) { successful, error ->
                     progress?.dismiss()
                     if (successful) toast(R.string.toast_uploaded) else showUploadError(error)

@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
 import io.github.danzuep.usfmbible.R
+import io.github.danzuep.usfmbible.infra.AndroidDocumentReader
+import io.github.danzuep.usfmbible.infra.AndroidStringResolver
 import io.github.danzuep.usfmbible.core.BibleReadingManager
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.TranslationManager
@@ -73,7 +75,7 @@ class TranslationsViewModelTest : BaseUnitTest() {
         application = mockk()
         every { application.getString(R.string.header_available_translations) } returns "AVAILABLE TRANSLATIONS"
 
-        translationsViewModel = TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, AssetTranslationCatalog(application), application, testCoroutineDispatcherProvider)
+        translationsViewModel = TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, AssetTranslationCatalog(application), AndroidStringResolver(application), AndroidDocumentReader(application), testCoroutineDispatcherProvider)
     }
 
     @Test
