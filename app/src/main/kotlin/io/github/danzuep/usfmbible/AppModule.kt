@@ -38,6 +38,7 @@ import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.core.provider.DefaultCoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.core.provider.DefaultTimeProvider
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
+import io.github.danzuep.usfmbible.core.provider.TimeSource
 import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
 import io.github.danzuep.usfmbible.core.repository.ReadingProgressRepository
 import io.github.danzuep.usfmbible.core.repository.SettingsRepository
@@ -66,6 +67,7 @@ import io.github.danzuep.usfmbible.translations.TranslationsViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 /** Koin qualifiers for the verse annotation types, whose generic parameter is erased at runtime. */
@@ -80,7 +82,7 @@ val providerModule = module {
     single { Navigator() }
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single<CoroutineDispatcherProvider> { DefaultCoroutineDispatcherProvider() }
-    single<TimeProvider> { DefaultTimeProvider() }
+    single<TimeProvider> { DefaultTimeProvider() } bind TimeSource::class
 }
 
 val repositoryModule = module {
