@@ -19,6 +19,7 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("androidx.baselineprofile")
 }
 
 // Launcher label: -PappName, else "USFM Bible".
@@ -145,6 +146,7 @@ dependencies {
     implementation(Dependencies.AndroidX.annotation)
     implementation(Dependencies.AndroidX.appCompat)
     implementation(Dependencies.AndroidX.core)
+    implementation(Dependencies.AndroidX.profileInstaller)
     implementation(Dependencies.AndroidX.Fragment.core)
     implementation(Dependencies.AndroidX.Lifecycle.common)
     implementation(Dependencies.AndroidX.Lifecycle.runtime)
@@ -154,7 +156,7 @@ dependencies {
     implementation(Dependencies.AndroidX.View.recyclerView)
     implementation(Dependencies.AndroidX.View.swipeRefreshLayout)
     implementation(Dependencies.AndroidX.View.viewPager2)
-    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    implementation(Dependencies.AndroidX.profileInstaller)
 
 
     implementation(Dependencies.kermit)
@@ -173,4 +175,6 @@ dependencies {
     androidTestImplementation(Dependencies.AndroidX.Test.core)
     androidTestImplementation(Dependencies.AndroidX.Test.junit)
     androidTestImplementation(Dependencies.AndroidX.Test.runner)
+
+    baselineProfile(project(":baselineprofile"))
 }
