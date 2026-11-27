@@ -44,7 +44,7 @@ Verification checklist
 
 - [ ] `python3 .github/scripts/check-store-assets.py` passes (title at most 30, short description 80, full description 4,000, changelogs 500 characters; icon 512x512, feature graphic 1024x500, 2 to 8 phone screenshots).
 - [ ] Screenshots are named `NN-description.jpg` in `phoneScreenshots/`; `metadata` replaces the whole set in file name order, so removed files disappear from Play.
-- [ ] `fastlane validate` succeeds (needs `PLAY_STORE_JSON_KEY`; it needs the app to exist in Play Console).
+- [ ] `fastlane validate` succeeds (needs `PLAY_STORE_JSON_KEY_PATH` or `PLAY_STORE_JSON_KEY_DATA`; it needs the app to exist in Play Console).
 - [ ] The first signed AAB was uploaded manually in Play Console, and the Data safety, content rating, privacy policy URL and target audience forms are complete.
 - [ ] `changelogs/<versionCode>.txt` exists for the release (versionCode is `major*10000 + minor*100 + patch`), or `default.txt` is acceptable.
 - [ ] If you created a custom-named closed track, `closed` (the default "alpha" track) will not target it; change the track in `fastlane/Fastfile`.
