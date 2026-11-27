@@ -22,10 +22,25 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import io.github.danzuep.usfmbible.core.toKeywords
 
-class AndroidDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+/** Moves the schema up one version without losing user data (bookmarks, notes, progress, downloaded translations). */
+fun interface Migration {
+    fun migrate(db: SQLiteDatabase)
+}
+
+/**
+ * Opens the database at version `migrations.size + 1`: the migration at index `i` upgrades version `i + 1` to `i + 2`.
+ * To change the schema, add a migration to [MIGRATIONS] and update the matching `createTable` for new installs.
+ */
+class AndroidDatabase(
+    context: Context,
+    private val migrations: List<Migration> = MIGRATIONS,
+    name: String = DATABASE_NAME,
+) : SQLiteOpenHelper(context, name, null, migrations.size + 1) {
     companion object {
         const val DATABASE_NAME = "DATABASE_USFMBIBLE"
-        const val DATABASE_VERSION = 1
+
+        /** Version 1 is the schema as of the move to the io.github.danzuep application id. */
+        val MIGRATIONS: List<Migration> = emptyList()
     }
 
     val bookmarkDao = BookmarkDao(this)
@@ -55,8 +70,10 @@ class AndroidDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         }
     }
 
-    // Version 1 is the schema as of the move to the io.github.danzuep application id, so there is nothing to upgrade from.
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+    // SQLiteOpenHelper runs this in a transaction, so a failing migration leaves the old schema and data in place.
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        for (version in oldVersion until newVersion) migrations[version - 1].migrate(db)
+    }
 }
 
 /** Every keyword must be in [column]; null when [query] has none, which matches all rows. */

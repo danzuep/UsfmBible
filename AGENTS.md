@@ -42,6 +42,7 @@ Before pushing, review Kotlin changes carefully (unresolved references, imports,
 
 ## Repository facts
 
+- Database schema changes need a `Migration` appended to `AndroidDatabase.MIGRATIONS` (the version is `MIGRATIONS.size + 1`), so installs keep bookmarks, notes, progress and translations. Never drop tables to change the schema.
 - `main` is protected. Open PRs; the maintainer merges them.
 - Merging a PR auto-tags the next version from the PR title prefix (`major:`, `minor:`, `patch:`; any other title creates no tag) and starts the release. See `.github/workflows/auto-tag.yml`.
 - Known-bad dependency versions that broke CI on JDK 25: Robolectric 4.17. Keep Robolectric 4.16.1 (`buildSrc/src/main/kotlin/Configurations.kt`).
