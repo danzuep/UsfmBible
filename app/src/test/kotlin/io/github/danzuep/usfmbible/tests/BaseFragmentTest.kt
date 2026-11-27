@@ -24,14 +24,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import dagger.hilt.android.testing.HiltAndroidRule
 import io.github.danzuep.usfmbible.R
-import org.junit.Rule
 
-abstract class BaseFragmentTest : BaseUnitTest() {
-    @get:Rule
-    var hiltRule = HiltAndroidRule(this)
-
+abstract class BaseFragmentTest : BaseKoinTest() {
     protected inline fun <reified F : Fragment, reified A : AppCompatActivity> withFragment(fragmentArgs: Bundle? = null, crossinline block: (fragment: F) -> Unit) {
         val startActivityIntent = Intent.makeMainActivity(ComponentName(ApplicationProvider.getApplicationContext(), A::class.java))
             .putExtra("androidx.fragment.app.testing.FragmentScenario.EmptyFragmentActivity.THEME_EXTRAS_BUNDLE_KEY", R.style.AppTheme)

@@ -28,13 +28,13 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
-import io.github.danzuep.usfmbible.DebugEntryPoints
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.repository.local.android.AndroidTranslationStorage
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase
 import io.github.danzuep.usfmbible.reading.chapter.ChapterListView
 import io.github.danzuep.usfmbible.translations.TranslationsActivity
-import dagger.hilt.android.EntryPointAccessors
+import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
+import org.koin.core.context.GlobalContext
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.io.File
@@ -98,7 +98,7 @@ class ChapterDrawerTest {
     @Test
     fun pickingJohnFromGenesisKeepsJohnInView() {
         if (TRANSLATION !in installed()) installWholeBible()
-        runBlocking { EntryPointAccessors.fromApplication(context, DebugEntryPoints::class.java).bibleReadingRepository().saveCurrentTranslation(TRANSLATION) }
+        runBlocking { GlobalContext.get().get<BibleReadingRepository>().saveCurrentTranslation(TRANSLATION) }
 
         val intent = Intent(context, ReadingActivity::class.java).putExtra(ReadingActivity.KEY_OPEN_BOOK, 0)
         ActivityScenario.launch<ReadingActivity>(intent).use { scenario ->

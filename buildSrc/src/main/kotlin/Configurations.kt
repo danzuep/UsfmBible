@@ -49,7 +49,6 @@ object Versions {
         const val core = "2.3.20"
         const val coroutines = "1.11.0"
         const val serialization = "1.10.0"
-        const val ksp = "2.3.6"
     }
 
     object AndroidX {
@@ -76,8 +75,8 @@ object Versions {
         }
     }
 
-    const val hilt = "2.59.2"
     const val kermit = "2.2.0"
+    const val koin = "4.2.2"
     const val materialComponent = "1.12.0"
     const val mockk = "1.14.11"
     const val robolectric = "4.16.1"
@@ -100,10 +99,6 @@ object Dependencies {
 
         object Multiplatform {
             const val plugin = "org.jetbrains.kotlin.multiplatform"
-        }
-
-        object Ksp {
-            const val plugin = "com.google.devtools.ksp"
         }
     }
 
@@ -140,11 +135,8 @@ object Dependencies {
         }
     }
 
-    object Hilt {
-        const val plugin = "com.google.dagger.hilt.android"
-        const val android = "com.google.dagger:hilt-android:${Versions.hilt}"
-        const val compiler = "com.google.dagger:hilt-android-compiler:${Versions.hilt}"
-        const val test = "com.google.dagger:hilt-android-testing:${Versions.hilt}"
+    object Koin {
+        const val android = "io.insert-koin:koin-android:${Versions.koin}"
     }
 
     const val kermit = "co.touchlab:kermit:${Versions.kermit}"

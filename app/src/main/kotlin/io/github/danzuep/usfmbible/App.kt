@@ -18,7 +18,6 @@
 package io.github.danzuep.usfmbible
 
 import androidx.appcompat.app.AppCompatDelegate
-import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -26,21 +25,21 @@ import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 
-@HiltAndroidApp
 class App : BaseApp() {
-    @Inject
-    lateinit var settingsManager: SettingsManager
-
-    @Inject
-    lateinit var bibleReadingRepository: BibleReadingRepository
-
-    @Inject
-    lateinit var appScope: CoroutineScope
+    private val settingsManager: SettingsManager by inject()
+    private val bibleReadingRepository: BibleReadingRepository by inject()
+    private val appScope: CoroutineScope by inject()
 
     override fun onCreate() {
         super.onCreate()
+        startKoin {
+            androidContext(this@App)
+            modules(appModules)
+        }
 
         appScope.launch(Dispatchers.Main) {
             val systemNightMode = when (settingsManager.settings().first().nightMode) {

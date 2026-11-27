@@ -13,7 +13,6 @@ import co.touchlab.kermit.Logger
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.TranslationManager
 import io.github.danzuep.usfmbible.ui.toast
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
@@ -21,16 +20,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 /**
  * Updates translations once the device is on an unmetered network (e.g. Wi-Fi), when mobile data is off, roaming or unavailable, using the platform [JobScheduler] so no
  * extra library is needed. Scheduled only when the user opens the updates page or asks to update; interrupted downloads resume later.
  */
-@AndroidEntryPoint
 class TranslationUpdateJobService : JobService() {
-    @Inject
-    lateinit var translationManager: TranslationManager
+    val translationManager: TranslationManager by inject()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var job: Job? = null

@@ -22,13 +22,8 @@ import android.content.ComponentName
 import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import dagger.hilt.android.testing.HiltAndroidRule
-import org.junit.Rule
 
-abstract class BaseActivityTest : BaseUnitTest() {
-    @get:Rule
-    var hiltRule = HiltAndroidRule(this)
-
+abstract class BaseActivityTest : BaseKoinTest() {
     protected inline fun <reified A : Activity> withActivity(crossinline block: (activity: A) -> Unit) {
         val startActivityIntent = Intent.makeMainActivity(ComponentName(ApplicationProvider.getApplicationContext(), A::class.java))
         ActivityScenario.launch<A>(startActivityIntent).use {

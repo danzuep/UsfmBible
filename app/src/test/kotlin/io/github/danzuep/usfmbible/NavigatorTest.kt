@@ -24,8 +24,6 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
-import dagger.hilt.android.testing.BindValue
-import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.mockk
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -47,17 +45,21 @@ import io.github.danzuep.usfmbible.translations.TranslationsActivity
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
 
 @RunWith(RobolectricTestRunner::class)
-@HiltAndroidTest
 class NavigatorTest : BaseActivityTest() {
     private lateinit var navigator: Navigator
 
-    @BindValue
     val readingToolbarViewModel: ReadingToolbarViewModel = mockk(relaxed = true)
 
-    @BindValue
     val chapterSelectionViewModel: ChapterSelectionViewModel = mockk(relaxed = true)
+
+    override fun overrides() = module {
+        viewModel { readingToolbarViewModel }
+        viewModel { chapterSelectionViewModel }
+    }
 
     @BeforeTest
     override fun setup() {

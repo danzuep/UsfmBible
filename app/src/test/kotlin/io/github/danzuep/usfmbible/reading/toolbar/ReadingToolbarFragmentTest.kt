@@ -20,22 +20,13 @@ package io.github.danzuep.usfmbible.reading.toolbar
 import androidx.annotation.IdRes
 import androidx.appcompat.widget.Toolbar
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.testing.BindValue
-import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.UninstallModules
-import dagger.hilt.components.SingletonComponent
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import javax.inject.Singleton
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
-import io.github.danzuep.usfmbible.NavigationModule
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.databinding.FragmentReadingToolbarBinding
@@ -45,26 +36,22 @@ import org.junit.runner.RunWith
 import io.github.danzuep.usfmbible.tests.BaseFragmentTest
 import io.github.danzuep.usfmbible.tests.MockContents
 import io.github.danzuep.usfmbible.tests.getProperty
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
 
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
-@UninstallModules(NavigationModule::class)
 class ReadingToolbarFragmentTest : BaseFragmentTest() {
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object MockNavigationModule {
-        val mockNavigator: Navigator = mockk()
+    private val mockNavigator: Navigator = mockk()
 
-        @Provides
-        @Singleton
-        fun provideNavigator(): Navigator = mockNavigator
-    }
-
-    @BindValue
     val readingToolbarViewModel: ReadingToolbarViewModel = mockk(relaxed = true)
 
-    @BindValue
     val chapterSelectionViewModel: ChapterSelectionViewModel = mockk(relaxed = true)
+
+    override fun overrides() = module {
+        single { mockNavigator }
+        viewModel { readingToolbarViewModel }
+        viewModel { chapterSelectionViewModel }
+    }
 
     @Test
     fun `test toolbar ViewEvent`() {
@@ -78,13 +65,13 @@ class ReadingToolbarFragmentTest : BaseFragmentTest() {
     }
 
     private fun `verify toolbar ViewEvent`(@IdRes menuItemId: Int, @Navigator.Companion.Screen screen: Int) {
-        every { MockNavigationModule.mockNavigator.navigate(any(), screen) } returns Unit
+        every { mockNavigator.navigate(any(), screen) } returns Unit
 
         withFragment<ReadingToolbarFragment, ReadingActivity> { fragment ->
             val viewBinding: FragmentReadingToolbarBinding = fragment.getProperty("viewBinding")
             val onMenuItemClickListener: Toolbar.OnMenuItemClickListener = (viewBinding.toolbar as Toolbar).getProperty("mOnMenuItemClickListener")
             assertTrue(onMenuItemClickListener.onMenuItemClick(viewBinding.toolbar.menu.findItem(menuItemId)))
-            verify(exactly = 1) { MockNavigationModule.mockNavigator.navigate(any(), screen) }
+            verify(exactly = 1) { mockNavigator.navigate(any(), screen) }
         }
     }
 

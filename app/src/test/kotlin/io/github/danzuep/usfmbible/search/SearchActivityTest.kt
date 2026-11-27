@@ -24,25 +24,16 @@ import androidx.core.view.isVisible
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.testing.BindValue
-import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.UninstallModules
-import dagger.hilt.components.SingletonComponent
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import javax.inject.Singleton
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
-import io.github.danzuep.usfmbible.NavigationModule
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.SearchConfiguration
@@ -57,28 +48,18 @@ import io.github.danzuep.usfmbible.tests.getProperty
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowDialog
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
 
 @RunWith(RobolectricTestRunner::class)
-@HiltAndroidTest
-@UninstallModules(NavigationModule::class)
 class SearchActivityTest : BaseActivityTest() {
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object MockNavigationModule {
-        val mockNavigator: Navigator = mockk()
+    private val mockNavigator: Navigator = mockk()
 
-        @Provides
-        @Singleton
-        fun provideNavigator(): Navigator = mockNavigator
-    }
-
-    @BindValue
     val viewModel: SearchViewModel = mockk(relaxed = true)
 
-    @BeforeTest
-    override fun setup() {
-        super.setup()
-        clearMocks(MockNavigationModule.mockNavigator)
+    override fun overrides() = module {
+        single { mockNavigator }
+        viewModel { viewModel }
     }
 
     @Test
@@ -123,10 +104,10 @@ class SearchActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), OpenReadingScreen`() {
         every { viewModel.viewAction() } returns flowOf(SearchViewModel.ViewAction.OpenReadingScreen)
-        every { MockNavigationModule.mockNavigator.navigate(any(), Navigator.SCREEN_READING, any()) } returns Unit
+        every { mockNavigator.navigate(any(), Navigator.SCREEN_READING, any()) } returns Unit
 
         withActivity<SearchActivity> { activity ->
-            verify(exactly = 1) { MockNavigationModule.mockNavigator.navigate(activity, Navigator.SCREEN_READING, any()) }
+            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_READING, any()) }
         }
     }
 

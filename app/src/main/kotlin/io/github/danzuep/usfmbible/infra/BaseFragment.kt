@@ -29,14 +29,13 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import io.github.danzuep.usfmbible.Navigator
 import co.touchlab.kermit.Logger
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 import kotlinx.coroutines.launch
 
 abstract class BaseFragment<VB : ViewBinding, ViewAction, ViewState, VM : BaseViewModel<ViewAction, ViewState>> : Fragment() {
     protected val loggingTag: String = javaClass.simpleName
 
-    @Inject
-    internal lateinit var navigator: Navigator
+    internal val navigator: Navigator by inject()
 
     protected abstract val viewModel: VM
 

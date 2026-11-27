@@ -1,12 +1,10 @@
 package io.github.danzuep.usfmbible.translations
 
 import android.view.ViewGroup
-import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.google.android.material.checkbox.MaterialCheckBox
-import dagger.hilt.android.AndroidEntryPoint
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.databinding.ActivityTranslationUpdatesBinding
 import io.github.danzuep.usfmbible.infra.BaseActivity
@@ -14,15 +12,15 @@ import io.github.danzuep.usfmbible.ui.ProgressDialog
 import io.github.danzuep.usfmbible.ui.listDialog
 import io.github.danzuep.usfmbible.ui.progressDialog
 import io.github.danzuep.usfmbible.ui.toast
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class TranslationUpdatesActivity : BaseActivity<
     ActivityTranslationUpdatesBinding,
     TranslationUpdatesViewModel.ViewAction,
     TranslationUpdatesViewModel.ViewState,
     TranslationUpdatesViewModel,
     >() {
-    override val viewModel: TranslationUpdatesViewModel by viewModels()
+    override val viewModel: TranslationUpdatesViewModel by viewModel()
 
     override val viewBinding: ActivityTranslationUpdatesBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityTranslationUpdatesBinding.inflate(layoutInflater)

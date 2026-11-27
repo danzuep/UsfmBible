@@ -10,16 +10,13 @@ import io.github.danzuep.usfmbible.core.TranslationManager
 import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.core.repository.remote.android.NetworkPolicy
 import io.github.danzuep.usfmbible.infra.BaseViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 /** Checks the installed translations for newer versions when the page is opened, and updates the ones the user ticks. */
-@HiltViewModel
-class TranslationUpdatesViewModel @Inject constructor(
+class TranslationUpdatesViewModel(
     private val translationManager: TranslationManager,
     private val settingsManager: SettingsManager,
     private val application: Application,

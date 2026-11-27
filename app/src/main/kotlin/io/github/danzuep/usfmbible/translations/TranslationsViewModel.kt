@@ -23,7 +23,6 @@ import io.github.danzuep.usfmbible.core.repository.remote.UsfmMetadata
 import io.github.danzuep.usfmbible.core.repository.remote.cleanShortName
 import io.github.danzuep.usfmbible.core.repository.remote.parseUsfmMetadata
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.R
@@ -39,7 +38,6 @@ import io.github.danzuep.usfmbible.ui.TranslationInfoComparator
 import io.github.danzuep.usfmbible.ui.languageDisplayName
 import io.github.danzuep.usfmbible.ui.languageDisplayNameWithNative
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
@@ -51,8 +49,7 @@ import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.infra.BaseViewModel
 import co.touchlab.kermit.Logger
 
-@HiltViewModel
-class TranslationsViewModel @Inject constructor(
+class TranslationsViewModel(
     private val bibleReadingManager: BibleReadingManager,
     private val translationManager: TranslationManager,
     private val settingsManager: SettingsManager,

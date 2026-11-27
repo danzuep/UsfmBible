@@ -18,7 +18,6 @@ package io.github.danzuep.usfmbible.timeline
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.R
@@ -32,10 +31,8 @@ import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.infra.BaseViewModel
 import io.github.danzuep.usfmbible.utils.firstNotEmpty
 import co.touchlab.kermit.Logger
-import javax.inject.Inject
 
-@HiltViewModel
-class TimelineViewModel @Inject constructor(
+class TimelineViewModel(
     private val bibleReadingManager: BibleReadingManager,
     private val settingsManager: SettingsManager,
     private val coroutineDispatcherProvider: CoroutineDispatcherProvider,

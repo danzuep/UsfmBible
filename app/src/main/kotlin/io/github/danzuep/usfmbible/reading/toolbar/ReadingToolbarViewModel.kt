@@ -19,8 +19,6 @@ package io.github.danzuep.usfmbible.reading.toolbar
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -37,8 +35,7 @@ import io.github.danzuep.usfmbible.utils.filterNotEmpty
 import co.touchlab.kermit.Logger
 import io.github.danzuep.usfmbible.utils.localized
 
-@HiltViewModel
-class ReadingToolbarViewModel @Inject constructor(
+class ReadingToolbarViewModel(
     private val bibleReadingManager: BibleReadingManager,
     translationManager: TranslationManager,
     application: Application

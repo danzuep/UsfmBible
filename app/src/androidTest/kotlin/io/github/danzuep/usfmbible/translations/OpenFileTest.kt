@@ -31,10 +31,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
 import io.github.danzuep.usfmbible.core.repository.local.android.AndroidTranslationStorage
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase
-import io.github.danzuep.usfmbible.DebugEntryPoints
 import io.github.danzuep.usfmbible.reading.ReadingActivity
 import io.github.danzuep.usfmbible.ui.MarkdownActivity
-import dagger.hilt.android.EntryPointAccessors
+import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
+import org.koin.core.context.GlobalContext
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -53,7 +53,7 @@ class OpenFileTest {
     }
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
-    private val repository get() = EntryPointAccessors.fromApplication(context, DebugEntryPoints::class.java).bibleReadingRepository()
+    private val repository get() = GlobalContext.get().get<BibleReadingRepository>()
     private val automation get() = InstrumentationRegistry.getInstrumentation().uiAutomation
 
     private fun <T : Activity> open(activity: Class<T>, name: String, content: String): ActivityScenario<T> {

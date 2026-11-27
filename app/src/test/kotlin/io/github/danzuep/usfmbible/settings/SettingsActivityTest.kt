@@ -20,19 +20,11 @@ package io.github.danzuep.usfmbible.settings
 import android.app.Application
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.testing.BindValue
-import dagger.hilt.android.testing.HiltAndroidTest
-import dagger.hilt.android.testing.UninstallModules
-import dagger.hilt.components.SingletonComponent
 import io.mockk.Ordering
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import javax.inject.Singleton
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -41,7 +33,6 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.Highlight
-import io.github.danzuep.usfmbible.NavigationModule
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.databinding.ActivitySettingsBinding
 import io.github.danzuep.usfmbible.databinding.InnerSettingButtonBinding
@@ -52,28 +43,18 @@ import io.github.danzuep.usfmbible.tests.performClickPressed
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
 
 @RunWith(RobolectricTestRunner::class)
-@HiltAndroidTest
-@UninstallModules(NavigationModule::class)
 class SettingsActivityTest : BaseActivityTest() {
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object MockNavigationModule {
-        val mockNavigator: Navigator = mockk()
+    private val mockNavigator: Navigator = mockk()
 
-        @Provides
-        @Singleton
-        fun provideNavigator(): Navigator = mockNavigator
-    }
-
-    @BindValue
     val viewModel: SettingsViewModel = mockk(relaxed = true)
 
-    @BeforeTest
-    override fun setup() {
-        super.setup()
-        clearMocks(MockNavigationModule.mockNavigator)
+    override fun overrides() = module {
+        single { mockNavigator }
+        viewModel { viewModel }
     }
 
     @Test
@@ -107,20 +88,20 @@ class SettingsActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), OpenRateMe`() {
         every { viewModel.viewAction() } returns flowOf(SettingsViewModel.ViewAction.OpenRateMe)
-        every { MockNavigationModule.mockNavigator.navigate(any(), Navigator.SCREEN_RATE_ME) } returns Unit
+        every { mockNavigator.navigate(any(), Navigator.SCREEN_RATE_ME) } returns Unit
 
         withActivity<SettingsActivity> { activity ->
-            verify(exactly = 1) { MockNavigationModule.mockNavigator.navigate(activity, Navigator.SCREEN_RATE_ME) }
+            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_RATE_ME) }
         }
     }
 
     @Test
     fun `test onViewActionEmitted(), OpenWebsite`() {
         every { viewModel.viewAction() } returns flowOf(SettingsViewModel.ViewAction.OpenWebsite)
-        every { MockNavigationModule.mockNavigator.navigate(any(), Navigator.SCREEN_WEBSITE) } returns Unit
+        every { mockNavigator.navigate(any(), Navigator.SCREEN_WEBSITE) } returns Unit
 
         withActivity<SettingsActivity> { activity ->
-            verify(exactly = 1) { MockNavigationModule.mockNavigator.navigate(activity, Navigator.SCREEN_WEBSITE) }
+            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_WEBSITE) }
         }
     }
 

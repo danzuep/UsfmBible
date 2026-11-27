@@ -38,7 +38,6 @@ import android.view.View
 import android.widget.PopupMenu
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.viewModels
 import androidx.annotation.StringRes
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -51,7 +50,6 @@ import androidx.viewpager2.widget.ViewPager2
 import java.util.Locale
 import co.touchlab.kermit.Logger
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
@@ -89,8 +87,8 @@ import io.github.danzuep.usfmbible.ui.makeLessSensitive
 import io.github.danzuep.usfmbible.ui.toast
 import io.github.danzuep.usfmbible.utils.copyToClipBoard
 import io.github.danzuep.usfmbible.utils.shareToSystem
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.ViewAction, ReadingViewModel.ViewState, ReadingViewModel>(),
     ParagraphItem.Callback, VerseTextItem.Callback {
     companion object {
@@ -104,7 +102,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         fun bundleForOpenNote(): Bundle = Bundle().apply { putBoolean(KEY_OPEN_NOTE, true) }
     }
 
-    override val viewModel: ReadingViewModel by viewModels()
+    override val viewModel: ReadingViewModel by viewModel()
 
     override val viewBinding: ActivityReadingBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityReadingBinding.inflate(layoutInflater) }
 

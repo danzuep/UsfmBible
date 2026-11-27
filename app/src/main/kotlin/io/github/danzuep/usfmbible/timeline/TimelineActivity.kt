@@ -17,10 +17,8 @@
 package io.github.danzuep.usfmbible.timeline
 
 import android.widget.Spinner
-import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.asExecutor
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
@@ -35,12 +33,11 @@ import io.github.danzuep.usfmbible.infra.BaseActivity
 import io.github.danzuep.usfmbible.ui.dialog
 import io.github.danzuep.usfmbible.ui.fadeIn
 import io.github.danzuep.usfmbible.utils.localized
-import javax.inject.Inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel.ViewAction, TimelineViewModel.ViewState, TimelineViewModel>() {
-    @Inject
-    lateinit var coroutineDispatcherProvider: CoroutineDispatcherProvider
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
 
     private lateinit var adapter: AnnotatedVerseAdapter
     private var limit = ReadingTimeline.DEFAULT_LIMIT
@@ -48,7 +45,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     private val selectedVerses = linkedSetOf<VerseIndex>()
     private var selectionMode = false
 
-    override val viewModel: TimelineViewModel by viewModels()
+    override val viewModel: TimelineViewModel by viewModel()
 
     override val viewBinding: ActivityTimelineBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTimelineBinding.inflate(layoutInflater) }
 

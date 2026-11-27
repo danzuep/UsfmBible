@@ -21,8 +21,6 @@ import android.app.Application
 import androidx.annotation.IntDef
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -85,8 +83,7 @@ class VerseUpdate(val verseIndex: VerseIndex, @Operation val operation: Int, val
     }
 }
 
-@HiltViewModel
-class ReadingViewModel @Inject constructor(
+class ReadingViewModel(
     private val bibleReadingManager: BibleReadingManager,
     private val readingProgressManager: ReadingProgressManager,
     private val translationManager: TranslationManager,
