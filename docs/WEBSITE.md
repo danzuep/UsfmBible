@@ -10,6 +10,8 @@ The GitHub Pages home page (https://danzuep.github.io/UsfmBible/) is a [Hugo](ht
 | Screenshots | `fastlane/metadata/android/en-US/images/phoneScreenshots/` |
 | Download buttons and links | `website/hugo.toml` (`[params]`) |
 
+Other pages, such as the privacy policy, are Markdown files in `website/content/` rendered by `website/layouts/_default/single.html`.
+
 Hugo mounts `fastlane/metadata` as assets (`website/hugo.toml`), and `website/layouts/index.html` is the only template.
 
 Store buttons
