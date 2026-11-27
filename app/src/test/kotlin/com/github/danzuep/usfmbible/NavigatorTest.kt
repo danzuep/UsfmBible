@@ -118,7 +118,7 @@ class NavigatorTest : BaseActivityTest() {
 
             val nextStartedIntent = Shadows.shadowOf(ApplicationProvider.getApplicationContext<Application>()).nextStartedActivity
             assertEquals(Intent.ACTION_VIEW, nextStartedIntent.action)
-            assertEquals(Uri.parse("https://ebible.org/about.php"), nextStartedIntent.data)
+            assertEquals(Uri.parse("https://danzuep.github.io/UsfmBible/"), nextStartedIntent.data)
         }
     }
 
