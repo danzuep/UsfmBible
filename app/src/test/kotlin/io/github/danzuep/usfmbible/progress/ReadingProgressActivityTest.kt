@@ -29,6 +29,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.VerseIndex
 import io.github.danzuep.usfmbible.databinding.ActivityReadingProgressBinding
@@ -73,10 +74,10 @@ class ReadingProgressActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), OpenReadingScreen`() {
         every { viewModel.viewAction() } returns flowOf(ReadingProgressViewModel.ViewAction.OpenReadingScreen)
-        every { mockNavigator.navigate(any(), Navigator.SCREEN_READING) } returns Unit
+        every { mockNavigator.navigate(Screen.READING, any()) } returns Unit
 
         withActivity<ReadingProgressActivity> { activity ->
-            verify(exactly = 1) { mockNavigator.navigate(activity, Navigator.SCREEN_READING) }
+            verify(exactly = 1) { mockNavigator.navigate(Screen.READING, any()) }
         }
     }
 

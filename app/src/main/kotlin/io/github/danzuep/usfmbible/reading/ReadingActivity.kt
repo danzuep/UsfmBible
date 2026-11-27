@@ -51,7 +51,7 @@ import java.util.Locale
 import co.touchlab.kermit.Logger
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
-import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.Screen
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.Bible
 import io.github.danzuep.usfmbible.core.Highlight
@@ -100,7 +100,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         private const val KEY_SPEECH_VERSE = "io.github.danzuep.usfmbible.KEY_SPEECH_VERSE"
         const val KEY_OPEN_BOOK = "io.github.danzuep.usfmbible.KEY_OPEN_BOOK"
 
-        fun bundleForOpenNote(): Bundle = Bundle().apply { putBoolean(KEY_OPEN_NOTE, true) }
+        fun extrasForOpenNote(): Map<String, Any?> = mapOf(KEY_OPEN_NOTE to true)
     }
 
     override val viewModel: ReadingViewModel by viewModels { container.viewModelFactory }
@@ -155,7 +155,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     }
     private val speechNotification by speechNotificationDelegate
     private val speakerDelegate = lazy(LazyThreadSafetyMode.NONE) {
-        ChapterSpeaker(this, object : ChapterSpeaker.Listener {
+        container.chapterSpeaker(object : ChapterSpeaker.Listener {
             override fun onVerseQueued(verseIndex: VerseIndex) = followSpokenVerse(verseIndex, false)
             override fun onVerseStarted(verseIndex: VerseIndex) = followSpokenVerse(verseIndex)
             override fun onVerseFinished(verseIndex: VerseIndex) = finishSpokenVerse(verseIndex)
@@ -473,7 +473,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             drawerLayout.closeDrawer(GravityCompat.START)
         }
 
-        search.setOnClickListener { startActivity(Navigator.SCREEN_SEARCH) }
+        search.setOnClickListener { startActivity(Screen.SEARCH) }
 
         val openNoteWhenCreated = intent.getBooleanExtra(KEY_OPEN_NOTE, false)
         verseDetailView.initialize(
@@ -851,20 +851,20 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
     private fun selectSpeechLanguage() {
         speaker.availableVoices { voices ->
             val names = listOf(getString(R.string.speech_language_automatic)) +
-                voices.map { "${it.locale.displayName} · ${it.name}" + if (it.isNetworkConnectionRequired) " ☁" else "" }
+                voices.map { "${it.languageDisplayName} · ${it.name}" + if (it.requiresNetwork) " ☁" else "" }
             val checked = voices.indexOfFirst { it.name == speaker.selectedVoice } + 1
             listDialog(R.string.action_speech_language, names.toTypedArray(), checked, { which ->
                 val voice = voices.getOrNull(which - 1)
                 speaker.selectedVoice = voice?.name
-                speaker.selectedLanguage = voice?.locale?.toLanguageTag()
+                speaker.selectedLanguage = voice?.languageTag
                 if (speech == Speech.PLAYING) startSpeech(spokenVerse)
             })
         }
     }
 
-    private fun startActivity(@Navigator.Companion.Screen screen: Int, extras: Bundle? = null) {
+    private fun startActivity(screen: Screen, extras: Map<String, Any?> = emptyMap()) {
         try {
-            navigator.navigate(this, screen, extras)
+            navigator.navigate(screen, extras)
         } catch (e: Exception) {
             Logger.withTag(tag).e(e) { "Failed to open activity" }
             dialog(true, R.string.dialog_title_error, R.string.dialog_message_failed_to_navigate, { _, _ -> startActivity(screen) })
@@ -998,7 +998,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
             .setTitle(R.string.dialog_title_no_translation_downloaded)
             .setMessage(R.string.dialog_message_download_translation_confirmation)
             .setView(content)
-            .setPositiveButton(android.R.string.ok) { _, _ -> startActivity(Navigator.SCREEN_TRANSLATIONS) }
+            .setPositiveButton(android.R.string.ok) { _, _ -> startActivity(Screen.TRANSLATIONS) }
             .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
             .setOnDismissListener { viewModel.markErrorAsShown(error) }
             .create()
@@ -1009,7 +1009,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         ).forEach { (buttonId, shortName) ->
             content.findViewById<View>(buttonId).setOnClickListener {
                 dialog.dismiss()
-                startActivity(Navigator.SCREEN_TRANSLATIONS, Bundle().apply { putString(TranslationsActivity.KEY_DOWNLOAD_TRANSLATION, shortName) })
+                startActivity(Screen.TRANSLATIONS, mapOf(TranslationsActivity.KEY_DOWNLOAD_TRANSLATION to shortName))
             }
         }
         dialog.show()

@@ -16,20 +16,14 @@
 
 package io.github.danzuep.usfmbible.reading.speech
 
-import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import android.os.Bundle
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
-import android.speech.tts.Voice
-import io.github.danzuep.usfmbible.core.Bible
 import io.github.danzuep.usfmbible.core.VerseIndex
-import io.github.danzuep.usfmbible.ui.languageMatchesLocale
-import java.util.Locale
 
-/** Reads chapters aloud with the built-in Android text to speech, verse by verse. */
-class ChapterSpeaker(context: Context, private val listener: Listener) {
+/** Reads chapters aloud verse by verse through a [SpeechEngine], keeping the next utterance queued so the engine never idles. */
+class ChapterSpeaker(
+    private val engine: SpeechEngine,
+    private val preferences: SpeechPreferences,
+    private val listener: Listener,
+) {
     interface Listener {
         fun onVerseQueued(verseIndex: VerseIndex)
         fun onVerseStarted(verseIndex: VerseIndex)
@@ -40,8 +34,6 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         fun onError()
     }
 
-    private val preferences = context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-    private val main = Handler(Looper.getMainLooper())
     private var ready = false
     private var failed = false
     private val whenReady = mutableListOf<() -> Unit>()
@@ -53,90 +45,77 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     private var startedSpans = 0
     private var closed = false
 
-    private val engine = TextToSpeech(context.applicationContext) { status ->
-        main.post {
-            if (closed) return@post
-            ready = status == TextToSpeech.SUCCESS
-            failed = !ready
-            whenReady.toList().forEach { it() }
-            whenReady.clear()
-        }
-    }
-
     init {
-        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {
-                val id = utteranceId?.let(::parse) ?: return
-                main.post {
-                    if (closed || id.generation != generation) return@post
-                    pendingSegments.getOrNull(id.position)?.let { enter(id.position, it, 0) }
-                }
+        engine.initialize(object : SpeechEngine.Callback {
+            override fun onStart(utteranceId: String) {
+                val id = parse(utteranceId) ?: return
+                if (closed || id.generation != generation) return
+                pendingSegments.getOrNull(id.position)?.let { enter(id.position, it, 0) }
             }
 
             // Verses merged into one utterance are followed by their character offset in the text.
-            override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
-                val id = utteranceId?.let(::parse) ?: return
-                main.post {
-                    if (closed || id.generation != generation) return@post
-                    val queued = pendingSegments.getOrNull(id.position) ?: return@post
-                    enter(id.position, queued, queued.spans.indexOfLast { it.offset <= start }.coerceAtLeast(0))
+            override fun onRangeStart(utteranceId: String, start: Int) {
+                val id = parse(utteranceId) ?: return
+                if (closed || id.generation != generation) return
+                val queued = pendingSegments.getOrNull(id.position) ?: return
+                enter(id.position, queued, queued.spans.indexOfLast { it.offset <= start }.coerceAtLeast(0))
+            }
+
+            override fun onDone(utteranceId: String) {
+                val parsed = parse(utteranceId) ?: return
+                if (closed || parsed.generation != generation) return
+                pendingSegments.getOrNull(parsed.position)?.let { queued ->
+                    enter(parsed.position, queued, queued.spans.lastIndex)
+                    if (queued.lastForVerse) listener.onVerseFinished(queued.spans.last().verseIndex)
+                }
+                if (utteranceId == finalUtteranceId) {
+                    pendingSegments = emptyList()
+                    finalUtteranceId = null
+                    listener.onChapterFinished()
+                } else {
+                    // Keep one segment queued ahead so the engine never idles between verses.
+                    speakNextSegment(parsed.generation, flush = false, notifyQueued = false)
                 }
             }
 
-            override fun onDone(utteranceId: String?) {
-                val id = utteranceId ?: return
-                val parsed = parse(id) ?: return
-                main.post {
-                    if (closed || parsed.generation != generation) return@post
-                    pendingSegments.getOrNull(parsed.position)?.let { queued ->
-                        enter(parsed.position, queued, queued.spans.lastIndex)
-                        if (queued.lastForVerse) listener.onVerseFinished(queued.spans.last().verseIndex)
-                    }
-                    if (id == finalUtteranceId) {
-                        pendingSegments = emptyList()
-                        finalUtteranceId = null
-                        listener.onChapterFinished()
-                    } else {
-                        // Keep one segment queued ahead so the engine never idles between verses.
-                        speakNextSegment(parsed.generation, TextToSpeech.QUEUE_ADD, notifyQueued = false)
-                    }
+            override fun onError(utteranceId: String) {
+                val id = parse(utteranceId) ?: return
+                if (!closed && id.generation == generation) {
+                    pendingSegments = emptyList()
+                    finalUtteranceId = null
+                    generation++
+                    listener.onError()
                 }
             }
-
-            @Deprecated("Deprecated in Java")
-            override fun onError(utteranceId: String?) {
-                val id = utteranceId?.let(::parse) ?: return
-                main.post {
-                    if (!closed && id.generation == generation) {
-                        pendingSegments = emptyList()
-                        finalUtteranceId = null
-                        generation++
-                        listener.onError()
-                    }
-                }
+        }) { success ->
+            if (!closed) {
+                ready = success
+                failed = !success
+                whenReady.toList().forEach { it() }
+                whenReady.clear()
             }
-        })
+        }
     }
 
     /** The language the user selected as a BCP 47 tag, or null to match the translation's language automatically. */
     var selectedLanguage: String?
-        get() = preferences.getString(KEY_LANGUAGE, null)
+        get() = preferences.language
         set(value) {
-            preferences.edit().apply { if (value == null) remove(KEY_LANGUAGE) else putString(KEY_LANGUAGE, value) }.apply()
+            preferences.language = value
         }
 
     /** The name of the specific voice the user selected, which takes priority over [selectedLanguage], or null for automatic. */
     var selectedVoice: String?
-        get() = preferences.getString(KEY_VOICE, null)
+        get() = preferences.voice
         set(value) {
-            preferences.edit().apply { if (value == null) remove(KEY_VOICE) else putString(KEY_VOICE, value) }.apply()
+            preferences.voice = value
         }
 
     var playbackSpeed: Float
-        get() = preferences.getFloat(KEY_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+        get() = preferences.playbackSpeed
         set(value) {
             require(value in speechPlaybackSpeeds) { "Unsupported playback speed: $value" }
-            preferences.edit().putFloat(KEY_PLAYBACK_SPEED, value).apply()
+            preferences.playbackSpeed = value
         }
 
     /** Speaks [verses] in order, stopping anything already being spoken, then calls [Listener.onChapterFinished]. */
@@ -149,8 +128,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         if (ready) engine.stop()
         whenEngineReady {
             if (closed || request != generation) return@whenEngineReady
-            val locale = resolveLocale(translationLanguage)
-            if (locale == null) {
+            if (engine.selectVoice(translationLanguage, selectedLanguage, selectedVoice) == null) {
                 listener.onLanguageUnavailable(selectedLanguage ?: translationLanguage)
                 return@whenEngineReady
             }
@@ -165,8 +143,8 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
                 QueuedSegment(utteranceId(request, position), item.segment, item.spans, lastForVerse)
             }
             finalUtteranceId = pendingSegments.lastOrNull()?.id
-            speakNextSegment(request, TextToSpeech.QUEUE_FLUSH)
-            speakNextSegment(request, TextToSpeech.QUEUE_ADD, notifyQueued = false)
+            speakNextSegment(request, flush = true)
+            speakNextSegment(request, flush = false, notifyQueued = false)
         }
     }
 
@@ -179,8 +157,8 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     }
 
     /** The installed voices, for the user to choose from, so that voices of one language can be told apart. */
-    fun availableVoices(callback: (List<Voice>) -> Unit) = whenEngineReady {
-        callback(installedVoices().sortedWith(compareBy({ it.locale.displayName }, { it.name })))
+    fun availableVoices(callback: (List<SpeechVoice>) -> Unit) = whenEngineReady {
+        callback(engine.voices().sortedWith(compareBy({ it.languageDisplayName }, { it.name })))
     }
 
     fun shutdown() {
@@ -192,22 +170,13 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         engine.shutdown()
     }
 
-    private fun speakNextSegment(request: Int, queueMode: Int, notifyQueued: Boolean = true) {
+    private fun speakNextSegment(request: Int, flush: Boolean, notifyQueued: Boolean = true) {
         if (closed || request != generation) return
         val queued = pendingSegments.getOrNull(nextSegmentIndex) ?: return
         val segment = queued.segment
         // Rate and pitch are engine-wide but captured when each utterance is queued, so segments keep their own modifiers.
-        if (engine.setSpeechRate(segment.rate * playbackSpeed) == TextToSpeech.ERROR ||
-            engine.setPitch(segment.pitch) == TextToSpeech.ERROR) {
-            pendingSegments = emptyList()
-            finalUtteranceId = null
-            generation++
-            listener.onError()
-            return
-        }
-        val params = Bundle().apply { putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, segment.volume) }
         nextSegmentIndex++
-        if (engine.speak(segment.text, queueMode, params, queued.id) == TextToSpeech.ERROR) {
+        if (!engine.speak(queued.id, segment.text, segment.rate * playbackSpeed, segment.pitch, segment.volume, flush)) {
             pendingSegments = emptyList()
             finalUtteranceId = null
             generation++
@@ -297,32 +266,6 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
         }
     }
 
-    private fun supportedLocales(): List<Locale> =
-        engine.availableLanguages.orEmpty().filter { engine.isLanguageAvailable(it) >= TextToSpeech.LANG_AVAILABLE }
-
-    private fun installedVoices(): List<Voice> =
-        engine.voices.orEmpty().filter { !it.features.orEmpty().contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
-
-    /** The selected voice or language, or else the installed voice language matching the translation, preferring the user's region. */
-    private fun resolveLocale(translationLanguage: String): Locale? {
-        val voice = selectedVoice?.let { name -> installedVoices().firstOrNull { it.name == name } }
-        if (voice != null && engine.setVoice(voice) == TextToSpeech.SUCCESS) return voice.locale
-        val locale = selectedLanguage?.let(Locale::forLanguageTag)
-            ?: supportedLocales()
-                .filter { languageMatchesLocale(translationLanguage, it) }
-                .sortedBy { if (it.country == Locale.getDefault().country) 0 else 1 }
-                .firstOrNull()
-            ?: return null
-        val result = engine.setLanguage(locale)
-        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) return null
-        // setLanguage alone can keep the previous voice, so pin a voice of exactly this locale.
-        installedVoices()
-            .filter { it.locale == locale }
-            .minByOrNull { if (it.isNetworkConnectionRequired) 1 else 0 }
-            ?.let(engine::setVoice)
-        return locale
-    }
-
     private class UtteranceId(val generation: Int, val position: Int)
 
     private fun utteranceId(generation: Int, position: Int) = "$generation:$position"
@@ -334,7 +277,7 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
 
     private fun splitSelah(text: String): List<Pair<String, Float>> {
         val result = mutableListOf<Pair<String, Float>>()
-        val regex = Regex("(?i)\\bselah\\b[.!?,;:]?")
+        val regex = Regex("\\bselah\\b[.!?,;:]?", RegexOption.IGNORE_CASE)
         var start = 0
         regex.findAll(text).forEach { match ->
             if (match.range.first > start) result += text.substring(start, match.range.first) to NORMAL_VOLUME
@@ -401,11 +344,6 @@ class ChapterSpeaker(context: Context, private val listener: Listener) {
     )
 
     private companion object {
-        const val PREFERENCES = "speech"
-        const val KEY_LANGUAGE = "language"
-        const val KEY_VOICE = "voice"
-        const val KEY_PLAYBACK_SPEED = "playback_speed_v2"
-        const val DEFAULT_PLAYBACK_SPEED = 1f
         const val MAX_UTTERANCE_LENGTH = 1000
         val SENTENCE_BREAK = Regex("[.!?…。！？][\"'”’»)\\]]*(?=\\s)")
         val CLAUSE_BREAK = Regex("[,;:，、；：][\"'”’»)\\]]*(?=\\s)")

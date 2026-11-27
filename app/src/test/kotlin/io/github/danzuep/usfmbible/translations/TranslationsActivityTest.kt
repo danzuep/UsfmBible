@@ -62,10 +62,10 @@ class TranslationsActivityTest : BaseActivityTest() {
     @Test
     fun `test onViewActionEmitted(), GoBack`() {
         every { viewModel.viewAction() } returns flowOf(TranslationsViewModel.ViewAction.GoBack)
-        every { mockNavigator.goBack(any()) } returns Unit
+        every { mockNavigator.goBack() } returns Unit
 
         withActivity<TranslationsActivity> {
-            verify(exactly = 1) { mockNavigator.goBack(any()) }
+            verify(exactly = 1) { mockNavigator.goBack() }
         }
     }
 

@@ -19,7 +19,7 @@ package io.github.danzuep.usfmbible.reading.speech
 import io.github.danzuep.usfmbible.core.Bible
 import io.github.danzuep.usfmbible.core.VerseIndex
 
-internal fun adjacentSpeechChapter(current: VerseIndex, direction: Int): VerseIndex? {
+fun adjacentSpeechChapter(current: VerseIndex, direction: Int): VerseIndex? {
     if (!current.isValid() || direction !in listOf(-1, 1)) return null
     val book = current.bookIndex
     val chapter = current.chapterIndex
@@ -32,7 +32,7 @@ internal fun adjacentSpeechChapter(current: VerseIndex, direction: Int): VerseIn
     }
 }
 
-internal fun chapterSpeechFraction(
+fun chapterSpeechFraction(
     verses: List<VerseIndex>, words: Map<VerseIndex, Int>, current: VerseIndex, verseFraction: Float
 ): Float {
     val position = verses.indexOf(current)
@@ -43,7 +43,7 @@ internal fun chapterSpeechFraction(
 }
 
 /** Starts on submission as a fallback for engines that omit onStart, and corrects for startup delay when they do report it. */
-internal class SpeechVerseTimer {
+class SpeechVerseTimer {
     private var verse = VerseIndex.INVALID
     private var startedAt: Long? = null
     private var confirmed = false
@@ -79,4 +79,4 @@ internal class SpeechVerseTimer {
     }
 }
 
-internal val speechPlaybackSpeeds = listOf(0.5f, 0.75f, 1f, 0.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f)
+val speechPlaybackSpeeds = listOf(0.5f, 0.75f, 1f, 0.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f)

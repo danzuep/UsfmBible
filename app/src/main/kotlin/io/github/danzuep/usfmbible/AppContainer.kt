@@ -58,12 +58,23 @@ import io.github.danzuep.usfmbible.core.repository.local.android.AndroidSettings
 import io.github.danzuep.usfmbible.core.repository.local.android.AndroidTranslationStorage
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase
 import io.github.danzuep.usfmbible.core.repository.remote.android.HttpTranslationService
-import io.github.danzuep.usfmbible.core.repository.remote.android.NetworkPolicy
+import io.github.danzuep.usfmbible.core.repository.remote.NetworkPolicy
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationCatalog
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationUpdateChecker
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationUpdateScheduler
+import io.github.danzuep.usfmbible.core.repository.remote.TranslationVersions
+import io.github.danzuep.usfmbible.core.repository.remote.android.AndroidNetworkPolicy
+import io.github.danzuep.usfmbible.core.repository.remote.android.AndroidTranslationUpdateScheduler
+import io.github.danzuep.usfmbible.core.repository.remote.android.AndroidTranslationVersions
+import io.github.danzuep.usfmbible.core.repository.remote.android.AssetTranslationCatalog
+import io.github.danzuep.usfmbible.core.repository.remote.android.fetchLastModified
 import io.github.danzuep.usfmbible.core.serializer.android.BackupJsonSerializer
 import io.github.danzuep.usfmbible.progress.ReadingProgressViewModel
 import io.github.danzuep.usfmbible.reading.ReadingViewModel
 import io.github.danzuep.usfmbible.reading.chapter.ChapterSelectionViewModel
 import io.github.danzuep.usfmbible.reading.toolbar.ReadingToolbarViewModel
+import io.github.danzuep.usfmbible.reading.speech.AndroidChapterSpeaker
+import io.github.danzuep.usfmbible.reading.speech.ChapterSpeaker
 import io.github.danzuep.usfmbible.search.SearchViewModel
 import io.github.danzuep.usfmbible.settings.SettingsViewModel
 import io.github.danzuep.usfmbible.timeline.TimelineViewModel
@@ -75,10 +86,18 @@ import io.github.danzuep.usfmbible.translations.TranslationsViewModel
  * app start unless it is requested. Members are open so tests can substitute them.
  */
 open class AppContainer(private val application: Application) {
-    open val navigator: Navigator by lazy { Navigator() }
+    open val navigator: Navigator by lazy { AndroidNavigator(application) }
     val appScope: CoroutineScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val timeProvider: TimeProvider by lazy { DefaultTimeProvider() }
     val coroutineDispatcherProvider: CoroutineDispatcherProvider by lazy { DefaultCoroutineDispatcherProvider() }
+
+    /** A new text to speech reader of chapters; each screen that reads aloud owns one and releases it when done. */
+    open fun chapterSpeaker(listener: ChapterSpeaker.Listener): ChapterSpeaker = AndroidChapterSpeaker(application, listener)
+
+    private val networkPolicy: NetworkPolicy by lazy { AndroidNetworkPolicy(application) { settingsRepository.settings.first() } }
+    private val translationCatalog: TranslationCatalog by lazy { AssetTranslationCatalog(application) }
+    private val translationVersions: TranslationVersions by lazy { AndroidTranslationVersions(application) }
+    private val translationUpdateScheduler: TranslationUpdateScheduler by lazy { AndroidTranslationUpdateScheduler(application) }
 
     private val database by lazy { AndroidDatabase(application) }
 
@@ -91,7 +110,7 @@ open class AppContainer(private val application: Application) {
     private val translationRepository by lazy {
         TranslationRepository(
             AndroidTranslationStorage(database, application),
-            HttpTranslationService(application, NetworkPolicy(application) { settingsRepository.settings.first() }),
+            HttpTranslationService(application, networkPolicy, translationCatalog, translationVersions),
             timeProvider,
             appScope,
         )
@@ -106,6 +125,7 @@ open class AppContainer(private val application: Application) {
     private val searchManager by lazy { SearchManager(bibleReadingRepository, bookmarkRepository, highlightRepository, noteRepository) }
     val settingsManager by lazy { SettingsManager(settingsRepository) }
     val translationManager by lazy { TranslationManager(translationRepository) }
+    val translationUpdateChecker by lazy { TranslationUpdateChecker(translationManager, translationVersions, ::fetchLastModified) }
 
     open val viewModelFactory: ViewModelProvider.Factory by lazy {
         viewModelFactory {
@@ -119,8 +139,8 @@ open class AppContainer(private val application: Application) {
             initializer { SearchViewModel(bibleReadingManager, searchManager, settingsManager, coroutineDispatcherProvider, application) }
             initializer { SettingsViewModel(backupManager, settingsManager, application, coroutineDispatcherProvider) }
             initializer { TimelineViewModel(bibleReadingManager, settingsManager, coroutineDispatcherProvider, application) }
-            initializer { TranslationUpdatesViewModel(translationManager, settingsManager, application, coroutineDispatcherProvider) }
-            initializer { TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, application, coroutineDispatcherProvider) }
+            initializer { TranslationUpdatesViewModel(translationManager, translationUpdateChecker, translationUpdateScheduler, networkPolicy, settingsManager, application, coroutineDispatcherProvider) }
+            initializer { TranslationsViewModel(bibleReadingManager, translationManager, settingsManager, translationCatalog, application, coroutineDispatcherProvider) }
             initializer { ChapterSelectionViewModel(bibleReadingManager) }
             initializer { ReadingToolbarViewModel(bibleReadingManager, translationManager, application) }
             initializer {
