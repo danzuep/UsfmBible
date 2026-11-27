@@ -23,11 +23,9 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.viewbinding.ViewBinding
 import io.github.danzuep.usfmbible.R
-import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.databinding.ItemTitleBinding
 import io.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerViewAdapter
 import io.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerViewHolder
-import io.github.danzuep.usfmbible.ui.recyclerview.VerticalRecyclerViewItem
 import io.github.danzuep.usfmbible.ui.setPrimaryTextSize
 import io.github.danzuep.usfmbible.ui.setSecondaryTextSize
 import java.util.concurrent.Executor
@@ -38,8 +36,11 @@ class TranslationsAdapter(
     private val inflater: LayoutInflater,
     executor: Executor,
     private val onViewEvent: (ViewEvent) -> Unit,
-) : VerticalRecyclerViewAdapter<TranslationsItem, TranslationsViewHolder<TranslationsItem, *>>(TranslationsItem.DiffCallback(), executor) {
-    override fun viewTypeOf(item: TranslationsItem): Int = item.viewType
+) : VerticalRecyclerViewAdapter<TranslationsItem, TranslationsViewHolder<TranslationsItem, *>>(TranslationsDiffCallback(), executor) {
+    override fun viewTypeOf(item: TranslationsItem): Int = when (item) {
+        is TranslationsItem.Header -> R.layout.item_title
+        is TranslationsItem.Translation -> R.layout.item_translation
+    }
 
     sealed class ViewEvent {
         data class DownloadTranslation(val translationToDownload: TranslationInfo) : ViewEvent()
@@ -49,44 +50,20 @@ class TranslationsAdapter(
 
     @Suppress("UNCHECKED_CAST")
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TranslationsViewHolder<TranslationsItem, *> = when (viewType) {
-        TranslationsItem.Header.VIEW_TYPE -> TranslationsViewHolder.Header(inflater, parent)
-        TranslationsItem.Translation.VIEW_TYPE -> TranslationsViewHolder.Translation(inflater, parent, onViewEvent)
+        R.layout.item_title -> TranslationsViewHolder.Header(inflater, parent)
+        R.layout.item_translation -> TranslationsViewHolder.Translation(inflater, parent, onViewEvent)
         else -> throw IllegalStateException("Unknown view type - $viewType")
     } as TranslationsViewHolder<TranslationsItem, *>
 }
 
-sealed class TranslationsItem(viewType: Int) : VerticalRecyclerViewItem(viewType) {
-    class DiffCallback : DiffUtil.ItemCallback<TranslationsItem>() {
-        override fun areItemsTheSame(oldItem: TranslationsItem, newItem: TranslationsItem): Boolean = when {
-            oldItem is Header && newItem is Header -> true
-            oldItem is Translation && newItem is Translation -> oldItem.translationInfo.shortName == newItem.translationInfo.shortName
-            else -> false
-        }
-
-        override fun areContentsTheSame(oldItem: TranslationsItem, newItem: TranslationsItem): Boolean = oldItem == newItem
+class TranslationsDiffCallback : DiffUtil.ItemCallback<TranslationsItem>() {
+    override fun areItemsTheSame(oldItem: TranslationsItem, newItem: TranslationsItem): Boolean = when {
+        oldItem is TranslationsItem.Header && newItem is TranslationsItem.Header -> true
+        oldItem is TranslationsItem.Translation && newItem is TranslationsItem.Translation -> oldItem.translationInfo.shortName == newItem.translationInfo.shortName
+        else -> false
     }
 
-    data class Header(
-        val settings: Settings,
-        val title: String,
-        val hideDivider: Boolean,
-        val isLanguage: Boolean = false,
-    ) : TranslationsItem(VIEW_TYPE) {
-        companion object {
-            @JvmField val VIEW_TYPE = R.layout.item_title
-        }
-    }
-
-    data class Translation(
-        val settings: Settings,
-        val translationInfo: TranslationInfo,
-        val isCurrentTranslation: Boolean,
-        val title: String = translationInfo.name,
-    ) : TranslationsItem(VIEW_TYPE) {
-        companion object {
-            @JvmField val VIEW_TYPE = R.layout.item_translation
-        }
-    }
+    override fun areContentsTheSame(oldItem: TranslationsItem, newItem: TranslationsItem): Boolean = oldItem == newItem
 }
 
 sealed class TranslationsViewHolder<Item : TranslationsItem, VB : ViewBinding>(viewBinding: VB) : VerticalRecyclerViewHolder<Item, VB>(viewBinding) {

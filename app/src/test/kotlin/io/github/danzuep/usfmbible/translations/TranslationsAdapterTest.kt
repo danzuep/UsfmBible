@@ -68,7 +68,7 @@ class TranslationsAdapterTest : BaseUnitTest() {
 
     @Test
     fun `test onCreateViewHolder()`() {
-        adapter.onCreateViewHolder(FrameLayout(context), TranslationsItem.Header.VIEW_TYPE) as TranslationsViewHolder.Header
-        adapter.onCreateViewHolder(FrameLayout(context), TranslationsItem.Translation.VIEW_TYPE) as TranslationsViewHolder.Translation
+        adapter.onCreateViewHolder(FrameLayout(context), R.layout.item_title) as TranslationsViewHolder.Header
+        adapter.onCreateViewHolder(FrameLayout(context), R.layout.item_translation) as TranslationsViewHolder.Translation
     }
 }
