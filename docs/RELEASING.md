@@ -65,6 +65,10 @@ Branch runs of `release.yml` use the secret-less `dry-run` environment. Without 
 
 More about app signing can be found [here](https://developer.android.com/studio/publish/app-signing).
 
+## App size
+
+The app ships no native libraries (SQLite is the platform's, and `libshared.so` is excluded in `app/build.gradle.kts`), so ABI splits would produce identical APKs and are deliberately not configured. The release build already has R8 minification and `shrinkResources`, and `androidResources.localeFilters` limits resources to `Configurations.supportedLocales`. The AAB uploaded to Google Play gets density and language splits from Play itself. If a native dependency is ever added, add `splits.abi` (with `isUniversalApk = true`, so F-Droid and sideloading keep working) and check that `release.yml` and `fdroid.yml` pick the right APK.
+
 ## Automated releases
 
 - Merging a PR into `main` runs the *Auto Tag* workflow, which creates the next `vX.Y.Z` tag from the prefix of the PR title: `major: ...` bumps X, `minor: ...` bumps Y, `patch: ...` bumps Z. Any other title creates no tag and no release. After a tag is created it starts the *Release APK* workflow.
