@@ -18,4 +18,3 @@
 include(":app")
 include(":baselineprofile")
 include(":shared")
-include(":web")
