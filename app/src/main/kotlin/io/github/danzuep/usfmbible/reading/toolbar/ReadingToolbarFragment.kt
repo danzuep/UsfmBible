@@ -18,8 +18,6 @@
 package io.github.danzuep.usfmbible.reading.toolbar
 
 import androidx.appcompat.widget.Toolbar
-import androidx.fragment.app.viewModels
-import dagger.hilt.android.AndroidEntryPoint
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.VerseIndex
@@ -27,8 +25,8 @@ import io.github.danzuep.usfmbible.databinding.FragmentReadingToolbarBinding
 import io.github.danzuep.usfmbible.infra.BaseFragment
 import io.github.danzuep.usfmbible.ui.showCopyright
 import io.github.danzuep.usfmbible.ui.toast
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, ReadingToolbarViewModel.ViewAction, ReadingToolbarViewModel.ViewState, ReadingToolbarViewModel>() {
     val toolbar: Toolbar by lazy(LazyThreadSafetyMode.NONE) { viewBinding.toolbar }
 
@@ -36,7 +34,7 @@ class ReadingToolbarFragment : BaseFragment<FragmentReadingToolbarBinding, Readi
 
     var onTitleClicked: (() -> Unit)? = null
 
-    override val viewModel: ReadingToolbarViewModel by viewModels()
+    override val viewModel: ReadingToolbarViewModel by viewModel()
 
     override val viewBinding: FragmentReadingToolbarBinding by lazy(LazyThreadSafetyMode.NONE) { FragmentReadingToolbarBinding.inflate(layoutInflater) }
 

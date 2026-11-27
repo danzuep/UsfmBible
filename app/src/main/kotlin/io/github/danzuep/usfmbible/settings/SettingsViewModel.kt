@@ -23,7 +23,6 @@ import androidx.annotation.Px
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.IOException
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -32,7 +31,6 @@ import io.github.danzuep.usfmbible.core.BackupManager
 import io.github.danzuep.usfmbible.core.Highlight
 import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager
-import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -43,8 +41,7 @@ import io.github.danzuep.usfmbible.ui.getSecondaryTextSize
 import io.github.danzuep.usfmbible.utils.appVersionName
 import co.touchlab.kermit.Logger
 
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SettingsViewModel(
     private val backupManager: BackupManager,
     private val settingsManager: SettingsManager,
     private val application: Application,

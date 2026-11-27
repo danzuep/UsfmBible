@@ -18,8 +18,6 @@
 package io.github.danzuep.usfmbible.reading.chapter
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dagger.hilt.android.testing.BindValue
-import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.Test
@@ -35,12 +33,16 @@ import io.github.danzuep.usfmbible.tests.MockContents
 import io.github.danzuep.usfmbible.tests.getProperty
 import org.junit.runner.RunWith
 import org.robolectric.shadows.ShadowDialog
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
 
 @RunWith(AndroidJUnit4::class)
-@HiltAndroidTest
 class ChapterSelectionFragmentTest : BaseFragmentTest() {
-    @BindValue
     val viewModel: ChapterSelectionViewModel = mockk(relaxed = true)
+
+    override fun overrides() = module {
+        viewModel { viewModel }
+    }
 
     @Test
     fun `test onViewStateUpdated(), with null error`() {

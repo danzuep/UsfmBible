@@ -18,8 +18,6 @@
 package io.github.danzuep.usfmbible.reading.chapter
 
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -30,8 +28,7 @@ import io.github.danzuep.usfmbible.core.VerseIndex
 import io.github.danzuep.usfmbible.infra.BaseViewModel
 import co.touchlab.kermit.Logger
 
-@HiltViewModel
-class ChapterSelectionViewModel @Inject constructor(
+class ChapterSelectionViewModel(
     private val bibleReadingManager: BibleReadingManager,
 ) : BaseViewModel<ChapterSelectionViewModel.ViewAction, ChapterSelectionViewModel.ViewState>(
     initialViewState = ViewState(

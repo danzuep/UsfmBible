@@ -30,13 +30,10 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.asExecutor
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
@@ -52,15 +49,15 @@ import io.github.danzuep.usfmbible.ui.indeterminateProgressDialog
 import io.github.danzuep.usfmbible.ui.progressDialog
 import io.github.danzuep.usfmbible.ui.showCopyright
 import io.github.danzuep.usfmbible.ui.toast
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, TranslationsViewModel.ViewAction, TranslationsViewModel.ViewState, TranslationsViewModel>() {
     companion object {
         const val KEY_DOWNLOAD_TRANSLATION = "io.github.danzuep.usfmbible.KEY_DOWNLOAD_TRANSLATION"
     }
 
-    @Inject
-    lateinit var coroutineDispatcherProvider: CoroutineDispatcherProvider
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
 
     private lateinit var adapter: TranslationsAdapter
 
@@ -71,7 +68,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     private var downloadTranslationDialog: ProgressDialog? = null
     private var removeTranslationDialog: AlertDialog? = null
 
-    override val viewModel: TranslationsViewModel by viewModels()
+    override val viewModel: TranslationsViewModel by viewModel()
 
     override val viewBinding: ActivityTranslationsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTranslationsBinding.inflate(layoutInflater) }
 

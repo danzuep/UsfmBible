@@ -27,10 +27,9 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import dagger.hilt.android.EntryPointAccessors
+import org.koin.core.context.GlobalContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import io.github.danzuep.usfmbible.DebugEntryPoints
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.core.VerseIndex
 import io.github.danzuep.usfmbible.reading.verse.VersePagerAdapter
@@ -61,7 +60,7 @@ class CoreReaderTest {
         private val context: Context get() = ApplicationProvider.getApplicationContext()
 
         private val repository: BibleReadingRepository
-            get() = EntryPointAccessors.fromApplication(context, DebugEntryPoints::class.java).bibleReadingRepository()
+            get() = GlobalContext.get().get<BibleReadingRepository>()
 
         /** The first launch imports the bundled translation, so wait for it once. */
         @BeforeClass

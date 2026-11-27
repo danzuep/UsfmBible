@@ -19,9 +19,6 @@ package io.github.danzuep.usfmbible.annotated.notes
 
 import android.app.Application
 import android.os.Bundle
-import androidx.activity.viewModels
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseActivity
@@ -34,10 +31,9 @@ import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.VerseAnnotationManager
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
 import io.github.danzuep.usfmbible.reading.ReadingActivity
-import javax.inject.Inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@HiltViewModel
-class NotesViewModel @Inject constructor(
+class NotesViewModel(
     bibleReadingManager: BibleReadingManager,
     notesManager: VerseAnnotationManager<Note>,
     settingsManager: SettingsManager,
@@ -69,9 +65,8 @@ class NotesViewModel @Inject constructor(
     )
 }
 
-@AndroidEntryPoint
 class NotesActivity : AnnotatedVerseActivity<Note, NotesViewModel>(R.string.title_notes) {
-    override val viewModel: NotesViewModel by viewModels()
+    override val viewModel: NotesViewModel by viewModel()
 
     override fun extrasForOpeningVerse(): Bundle = ReadingActivity.bundleForOpenNote()
 }

@@ -20,11 +20,9 @@ package io.github.danzuep.usfmbible.search
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import androidx.activity.viewModels
 import androidx.core.os.bundleOf
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.asExecutor
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
@@ -37,18 +35,17 @@ import io.github.danzuep.usfmbible.ui.fadeIn
 import io.github.danzuep.usfmbible.ui.hideKeyboard
 import io.github.danzuep.usfmbible.ui.listDialog
 import io.github.danzuep.usfmbible.ui.toast
-import javax.inject.Inject
 import io.github.danzuep.usfmbible.preview.Preview
 import io.github.danzuep.usfmbible.preview.PreviewAdapter
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewAction, SearchViewModel.ViewState, SearchViewModel>() {
-    @Inject
-    lateinit var coroutineDispatcherProvider: CoroutineDispatcherProvider
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
 
     private lateinit var adapter: SearchAdapter
 
-    override val viewModel: SearchViewModel by viewModels()
+    override val viewModel: SearchViewModel by viewModel()
 
     override val viewBinding: ActivitySearchBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySearchBinding.inflate(layoutInflater) }
 

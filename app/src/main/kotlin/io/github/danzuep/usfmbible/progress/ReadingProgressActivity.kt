@@ -17,10 +17,8 @@
 
 package io.github.danzuep.usfmbible.progress
 
-import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.asExecutor
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
@@ -29,17 +27,16 @@ import io.github.danzuep.usfmbible.databinding.ActivityReadingProgressBinding
 import io.github.danzuep.usfmbible.infra.BaseActivity
 import io.github.danzuep.usfmbible.ui.dialog
 import io.github.danzuep.usfmbible.ui.fadeIn
-import javax.inject.Inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, ReadingProgressViewModel.ViewAction, ReadingProgressViewModel.ViewState, ReadingProgressViewModel>() {
-    @Inject
-    lateinit var coroutineDispatcherProvider: CoroutineDispatcherProvider
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
 
     private lateinit var adapter: ReadingProgressAdapter
     private var pendingScrollToCurrentBook = false
 
-    override val viewModel: ReadingProgressViewModel by viewModels()
+    override val viewModel: ReadingProgressViewModel by viewModel()
 
     override val viewBinding: ActivityReadingProgressBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityReadingProgressBinding.inflate(layoutInflater) }
 

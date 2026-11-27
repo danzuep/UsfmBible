@@ -18,9 +18,6 @@
 package io.github.danzuep.usfmbible.annotated.highlights
 
 import android.app.Application
-import androidx.activity.viewModels
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseActivity
@@ -33,10 +30,9 @@ import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.VerseAnnotationManager
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
-import javax.inject.Inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@HiltViewModel
-class HighlightsViewModel @Inject constructor(
+class HighlightsViewModel(
     bibleReadingManager: BibleReadingManager,
     highlightsManager: VerseAnnotationManager<Highlight>,
     settingsManager: SettingsManager,
@@ -70,7 +66,6 @@ class HighlightsViewModel @Inject constructor(
     )
 }
 
-@AndroidEntryPoint
 class HighlightsActivity : AnnotatedVerseActivity<Highlight, HighlightsViewModel>(R.string.title_highlights) {
-    override val viewModel: HighlightsViewModel by viewModels()
+    override val viewModel: HighlightsViewModel by viewModel()
 }

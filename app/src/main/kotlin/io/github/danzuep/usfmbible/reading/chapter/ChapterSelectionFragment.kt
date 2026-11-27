@@ -17,19 +17,17 @@
 
 package io.github.danzuep.usfmbible.reading.chapter
 
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.core.VerseIndex
-import dagger.hilt.android.AndroidEntryPoint
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.databinding.FragmentChapterSelectionBinding
 import io.github.danzuep.usfmbible.infra.BaseFragment
 import io.github.danzuep.usfmbible.ui.dialog
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class ChapterSelectionFragment : BaseFragment<FragmentChapterSelectionBinding, ChapterSelectionViewModel.ViewAction, ChapterSelectionViewModel.ViewState, ChapterSelectionViewModel>() {
-    override val viewModel: ChapterSelectionViewModel by viewModels()
+    override val viewModel: ChapterSelectionViewModel by viewModel()
 
     override val viewBinding: FragmentChapterSelectionBinding by lazy(LazyThreadSafetyMode.NONE) { FragmentChapterSelectionBinding.inflate(layoutInflater) }
 

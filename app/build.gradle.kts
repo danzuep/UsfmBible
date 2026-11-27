@@ -19,8 +19,6 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id(Dependencies.Kotlin.Ksp.plugin)
-    id(Dependencies.Hilt.plugin)
 }
 
 // Launcher label: -PappName, else "USFM Bible".
@@ -158,8 +156,7 @@ dependencies {
     implementation(Dependencies.AndroidX.View.swipeRefreshLayout)
     implementation(Dependencies.AndroidX.View.viewPager2)
 
-    implementation(Dependencies.Hilt.android)
-    ksp(Dependencies.Hilt.compiler)
+    implementation(Dependencies.Koin.android)
 
     implementation(Dependencies.kermit)
     implementation(Dependencies.materialComponent)
@@ -170,7 +167,6 @@ dependencies {
     debugImplementation(Dependencies.AndroidX.Fragment.test)
     testImplementation(Dependencies.AndroidX.Test.core)
     testImplementation(Dependencies.AndroidX.Test.junit)
-    testImplementation(Dependencies.Hilt.test)
     testImplementation(Dependencies.mockk)
     testImplementation(Dependencies.robolectric)
 

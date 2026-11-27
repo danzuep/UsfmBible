@@ -26,11 +26,6 @@ buildscript {
     }
 }
 
-plugins {
-    id(Dependencies.Kotlin.Ksp.plugin) version Versions.Kotlin.ksp apply false
-    id(Dependencies.Hilt.plugin) version Versions.hilt apply false
-}
-
 allprojects {
     repositories {
         google()

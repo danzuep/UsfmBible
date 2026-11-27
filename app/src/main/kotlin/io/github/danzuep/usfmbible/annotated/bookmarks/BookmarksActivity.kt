@@ -18,9 +18,6 @@
 package io.github.danzuep.usfmbible.annotated.bookmarks
 
 import android.app.Application
-import androidx.activity.viewModels
-import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseItem
 import io.github.danzuep.usfmbible.annotated.AnnotatedVerseActivity
@@ -33,10 +30,9 @@ import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.VerseAnnotationManager
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
-import javax.inject.Inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@HiltViewModel
-class BookmarksViewModel @Inject constructor(
+class BookmarksViewModel(
     bibleReadingManager: BibleReadingManager,
     bookmarksManager: VerseAnnotationManager<Bookmark>,
     settingsManager: SettingsManager,
@@ -69,7 +65,6 @@ class BookmarksViewModel @Inject constructor(
     )
 }
 
-@AndroidEntryPoint
 class BookmarksActivity : AnnotatedVerseActivity<Bookmark, BookmarksViewModel>(R.string.title_bookmarks) {
-    override val viewModel: BookmarksViewModel by viewModels()
+    override val viewModel: BookmarksViewModel by viewModel()
 }

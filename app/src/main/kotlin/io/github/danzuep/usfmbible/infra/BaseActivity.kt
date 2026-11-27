@@ -34,13 +34,12 @@ import kotlinx.coroutines.flow.onEach
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.utils.withNativeDigits
 import co.touchlab.kermit.Logger
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 abstract class BaseActivity<VB : ViewBinding, ViewAction, ViewState, VM : BaseViewModel<ViewAction, ViewState>> : AppCompatActivity() {
     protected val tag: String = javaClass.simpleName
 
-    @Inject
-    internal lateinit var navigator: Navigator
+    internal val navigator: Navigator by inject()
 
     protected abstract val viewModel: VM
 

@@ -19,7 +19,6 @@ package io.github.danzuep.usfmbible.search
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -50,14 +49,12 @@ import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.infra.BaseViewModel
 import io.github.danzuep.usfmbible.utils.firstNotEmpty
 import co.touchlab.kermit.Logger
-import javax.inject.Inject
 import io.github.danzuep.usfmbible.preview.Preview
 import io.github.danzuep.usfmbible.preview.buildPreviewVerseWithQueryItems
 import io.github.danzuep.usfmbible.utils.localized
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class SearchViewModel @Inject constructor(
+class SearchViewModel(
     private val bibleReadingManager: BibleReadingManager,
     private val searchManager: SearchManager,
     private val settingsManager: SettingsManager,

@@ -20,10 +20,8 @@ package io.github.danzuep.usfmbible.settings
 import android.content.Intent
 import android.util.TypedValue
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.annotation.Px
 import androidx.appcompat.app.AlertDialog
-import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.roundToInt
 import io.github.danzuep.usfmbible.Navigator
 import io.github.danzuep.usfmbible.R
@@ -40,8 +38,8 @@ import io.github.danzuep.usfmbible.ui.seekBarDialog
 import io.github.danzuep.usfmbible.ui.setOnCheckedChangeByUserListener
 import io.github.danzuep.usfmbible.ui.setOnSingleClickListener
 import co.touchlab.kermit.Logger
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-@AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel.ViewAction, SettingsViewModel.ViewState, SettingsViewModel>() {
     private val createFileForBackupLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) viewModel.backup(result.data?.data)
@@ -52,7 +50,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
 
     private var indeterminateProgressDialog: AlertDialog? = null
 
-    override val viewModel: SettingsViewModel by viewModels()
+    override val viewModel: SettingsViewModel by viewModel()
 
     override val viewBinding: ActivitySettingsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySettingsBinding.inflate(layoutInflater) }
 
