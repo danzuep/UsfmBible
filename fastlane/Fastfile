@@ -1,9 +1,24 @@
 default_platform(:android)
 
+# Builds the signed release bundle and uploads it as a draft, without touching the listing.
+def build_and_upload(track, options)
+  version = options[:version] || UI.user_error!("Pass version:X.Y.Z (becomes versionName and versionCode, which must grow with every upload)")
+  UI.user_error!("keystore.properties is missing, so the bundle would be signed with the debug key and Play would reject it") unless File.exist?(File.expand_path("../keystore.properties", __dir__))
+  gradle(task: "bundleRelease", properties: { "appVersion" => version }, project_dir: "..")
+  upload_to_play_store(
+    track: track,
+    aab: File.expand_path("../app/build/outputs/bundle/release/app-release.aab", __dir__),
+    release_status: "draft",
+    skip_upload_metadata: true,
+    skip_upload_images: true,
+    skip_upload_screenshots: true
+  )
+end
+
 # Shared store listing: fastlane/metadata/android is also read by F-Droid and the website.
 platform :android do
   desc "Check the store listing and changelog against Google Play without publishing (validate_only)"
-  lane :validate_aso do
+  lane :validate do
     upload_to_play_store(
       track: "internal",
       validate_only: true,
@@ -13,26 +28,22 @@ platform :android do
     )
   end
 
-  desc "Upload the store listing text, icon, feature graphic, screenshots and changelogs, without a build"
-  lane :push_aso do
+  desc "Upload only the store listing text, icon, feature graphic and screenshots"
+  lane :metadata do
     upload_to_play_store(
       skip_upload_apk: true,
-      skip_upload_aab: true
+      skip_upload_aab: true,
+      skip_upload_changelogs: true
     )
   end
 
-  desc "Build a signed release AAB and upload it as a draft to a testing track, e.g. fastlane beta_release version:0.44.0 [track:alpha|internal]"
-  lane :beta_release do |options|
-    version = options[:version] || UI.user_error!("Pass version:X.Y.Z (becomes versionName and versionCode, which must grow with every upload)")
-    UI.user_error!("keystore.properties is missing, so the bundle would be signed with the debug key and Play would reject it") unless File.exist?(File.expand_path("../keystore.properties", __dir__))
-    gradle(task: "bundleRelease", properties: { "appVersion" => version }, project_dir: "..")
-    upload_to_play_store(
-      track: options[:track] || "alpha", # Play's "alpha" track is closed testing
-      aab: File.expand_path("../app/build/outputs/bundle/release/app-release.aab", __dir__),
-      release_status: "draft",
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true
-    )
+  desc "Build a signed AAB and upload it with its changelog to the internal testing track, e.g. fastlane internal version:0.44.0"
+  lane :internal do |options|
+    build_and_upload("internal", options)
+  end
+
+  desc "Build a signed AAB and upload it with its changelog to the closed testing track (Play's \"alpha\" track), e.g. fastlane closed version:0.44.0"
+  lane :closed do |options|
+    build_and_upload("alpha", options)
   end
 end

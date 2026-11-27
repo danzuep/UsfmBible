@@ -85,20 +85,20 @@ The same `fastlane/metadata/android/en-US/` listing feeds F-Droid, the [website]
 - `changelogs/<versionCode>.txt` up to 500 characters; `changelogs/default.txt` is the fallback.
 - `images/icon.png` 512x512, `images/featureGraphic.png` 1024x500, and 2 to 8 `images/phoneScreenshots/` whose height is at most twice their width (typical 20:9 phone screenshots need padding, see below).
 
-Setup: create the app in Play Console, link a service account with release permissions (Setup > API access) and save its JSON key outside the repo. Set `PLAY_STORE_JSON_KEY` to the key file's path (or `SUPPLY_JSON_KEY_DATA` to its content) and optionally `ANDROID_PACKAGE_NAME` (default `com.github.danzuep.usfmbible`). Google Play needs an Android App Bundle signed with the upload key, which is the release keystore (`keystore.properties`); CI currently builds only APKs, so `beta_release` builds the bundle locally.
+Setup: create the app in Play Console, link a service account with release permissions (Setup > API access) and save its JSON key outside the repo. Set `PLAY_STORE_JSON_KEY` to the key file's path and optionally `ANDROID_PACKAGE_NAME` (default `com.github.danzuep.usfmbible`). Google Play needs an Android App Bundle signed with the upload key, which is the release keystore (`keystore.properties`); CI currently builds only APKs, so `internal` and `closed` build the bundle locally.
 
 **The first upload must be manual.** The Play Developer API cannot create an app or its first release: create the app in Play Console and upload the first signed AAB by hand to a testing track (accept Play App Signing and complete the App content forms). After that, the lanes below work.
 
 ```
 bundle install
-bundle exec fastlane validate_aso                       # check the listing without publishing
-bundle exec fastlane push_aso                           # upload text, images and changelogs
-bundle exec fastlane beta_release version:0.44.0        # build a signed AAB, upload a draft to closed testing ("alpha")
-bundle exec fastlane beta_release version:0.44.0 track:internal
+bundle exec fastlane validate                      # check the listing without publishing
+bundle exec fastlane metadata                      # upload text and images
+bundle exec fastlane internal version:0.44.0       # build a signed AAB, upload a draft to internal testing
+bundle exec fastlane closed version:0.44.0         # same, to closed testing ("alpha")
 ```
 
-`push_aso` replaces every image type it finds (screenshots are replaced as a whole set, shown in file name order), so keep all screenshots in `phoneScreenshots/` with `NN-` prefixes. The changelog is `changelogs/<versionCode>.txt`, else `default.txt`.
+`metadata` replaces every image type it finds (screenshots are replaced as a whole set, shown in file name order), so keep all screenshots in `phoneScreenshots/` with `NN-` prefixes. The changelog is `changelogs/<versionCode>.txt`, else `default.txt`.
 
 Run `python3 .github/scripts/check-store-assets.py` (needs `pip install pillow`) to check all of these limits; the `Website` workflow runs it on pull requests. Add new screenshots as-is and run it with `--fix`, which pads any screenshot taller than 2:1 with black side bars instead of cropping it.
 
-`beta_release` uploads a draft to the closed (default) or internal testing track, so add testers and roll it out in Play Console. See [STORE_LISTING.md](STORE_LISTING.md) for the screenshot plan, copy rationale and the tester checklist.
+`internal` and `closed` upload a draft to the internal or closed testing track, so add testers and roll it out in Play Console. See [STORE_LISTING.md](STORE_LISTING.md) for the screenshot plan, copy rationale and the tester checklist.
