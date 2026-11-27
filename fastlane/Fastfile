@@ -1,0 +1,37 @@
+default_platform(:android)
+
+# Shared store listing: fastlane/metadata/android is also read by F-Droid and the website.
+platform :android do
+  desc "Check the store listing and changelog against Google Play without publishing (validate_only)"
+  lane :validate do
+    upload_to_play_store(
+      track: "internal",
+      validate_only: true,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: false
+    )
+  end
+
+  desc "Upload only the store listing text, icon, feature graphic and screenshots"
+  lane :metadata do
+    upload_to_play_store(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true
+    )
+  end
+
+  desc "Upload a signed AAB and its changelog to the internal testing track, e.g. fastlane internal aab:app-release.aab"
+  lane :internal do |options|
+    aab = options[:aab] || UI.user_error!("Pass aab:<path to the signed .aab>")
+    upload_to_play_store(
+      track: "internal",
+      aab: aab,
+      release_status: "draft",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

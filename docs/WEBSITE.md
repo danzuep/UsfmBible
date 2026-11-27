@@ -5,7 +5,7 @@ The GitHub Pages home page (https://danzuep.github.io/UsfmBible/) is a [Hugo](ht
 
 | Page element | Source |
 |--------------|--------|
-| Title, tagline, intro, feature cards (each `<li>` as `Title: text`) | `fastlane/metadata/android/en-US/{title,short_description,full_description}.txt` |
+| Title, tagline, intro, feature cards (each `• Title: text` line) | `fastlane/metadata/android/en-US/{title,short_description,full_description}.txt` |
 | Icon | `fastlane/metadata/android/en-US/images/icon.png` |
 | Screenshots | `fastlane/metadata/android/en-US/images/phoneScreenshots/` |
 | Download buttons and links | `website/hugo.toml` (`[params]`) |
@@ -20,4 +20,4 @@ Set `playStoreId` (the application id, once published on Google Play) or `appSto
 Building
 --------
 
-`hugo --source website --destination /tmp/site` (extended or standard Hugo, v0.147 or later). The release workflow builds it into the Pages artifact next to the F-Droid repo (`fdroid/repo`); the `Website` workflow checks that it builds on pull requests.
+`hugo --source website --destination /tmp/site` (extended or standard Hugo, v0.147 or later). Deployment: Pages has one deployment holding the site and the F-Droid repo (`fdroid/repo`), built by `release.yml` on each `v*` tag. The site only updates when a release is tagged, so give pull requests that change it a `patch:` title prefix (see `auto-tag.yml`). The `Website` workflow only checks that it builds on pull requests.

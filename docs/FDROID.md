@@ -9,7 +9,7 @@ One-time setup
 --------------
 
 1. Settings > Pages > Source: GitHub Actions.
-2. Settings > Environments > `github-pages` > Deployment branches and tags: allow `v*` tags (the deploy runs on the tag ref).
+2. Settings > Environments > `github-pages` > Deployment branches and tags: allow `v*` tags (the release deploy runs on the tag ref).
 3. Publish the current release: `gh workflow run release.yml --ref vX.Y.Z` (the latest tag).
 
 App text for the listing is in `fdroid/metadata/com.github.danzuep.usfmbible.yml`; the landing page is built by Hugo from `website/` and the Fastlane metadata, see [WEBSITE.md](WEBSITE.md).

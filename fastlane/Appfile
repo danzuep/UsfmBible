@@ -1,0 +1,2 @@
+package_name("com.github.danzuep.usfmbible")
+# The Play service account key comes from the SUPPLY_JSON_KEY or SUPPLY_JSON_KEY_DATA environment variable.
