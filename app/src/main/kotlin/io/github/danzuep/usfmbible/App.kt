@@ -18,31 +18,19 @@
 package io.github.danzuep.usfmbible
 
 import androidx.appcompat.app.AppCompatDelegate
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.core.Settings
-import io.github.danzuep.usfmbible.core.SettingsManager
-import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
-import org.koin.android.ext.android.inject
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.startKoin
 
-class App : BaseApp() {
-    private val settingsManager: SettingsManager by inject()
-    private val bibleReadingRepository: BibleReadingRepository by inject()
-    private val appScope: CoroutineScope by inject()
+class App : BaseApp(), ContainerHolder {
+    override val container: AppContainer by lazy { AppContainer(this) }
 
     override fun onCreate() {
         super.onCreate()
-        startKoin {
-            androidContext(this@App)
-            modules(appModules)
-        }
 
-        appScope.launch(Dispatchers.Main) {
-            val systemNightMode = when (settingsManager.settings().first().nightMode) {
+        container.appScope.launch(Dispatchers.Main) {
+            val systemNightMode = when (container.settingsManager.settings().first().nightMode) {
                 Settings.NIGHT_MODE_ON -> AppCompatDelegate.MODE_NIGHT_YES
                 Settings.NIGHT_MODE_OFF -> AppCompatDelegate.MODE_NIGHT_NO
                 else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
@@ -54,6 +42,6 @@ class App : BaseApp() {
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        if (level >= TRIM_MEMORY_BACKGROUND) bibleReadingRepository.clearCache()
+        if (level >= TRIM_MEMORY_BACKGROUND) container.bibleReadingRepository.clearCache()
     }
 }

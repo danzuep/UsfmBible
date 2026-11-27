@@ -26,7 +26,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import io.github.danzuep.usfmbible.R
 
-abstract class BaseFragmentTest : BaseKoinTest() {
+abstract class BaseFragmentTest : BaseContainerTest() {
     protected inline fun <reified F : Fragment, reified A : AppCompatActivity> withFragment(fragmentArgs: Bundle? = null, crossinline block: (fragment: F) -> Unit) {
         val startActivityIntent = Intent.makeMainActivity(ComponentName(ApplicationProvider.getApplicationContext(), A::class.java))
             .putExtra("androidx.fragment.app.testing.FragmentScenario.EmptyFragmentActivity.THEME_EXTRAS_BUNDLE_KEY", R.style.AppTheme)

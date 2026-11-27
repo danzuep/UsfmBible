@@ -87,7 +87,8 @@ import io.github.danzuep.usfmbible.ui.makeLessSensitive
 import io.github.danzuep.usfmbible.ui.toast
 import io.github.danzuep.usfmbible.utils.copyToClipBoard
 import io.github.danzuep.usfmbible.utils.shareToSystem
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.ViewAction, ReadingViewModel.ViewState, ReadingViewModel>(),
     ParagraphItem.Callback, VerseTextItem.Callback {
@@ -102,7 +103,7 @@ class ReadingActivity : BaseActivity<ActivityReadingBinding, ReadingViewModel.Vi
         fun bundleForOpenNote(): Bundle = Bundle().apply { putBoolean(KEY_OPEN_NOTE, true) }
     }
 
-    override val viewModel: ReadingViewModel by viewModel()
+    override val viewModel: ReadingViewModel by viewModels { container.viewModelFactory }
 
     override val viewBinding: ActivityReadingBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityReadingBinding.inflate(layoutInflater) }
 

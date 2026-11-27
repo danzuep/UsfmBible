@@ -23,7 +23,7 @@ import android.content.Intent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 
-abstract class BaseActivityTest : BaseKoinTest() {
+abstract class BaseActivityTest : BaseContainerTest() {
     protected inline fun <reified A : Activity> withActivity(crossinline block: (activity: A) -> Unit) {
         val startActivityIntent = Intent.makeMainActivity(ComponentName(ApplicationProvider.getApplicationContext(), A::class.java))
         ActivityScenario.launch<A>(startActivityIntent).use {

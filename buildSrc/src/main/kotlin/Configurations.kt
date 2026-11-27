@@ -76,7 +76,6 @@ object Versions {
     }
 
     const val kermit = "2.2.0"
-    const val koin = "4.2.2"
     const val materialComponent = "1.12.0"
     const val mockk = "1.14.11"
     const val robolectric = "4.16.1"
@@ -135,9 +134,6 @@ object Dependencies {
         }
     }
 
-    object Koin {
-        const val android = "io.insert-koin:koin-android:${Versions.koin}"
-    }
 
     const val kermit = "co.touchlab:kermit:${Versions.kermit}"
     const val materialComponent = "com.google.android.material:material:${Versions.materialComponent}"

@@ -33,8 +33,7 @@ import io.github.danzuep.usfmbible.core.repository.local.android.AndroidTranslat
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase
 import io.github.danzuep.usfmbible.reading.ReadingActivity
 import io.github.danzuep.usfmbible.ui.MarkdownActivity
-import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
-import org.koin.core.context.GlobalContext
+import io.github.danzuep.usfmbible.ContainerHolder
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -53,7 +52,7 @@ class OpenFileTest {
     }
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
-    private val repository get() = GlobalContext.get().get<BibleReadingRepository>()
+    private val repository get() = (context.applicationContext as ContainerHolder).container.bibleReadingRepository
     private val automation get() = InstrumentationRegistry.getInstrumentation().uiAutomation
 
     private fun <T : Activity> open(activity: Class<T>, name: String, content: String): ActivityScenario<T> {

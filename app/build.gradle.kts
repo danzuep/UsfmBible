@@ -156,7 +156,6 @@ dependencies {
     implementation(Dependencies.AndroidX.View.swipeRefreshLayout)
     implementation(Dependencies.AndroidX.View.viewPager2)
 
-    implementation(Dependencies.Koin.android)
 
     implementation(Dependencies.kermit)
     implementation(Dependencies.materialComponent)

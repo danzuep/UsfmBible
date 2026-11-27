@@ -43,8 +43,7 @@ import io.github.danzuep.usfmbible.tests.performClickPressed
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
-import org.koin.core.module.dsl.viewModel
-import org.koin.dsl.module
+import io.github.danzuep.usfmbible.tests.TestContainer
 
 @RunWith(RobolectricTestRunner::class)
 class SettingsActivityTest : BaseActivityTest() {
@@ -52,10 +51,7 @@ class SettingsActivityTest : BaseActivityTest() {
 
     val viewModel: SettingsViewModel = mockk(relaxed = true)
 
-    override fun overrides() = module {
-        single { mockNavigator }
-        viewModel { viewModel }
-    }
+    override fun createContainer(application: Application) = TestContainer(application, mockNavigator, viewModel)
 
     @Test
     fun `test initializeView()`() {

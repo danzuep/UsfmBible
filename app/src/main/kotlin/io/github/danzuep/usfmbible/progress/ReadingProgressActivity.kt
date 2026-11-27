@@ -27,16 +27,17 @@ import io.github.danzuep.usfmbible.databinding.ActivityReadingProgressBinding
 import io.github.danzuep.usfmbible.infra.BaseActivity
 import io.github.danzuep.usfmbible.ui.dialog
 import io.github.danzuep.usfmbible.ui.fadeIn
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.android.ext.android.inject
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class ReadingProgressActivity : BaseActivity<ActivityReadingProgressBinding, ReadingProgressViewModel.ViewAction, ReadingProgressViewModel.ViewState, ReadingProgressViewModel>() {
-    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider
+        get() = container.coroutineDispatcherProvider
 
     private lateinit var adapter: ReadingProgressAdapter
     private var pendingScrollToCurrentBook = false
 
-    override val viewModel: ReadingProgressViewModel by viewModel()
+    override val viewModel: ReadingProgressViewModel by viewModels { container.viewModelFactory }
 
     override val viewBinding: ActivityReadingProgressBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityReadingProgressBinding.inflate(layoutInflater) }
 

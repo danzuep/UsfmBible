@@ -24,10 +24,11 @@ import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.databinding.FragmentChapterSelectionBinding
 import io.github.danzuep.usfmbible.infra.BaseFragment
 import io.github.danzuep.usfmbible.ui.dialog
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.fragment.app.viewModels
+import io.github.danzuep.usfmbible.container
 
 class ChapterSelectionFragment : BaseFragment<FragmentChapterSelectionBinding, ChapterSelectionViewModel.ViewAction, ChapterSelectionViewModel.ViewState, ChapterSelectionViewModel>() {
-    override val viewModel: ChapterSelectionViewModel by viewModel()
+    override val viewModel: ChapterSelectionViewModel by viewModels { requireContext().container.viewModelFactory }
 
     override val viewBinding: FragmentChapterSelectionBinding by lazy(LazyThreadSafetyMode.NONE) { FragmentChapterSelectionBinding.inflate(layoutInflater) }
 

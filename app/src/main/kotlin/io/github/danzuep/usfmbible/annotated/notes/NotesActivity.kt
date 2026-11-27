@@ -31,7 +31,8 @@ import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.VerseAnnotationManager
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
 import io.github.danzuep.usfmbible.reading.ReadingActivity
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class NotesViewModel(
     bibleReadingManager: BibleReadingManager,
@@ -66,7 +67,7 @@ class NotesViewModel(
 }
 
 class NotesActivity : AnnotatedVerseActivity<Note, NotesViewModel>(R.string.title_notes) {
-    override val viewModel: NotesViewModel by viewModel()
+    override val viewModel: NotesViewModel by viewModels { container.viewModelFactory }
 
     override fun extrasForOpeningVerse(): Bundle = ReadingActivity.bundleForOpenNote()
 }

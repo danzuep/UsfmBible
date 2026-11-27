@@ -20,14 +20,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
+import io.github.danzuep.usfmbible.container
 
 /**
  * Updates translations once the device is on an unmetered network (e.g. Wi-Fi), when mobile data is off, roaming or unavailable, using the platform [JobScheduler] so no
  * extra library is needed. Scheduled only when the user opens the updates page or asks to update; interrupted downloads resume later.
  */
 class TranslationUpdateJobService : JobService() {
-    val translationManager: TranslationManager by inject()
+    val translationManager: TranslationManager
+        get() = container.translationManager
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var job: Job? = null

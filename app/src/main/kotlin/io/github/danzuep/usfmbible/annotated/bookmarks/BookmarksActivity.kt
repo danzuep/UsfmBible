@@ -30,7 +30,8 @@ import io.github.danzuep.usfmbible.core.provider.CoroutineDispatcherProvider
 import io.github.danzuep.usfmbible.core.SettingsManager
 import io.github.danzuep.usfmbible.core.VerseAnnotationManager
 import io.github.danzuep.usfmbible.core.provider.TimeProvider
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class BookmarksViewModel(
     bibleReadingManager: BibleReadingManager,
@@ -66,5 +67,5 @@ class BookmarksViewModel(
 }
 
 class BookmarksActivity : AnnotatedVerseActivity<Bookmark, BookmarksViewModel>(R.string.title_bookmarks) {
-    override val viewModel: BookmarksViewModel by viewModel()
+    override val viewModel: BookmarksViewModel by viewModels { container.viewModelFactory }
 }
