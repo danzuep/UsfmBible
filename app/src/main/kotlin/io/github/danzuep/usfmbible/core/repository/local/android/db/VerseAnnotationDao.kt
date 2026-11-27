@@ -17,10 +17,11 @@
 
 package io.github.danzuep.usfmbible.core.repository.local.android.db
 
+import android.content.ContentValues
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.WorkerThread
-import me.xizzhu.android.ask.db.*
 import io.github.danzuep.usfmbible.core.Constants
 import io.github.danzuep.usfmbible.core.VerseAnnotation
 import io.github.danzuep.usfmbible.core.VerseIndex
@@ -37,22 +38,19 @@ abstract class VerseAnnotationDao<T : VerseAnnotation>(sqliteHelper: SQLiteOpenH
 
     @WorkerThread
     fun createTable(db: SQLiteDatabase) {
-        db.createTable(tableName) {
-            it[COLUMN_BOOK_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_CHAPTER_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_VERSE_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_TIMESTAMP] = INTEGER + NOT_NULL
-            it.putCustomColumnModifiers()
-        }
+        val customColumns = customColumnDefinitions().joinToString("") { ", $it" }
+        db.createTable(tableName, "$COLUMN_BOOK_INDEX INTEGER NOT NULL, $COLUMN_CHAPTER_INDEX INTEGER NOT NULL, $COLUMN_VERSE_INDEX INTEGER NOT NULL, " +
+                "$COLUMN_TIMESTAMP INTEGER NOT NULL$customColumns, PRIMARY KEY($COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX, $COLUMN_VERSE_INDEX)")
     }
 
-    protected open fun MutableMap<String, ColumnModifiers>.putCustomColumnModifiers() {}
+    /** Definitions of the columns an annotation adds to the table, e.g. "color INTEGER NOT NULL". */
+    protected open fun customColumnDefinitions(): List<String> = emptyList()
 
     @WorkerThread
     fun read(@Constants.SortOrder sortOrder: Int): List<T> = db.select(tableName)
             .apply {
                 when (sortOrder) {
-                    Constants.SORT_BY_DATE -> orderBy(COLUMN_TIMESTAMP, sortOrder = SortOrder.DESCENDING)
+                    Constants.SORT_BY_DATE -> orderBy(COLUMN_TIMESTAMP, descending = true)
                     Constants.SORT_BY_BOOK -> orderBy(COLUMN_BOOK_INDEX, COLUMN_CHAPTER_INDEX, COLUMN_VERSE_INDEX)
                     else -> throw IllegalArgumentException("Unsupported sort order - $sortOrder")
                 }
@@ -63,7 +61,7 @@ abstract class VerseAnnotationDao<T : VerseAnnotation>(sqliteHelper: SQLiteOpenH
                 )
             }
 
-    protected abstract fun Map<String, Any?>.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): T
+    protected abstract fun Cursor.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): T
 
     @WorkerThread
     fun read(bookIndex: Int, chapterIndex: Int): List<T> =
@@ -77,12 +75,12 @@ abstract class VerseAnnotationDao<T : VerseAnnotation>(sqliteHelper: SQLiteOpenH
 
     @WorkerThread
     fun read(verseIndex: VerseIndex): T =
-            db.select(tableName, COLUMN_TIMESTAMP, *getCustomColumns()) { eq(verseIndex) }
+            db.select(tableName, COLUMN_TIMESTAMP, *getCustomColumns()) { where(verseIndex) }
                     .firstOrDefault({ defaultVerseAnnotation(verseIndex) }) { row ->
                         row.toVerseAnnotation(verseIndex, row.getLong(COLUMN_TIMESTAMP))
                     }
 
-    private fun ConditionBuilder.eq(verseIndex: VerseIndex): Condition =
+    private fun where(verseIndex: VerseIndex): Where =
             (COLUMN_BOOK_INDEX eq verseIndex.bookIndex) and (COLUMN_CHAPTER_INDEX eq verseIndex.chapterIndex) and (COLUMN_VERSE_INDEX eq verseIndex.verseIndex)
 
     protected abstract fun defaultVerseAnnotation(verseIndex: VerseIndex): T
@@ -113,7 +111,7 @@ abstract class VerseAnnotationDao<T : VerseAnnotation>(sqliteHelper: SQLiteOpenH
         }
     }
 
-    protected open fun MutableMap<String, Any?>.putCustomColumnValues(verseAnnotation: T) {}
+    protected open fun ContentValues.putCustomColumnValues(verseAnnotation: T) {}
 
     @WorkerThread
     fun save(verseAnnotations: List<T>) {
@@ -122,6 +120,6 @@ abstract class VerseAnnotationDao<T : VerseAnnotation>(sqliteHelper: SQLiteOpenH
 
     @WorkerThread
     fun remove(verseIndex: VerseIndex) {
-        db.delete(tableName) { eq(verseIndex) }
+        db.delete(tableName, where(verseIndex))
     }
 }

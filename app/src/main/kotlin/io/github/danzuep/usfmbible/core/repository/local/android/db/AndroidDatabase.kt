@@ -20,25 +20,12 @@ package io.github.danzuep.usfmbible.core.repository.local.android.db
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.os.Handler
-import android.os.Looper
-import androidx.appcompat.app.AppCompatDelegate
-import me.xizzhu.android.ask.db.Condition
-import me.xizzhu.android.ask.db.ConditionBuilder.and
-import me.xizzhu.android.ask.db.ConditionBuilder.like
-import me.xizzhu.android.ask.db.delete
-import me.xizzhu.android.ask.db.firstOrDefault
-import me.xizzhu.android.ask.db.getString
-import me.xizzhu.android.ask.db.insert
-import me.xizzhu.android.ask.db.select
-import me.xizzhu.android.ask.db.transaction
-import io.github.danzuep.usfmbible.core.Settings
 import io.github.danzuep.usfmbible.core.toKeywords
 
 class AndroidDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         const val DATABASE_NAME = "DATABASE_USFMBIBLE"
-        const val DATABASE_VERSION = 7
+        const val DATABASE_VERSION = 1
     }
 
     val bookmarkDao = BookmarkDao(this)
@@ -68,44 +55,10 @@ class AndroidDatabase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         }
     }
 
-    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        if (oldVersion <= 1) {
-            highlightDao.createTable(db)
-        }
-        if (oldVersion <= 3) {
-            val oldFontSizeScale = db.select("metadata", "value") { "key" eq "fontSizeScale" }
-                    .firstOrDefault("1.0") { it.getString("value") }.toFloat()
-            val newFontSizeScale = oldFontSizeScale / 2.0F
-            db.insert("metadata", SQLiteDatabase.CONFLICT_REPLACE) {
-                it["key"] = "fontSizeScale"
-                it["value"] = newFontSizeScale.toString()
-            }
-        }
-        if (oldVersion <= 4) {
-            val nightModeOn = db.select("metadata", "value") { "key" eq "nightModeOn" }
-                    .firstOrDefault("false") { it.getString("value") }.toBoolean()
-            Handler(Looper.getMainLooper()).post {
-                AppCompatDelegate.setDefaultNightMode(if (nightModeOn) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO)
-            }
-            db.delete("metadata") { "key" eq "nightModeOn" }
-
-            db.insert("metadata", SQLiteDatabase.CONFLICT_REPLACE) {
-                it["key"] = "nightMode"
-                it["value"] = if (nightModeOn) Settings.NIGHT_MODE_ON.toString() else Settings.NIGHT_MODE_OFF.toString()
-            }
-        }
-        if (oldVersion <= 6) {
-            // Strong's numbers and cross references came from a site that is no longer used.
-            listOf("crossReferences", "strongNumberIndex", "strongNumberReverseIndex", "sn_en").forEach { db.execSQL("DROP TABLE IF EXISTS $it") }
-        }
-    }
+    // Version 1 is the schema as of the move to the io.github.danzuep application id, so there is nothing to upgrade from.
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
 }
 
-fun Condition.withQuery(column: String, query: String): Condition {
-    var condition: Condition = this
-    query.toKeywords().forEach { keyword ->
-        val like = column like "%%$keyword%%"
-        condition = if (condition == Condition.NoOp) like else condition and like
-    }
-    return condition
-}
+/** Every keyword must be in [column]; null when [query] has none, which matches all rows. */
+fun withQuery(column: String, query: String): Where? =
+    query.toKeywords().map { keyword -> column like "%$keyword%" }.reduceOrNull { all, like -> all and like }

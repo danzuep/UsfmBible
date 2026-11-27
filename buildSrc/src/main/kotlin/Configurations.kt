@@ -76,7 +76,6 @@ object Versions {
         }
     }
 
-    const val ask = "0.5.2"
     const val hilt = "2.59.2"
     const val kermit = "2.2.0"
     const val materialComponent = "1.12.0"
@@ -148,7 +147,6 @@ object Dependencies {
         const val test = "com.google.dagger:hilt-android-testing:${Versions.hilt}"
     }
 
-    const val ask = "com.github.xizzhu:ask:${Versions.ask}"
     const val kermit = "co.touchlab:kermit:${Versions.kermit}"
     const val materialComponent = "com.google.android.material:material:${Versions.materialComponent}"
 

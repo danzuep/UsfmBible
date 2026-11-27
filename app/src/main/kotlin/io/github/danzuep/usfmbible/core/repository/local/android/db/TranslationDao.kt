@@ -21,7 +21,6 @@ import io.github.danzuep.usfmbible.core.stripStructure
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.WorkerThread
-import me.xizzhu.android.ask.db.*
 import io.github.danzuep.usfmbible.core.Bible
 import io.github.danzuep.usfmbible.core.Verse
 import io.github.danzuep.usfmbible.core.VerseIndex
@@ -63,7 +62,7 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
     fun readBookIndicesWithVerses(translationShortName: String): Set<Int> = db.withTransaction {
         if (!hasTableAndLogIfNoTable(translationShortName)) return@withTransaction emptySet()
 
-        select(tableName(translationShortName), COLUMN_BOOK_INDEX) { noOp() }.toList { row -> row.getInt(COLUMN_BOOK_INDEX) }.toSet()
+        select(tableName(translationShortName), COLUMN_BOOK_INDEX).toList { row -> row.getInt(COLUMN_BOOK_INDEX) }.toSet()
     }
 
     @WorkerThread
@@ -115,18 +114,14 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
         if (!hasTableAndLogIfNoTable(translationShortName)) return@withTransaction emptyMap()
 
         val verses = hashMapOf<VerseIndex, Verse>()
-        // Work-around until https://github.com/xizzhu/ask/issues/8 is solved.
+        // Chunked to keep the expression tree of the OR chain shallow (SQLite allows a depth of 1000).
         verseIndexes.chunked(333).forEach { chunkedVerseIndexes ->
             select(tableName(translationShortName)) {
-                var condition: Condition = noOp()
-                chunkedVerseIndexes.forEach { verseIndex ->
-                    ((COLUMN_BOOK_INDEX eq verseIndex.bookIndex) and
+                Where.anyOf(chunkedVerseIndexes.map { verseIndex ->
+                    (COLUMN_BOOK_INDEX eq verseIndex.bookIndex) and
                             (COLUMN_CHAPTER_INDEX eq verseIndex.chapterIndex) and
-                            (COLUMN_VERSE_INDEX eq verseIndex.verseIndex)).run {
-                        condition = if (condition == Condition.NoOp) this else condition or this
-                    }
-                }
-                condition
+                            (COLUMN_VERSE_INDEX eq verseIndex.verseIndex)
+                })
             }.forEach { row ->
                 val verseIndex = VerseIndex(row.getInt(COLUMN_BOOK_INDEX), row.getInt(COLUMN_CHAPTER_INDEX), row.getInt(COLUMN_VERSE_INDEX))
                 verses[verseIndex] = Verse(verseIndex, Verse.Text(translationShortName, row.getString(COLUMN_TEXT).stripStructure()), emptyList())
@@ -181,12 +176,8 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
             Logger.withTag(TAG).e { "Translation $translationShortName already installed" }
             remove(translationShortName)
         }
-        createTable(tableName(translationShortName)) {
-            it[COLUMN_BOOK_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_CHAPTER_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_VERSE_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_TEXT] = TEXT + NOT_NULL
-        }
+        createTable(tableName(translationShortName), "$COLUMN_BOOK_INDEX INTEGER NOT NULL, $COLUMN_CHAPTER_INDEX INTEGER NOT NULL, " +
+                "$COLUMN_VERSE_INDEX INTEGER NOT NULL, $COLUMN_TEXT TEXT NOT NULL, PRIMARY KEY($COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX, $COLUMN_VERSE_INDEX)")
 
         // One compiled statement is reused for every verse, which is much cheaper than building a new insert each time.
         val quotedTableName = tableName(translationShortName).replace("\"", "\"\"")

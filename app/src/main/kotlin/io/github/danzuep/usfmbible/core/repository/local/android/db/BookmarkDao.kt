@@ -17,8 +17,8 @@
 
 package io.github.danzuep.usfmbible.core.repository.local.android.db
 
+import android.database.Cursor
 import android.database.sqlite.SQLiteOpenHelper
-import me.xizzhu.android.ask.db.Query
 import io.github.danzuep.usfmbible.core.Bookmark
 import io.github.danzuep.usfmbible.core.VerseIndex
 import java.lang.UnsupportedOperationException
@@ -32,7 +32,7 @@ class BookmarkDao(sqliteHelper: SQLiteOpenHelper) : VerseAnnotationDao<Bookmark>
         throw UnsupportedOperationException("Search not supported for bookmarks")
     }
 
-    override fun Map<String, Any?>.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): Bookmark =
+    override fun Cursor.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): Bookmark =
             Bookmark(verseIndex, timestamp)
 
     override fun defaultVerseAnnotation(verseIndex: VerseIndex): Bookmark = Bookmark(verseIndex, -1L)

@@ -17,8 +17,9 @@
 
 package io.github.danzuep.usfmbible.core.repository.local.android.db
 
+import android.content.ContentValues
+import android.database.Cursor
 import android.database.sqlite.SQLiteOpenHelper
-import me.xizzhu.android.ask.db.*
 import io.github.danzuep.usfmbible.core.Highlight
 import io.github.danzuep.usfmbible.core.VerseIndex
 import java.lang.UnsupportedOperationException
@@ -33,18 +34,16 @@ class HighlightDao(sqliteHelper: SQLiteOpenHelper) : VerseAnnotationDao<Highligh
         throw UnsupportedOperationException("Search not supported for highlights")
     }
 
-    override fun MutableMap<String, ColumnModifiers>.putCustomColumnModifiers() {
-        put(COLUMN_COLOR, INTEGER + NOT_NULL)
-    }
+    override fun customColumnDefinitions(): List<String> = listOf("$COLUMN_COLOR INTEGER NOT NULL")
 
-    override fun Map<String, Any?>.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): Highlight =
+    override fun Cursor.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): Highlight =
             Highlight(verseIndex, getInt(COLUMN_COLOR), timestamp)
 
     override fun getCustomColumns(): Array<String> = arrayOf(COLUMN_COLOR)
 
     override fun defaultVerseAnnotation(verseIndex: VerseIndex): Highlight = Highlight(verseIndex, Highlight.COLOR_NONE, -1L)
 
-    override fun MutableMap<String, Any?>.putCustomColumnValues(verseAnnotation: Highlight) {
+    override fun ContentValues.putCustomColumnValues(verseAnnotation: Highlight) {
         put(COLUMN_COLOR, verseAnnotation.color)
     }
 }

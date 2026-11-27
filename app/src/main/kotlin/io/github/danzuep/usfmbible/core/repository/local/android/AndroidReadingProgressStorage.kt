@@ -20,8 +20,8 @@ package io.github.danzuep.usfmbible.core.repository.local.android
 import android.text.format.DateUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import me.xizzhu.android.ask.db.transaction
-import me.xizzhu.android.ask.db.withTransaction
+import io.github.danzuep.usfmbible.core.repository.local.android.db.transaction
+import io.github.danzuep.usfmbible.core.repository.local.android.db.withTransaction
 import io.github.danzuep.usfmbible.core.ReadingProgress
 import io.github.danzuep.usfmbible.core.repository.local.LocalReadingProgressStorage
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase

@@ -20,7 +20,6 @@ package io.github.danzuep.usfmbible.core.repository.local.android.db
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.WorkerThread
-import me.xizzhu.android.ask.db.*
 
 class BookNamesDao(sqliteHelper: SQLiteOpenHelper) {
     companion object {
@@ -36,13 +35,9 @@ class BookNamesDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun createTable(db: SQLiteDatabase) {
-        db.createTable(TABLE_BOOK_NAMES) {
-            it[COLUMN_TRANSLATION_SHORT_NAME] = TEXT + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_BOOK_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_BOOK_NAME] = TEXT + NOT_NULL
-            it[COLUMN_BOOK_SHORT_NAME] = TEXT + NOT_NULL
-        }
-        db.createIndex(INDEX_BOOK_NAMES, TABLE_BOOK_NAMES, COLUMN_TRANSLATION_SHORT_NAME)
+        db.createTable(TABLE_BOOK_NAMES, "$COLUMN_TRANSLATION_SHORT_NAME TEXT NOT NULL, $COLUMN_BOOK_INDEX INTEGER NOT NULL, " +
+                "$COLUMN_BOOK_NAME TEXT NOT NULL, $COLUMN_BOOK_SHORT_NAME TEXT NOT NULL, PRIMARY KEY($COLUMN_TRANSLATION_SHORT_NAME, $COLUMN_BOOK_INDEX)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS $INDEX_BOOK_NAMES ON $TABLE_BOOK_NAMES ($COLUMN_TRANSLATION_SHORT_NAME);")
     }
 
     @WorkerThread
@@ -76,6 +71,6 @@ class BookNamesDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun remove(translationShortName: String) {
-        db.delete(TABLE_BOOK_NAMES) { COLUMN_TRANSLATION_SHORT_NAME eq translationShortName }
+        db.delete(TABLE_BOOK_NAMES, COLUMN_TRANSLATION_SHORT_NAME eq translationShortName)
     }
 }

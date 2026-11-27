@@ -20,7 +20,6 @@ package io.github.danzuep.usfmbible.core.repository.local.android.db
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.WorkerThread
-import me.xizzhu.android.ask.db.*
 
 class MetadataDao(sqliteHelper: SQLiteOpenHelper) {
     companion object {
@@ -56,10 +55,7 @@ class MetadataDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun createTable(db: SQLiteDatabase) {
-        db.createTable(TABLE_METADATA) {
-            it[COLUMN_KEY] = TEXT + PRIMARY_KEY
-            it[COLUMN_VALUE] = TEXT + NOT_NULL
-        }
+        db.createTable(TABLE_METADATA, "$COLUMN_KEY TEXT, $COLUMN_VALUE TEXT NOT NULL, PRIMARY KEY($COLUMN_KEY)")
     }
 
     @WorkerThread
@@ -71,14 +67,9 @@ class MetadataDao(sqliteHelper: SQLiteOpenHelper) {
     fun read(keys: List<Pair<String, String>>): Map<String, String> = HashMap<String, String>(keys.size).apply {
         if (keys.isEmpty()) return@apply
 
+        keys.forEach { (key, defaultValue) -> set(key, defaultValue) }
         db.select(TABLE_METADATA, COLUMN_KEY, COLUMN_VALUE) {
-            var condition: Condition = noOp()
-            keys.forEach { (key, defaultValue) ->
-                set(key, defaultValue)
-
-                condition = if (condition == Condition.NoOp) COLUMN_KEY eq key else condition or (COLUMN_KEY eq key)
-            }
-            condition
+            Where.anyOf(keys.map { (key, _) -> COLUMN_KEY eq key })
         }.forEach { row -> set(row.getString(COLUMN_KEY), row.getString(COLUMN_VALUE)) }
     }
 
