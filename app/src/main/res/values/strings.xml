@@ -25,6 +25,7 @@
     <string name="toast_deleted">✓</string>
     <string name="toast_verses_copied">📋 ✓</string>
     <string name="toast_search_result">🔍 %1$d</string>
+    <string name="toast_search_result_truncated">🔍 %1$d+</string>
     <string name="toast_backup_restore_succeeded">✓</string>
     <string name="toast_unknown_error">⚠</string>
 

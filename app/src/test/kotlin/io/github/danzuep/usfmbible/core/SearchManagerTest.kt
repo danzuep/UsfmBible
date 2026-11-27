@@ -97,6 +97,18 @@ class SearchManagerTest : BaseUnitTest() {
     }
 
     @Test
+    fun `test search() truncates to the maximum number of results`() = runTest {
+        val matches = List(MAX_SEARCH_RESULTS + 1) { MockContents.kjvVerses[0] }
+        coEvery {
+            bibleReadingRepository.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true, true))
+        } returns matches
+
+        val actual = searchManager.search("God")
+        assertEquals(MAX_SEARCH_RESULTS, actual.verses.size)
+        assertTrue(actual.truncated)
+    }
+
+    @Test
     fun `test search() with verses excluding bookmarks`() = runTest {
         coEvery {
             bibleReadingRepository.readVerses(MockContents.kjvShortName, listOf(VerseIndex(0, 0, 0), VerseIndex(0, 0, 1)))

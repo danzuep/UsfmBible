@@ -144,27 +144,35 @@ class TranslationDao(sqliteHelper: SQLiteOpenHelper) {
         }
 
         val keywords = query.keyword.toKeywords()
-        select(tableName(query.translation)) {
-            (if (query.includeOldTestament && !query.includeNewTestament) {
-                // Old Testament only
-                COLUMN_BOOK_INDEX less Bible.OLD_TESTAMENT_COUNT
-            } else if (!query.includeOldTestament && query.includeNewTestament) {
-                // New Testament only
-                (COLUMN_BOOK_INDEX greaterEq Bible.OLD_TESTAMENT_COUNT) and (COLUMN_BOOK_INDEX less Bible.CANON_BOOK_COUNT)
-            } else {
-                // The whole Bible, with the deuterocanon
-                noOp()
-            }).withQuery(COLUMN_TEXT, query.keyword)
-        }.orderBy(COLUMN_BOOK_INDEX, COLUMN_CHAPTER_INDEX, COLUMN_VERSE_INDEX).toList { row ->
-            Verse(
-                    VerseIndex(row.getInt(COLUMN_BOOK_INDEX), row.getInt(COLUMN_CHAPTER_INDEX), row.getInt(COLUMN_VERSE_INDEX)),
-                    Verse.Text(query.translation, row.getString(COLUMN_TEXT).stripStructure()), emptyList()
-            )
-        }.filter { verse ->
-            // Headings and notes are stored with the text but not searchable, so each keyword must match the displayed text.
-            keywords.all { verse.text.text.contains(it, ignoreCase = true) }
-                    && (!query.wholeWords || keywords.all { verse.text.text.containsWholeWord(it) })
+        val bookRange = when {
+            query.includeOldTestament && !query.includeNewTestament -> "$COLUMN_BOOK_INDEX < ${Bible.OLD_TESTAMENT_COUNT} AND "
+            !query.includeOldTestament && query.includeNewTestament -> "$COLUMN_BOOK_INDEX >= ${Bible.OLD_TESTAMENT_COUNT} AND $COLUMN_BOOK_INDEX < ${Bible.CANON_BOOK_COUNT} AND "
+            else -> ""
         }
+        val quotedTableName = "\"" + tableName(query.translation).replace("\"", "\"\"") + "\""
+        val sql = "SELECT $COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX, $COLUMN_VERSE_INDEX, $COLUMN_TEXT FROM $quotedTableName WHERE $bookRange" +
+                keywords.joinToString(" AND ") { "$COLUMN_TEXT LIKE ?" } +
+                " ORDER BY $COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX, $COLUMN_VERSE_INDEX"
+        val verses = ArrayList<Verse>()
+        // Rows are read one at a time and dropped as soon as they don't match, so only the matches are kept in memory.
+        db.rawQuery(sql, keywords.map { "%$it%" }.toTypedArray()).use { cursor ->
+            val bookColumn = cursor.getColumnIndexOrThrow(COLUMN_BOOK_INDEX)
+            val chapterColumn = cursor.getColumnIndexOrThrow(COLUMN_CHAPTER_INDEX)
+            val verseColumn = cursor.getColumnIndexOrThrow(COLUMN_VERSE_INDEX)
+            val textColumn = cursor.getColumnIndexOrThrow(COLUMN_TEXT)
+            while (verses.size <= query.limit && cursor.moveToNext()) {
+                // Headings and notes are stored with the text but not searchable, so each keyword must match the displayed text.
+                val text = cursor.getString(textColumn).stripStructure()
+                if (keywords.all { text.contains(it, ignoreCase = true) }
+                        && (!query.wholeWords || keywords.all { text.containsWholeWord(it) })) {
+                    verses.add(Verse(
+                            VerseIndex(cursor.getInt(bookColumn), cursor.getInt(chapterColumn), cursor.getInt(verseColumn)),
+                            Verse.Text(query.translation, text), emptyList()
+                    ))
+                }
+            }
+        }
+        verses
     }
 
     @WorkerThread

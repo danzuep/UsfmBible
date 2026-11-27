@@ -223,6 +223,15 @@ class TranslationDaoTest : BaseSqliteTest() {
     }
 
     @Test
+    fun testSearchStopsOneMatchAfterTheLimit() {
+        saveKjv()
+        assertTrue(MockContents.kjvVerses.size > 2)
+
+        assertEquals(MockContents.kjvVerses.take(2),
+                androidDatabase.translationDao.search(VerseSearchQuery(MockContents.kjvShortName, "God", true, true, limit = 1)))
+    }
+
+    @Test
     fun testSaveThenSearchMultiKeywords() {
         saveKjv()
 

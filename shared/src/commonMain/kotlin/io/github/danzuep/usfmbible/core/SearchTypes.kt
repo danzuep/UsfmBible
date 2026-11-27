@@ -22,9 +22,13 @@ data class SearchConfiguration(
         val wholeWords: Boolean = false, val searchByReference: Boolean = true
 )
 
+/** The most verses a search returns, so a common word can't exhaust the memory of a low-spec phone. */
+const val MAX_SEARCH_RESULTS = 500
+
+/** [limit] is the most verses wanted; storage may return one more, so that callers can tell that there are further matches. */
 data class VerseSearchQuery(
         val translation: String, val keyword: String, val includeOldTestament: Boolean, val includeNewTestament: Boolean,
-        val wholeWords: Boolean = false
+        val wholeWords: Boolean = false, val limit: Int = MAX_SEARCH_RESULTS
 )
 
 data class SearchResult(
@@ -34,7 +38,9 @@ data class SearchResult(
         val notes: List<Pair<Note, Verse>>,
         val byReference: Boolean = false,
         /** Set when the query is a 3-letter book code, e.g. "hag", so the UI can offer to open that book. */
-        val bookIndex: Int? = null
+        val bookIndex: Int? = null,
+        /** Set when there are more matching verses than [verses] holds. */
+        val truncated: Boolean = false
 )
 
 /** A parsed reference, with 0-based indexes. A null [verseIndexes] means the whole chapter. */
