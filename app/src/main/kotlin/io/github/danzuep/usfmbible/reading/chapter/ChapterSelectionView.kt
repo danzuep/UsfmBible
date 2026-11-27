@@ -30,11 +30,11 @@ import io.github.danzuep.usfmbible.R
 import io.github.danzuep.usfmbible.utils.localized
 import android.widget.ExpandableListView
 import androidx.annotation.IntDef
-import androidx.constraintlayout.widget.ConstraintLayout
+import android.widget.FrameLayout
 import io.github.danzuep.usfmbible.core.Bible
 import io.github.danzuep.usfmbible.databinding.InnerChapterSelectionViewBinding
 
-class ChapterSelectionView : ConstraintLayout {
+class ChapterSelectionView : FrameLayout {
     companion object {
         private const val SELECTION_OLD_TESTAMENT = 1
         private const val SELECTION_NEW_TESTAMENT = 2
