@@ -33,11 +33,12 @@ import io.github.danzuep.usfmbible.infra.BaseActivity
 import io.github.danzuep.usfmbible.ui.dialog
 import io.github.danzuep.usfmbible.ui.fadeIn
 import io.github.danzuep.usfmbible.utils.localized
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.android.ext.android.inject
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel.ViewAction, TimelineViewModel.ViewState, TimelineViewModel>() {
-    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider
+        get() = container.coroutineDispatcherProvider
 
     private lateinit var adapter: AnnotatedVerseAdapter
     private var limit = ReadingTimeline.DEFAULT_LIMIT
@@ -45,7 +46,7 @@ class TimelineActivity : BaseActivity<ActivityTimelineBinding, TimelineViewModel
     private val selectedVerses = linkedSetOf<VerseIndex>()
     private var selectionMode = false
 
-    override val viewModel: TimelineViewModel by viewModel()
+    override val viewModel: TimelineViewModel by viewModels { container.viewModelFactory }
 
     override val viewBinding: ActivityTimelineBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTimelineBinding.inflate(layoutInflater) }
 

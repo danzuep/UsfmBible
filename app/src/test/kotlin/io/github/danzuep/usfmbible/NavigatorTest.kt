@@ -45,8 +45,7 @@ import io.github.danzuep.usfmbible.translations.TranslationsActivity
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
-import org.koin.core.module.dsl.viewModel
-import org.koin.dsl.module
+import io.github.danzuep.usfmbible.tests.TestContainer
 
 @RunWith(RobolectricTestRunner::class)
 class NavigatorTest : BaseActivityTest() {
@@ -56,10 +55,7 @@ class NavigatorTest : BaseActivityTest() {
 
     val chapterSelectionViewModel: ChapterSelectionViewModel = mockk(relaxed = true)
 
-    override fun overrides() = module {
-        viewModel { readingToolbarViewModel }
-        viewModel { chapterSelectionViewModel }
-    }
+    override fun createContainer(application: Application) = TestContainer(application, null, readingToolbarViewModel, chapterSelectionViewModel)
 
     @BeforeTest
     override fun setup() {

@@ -38,7 +38,8 @@ import io.github.danzuep.usfmbible.ui.seekBarDialog
 import io.github.danzuep.usfmbible.ui.setOnCheckedChangeByUserListener
 import io.github.danzuep.usfmbible.ui.setOnSingleClickListener
 import co.touchlab.kermit.Logger
-import org.koin.androidx.viewmodel.ext.android.viewModel
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel.ViewAction, SettingsViewModel.ViewState, SettingsViewModel>() {
     private val createFileForBackupLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -50,7 +51,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding, SettingsViewModel
 
     private var indeterminateProgressDialog: AlertDialog? = null
 
-    override val viewModel: SettingsViewModel by viewModel()
+    override val viewModel: SettingsViewModel by viewModels { container.viewModelFactory }
 
     override val viewBinding: ActivitySettingsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySettingsBinding.inflate(layoutInflater) }
 

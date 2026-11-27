@@ -43,8 +43,8 @@ import io.github.danzuep.usfmbible.tests.getProperty
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowDialog
-import org.koin.core.module.dsl.viewModel
-import org.koin.dsl.module
+import io.github.danzuep.usfmbible.tests.TestContainer
+import android.app.Application
 
 @RunWith(RobolectricTestRunner::class)
 class AnnotatedVerseActivityTest : BaseActivityTest() {
@@ -52,10 +52,7 @@ class AnnotatedVerseActivityTest : BaseActivityTest() {
 
     val viewModel: BookmarksViewModel = mockk(relaxed = true)
 
-    override fun overrides() = module {
-        single { mockNavigator }
-        viewModel { viewModel }
-    }
+    override fun createContainer(application: Application) = TestContainer(application, mockNavigator, viewModel)
 
     @Test
     fun `test adapter viewEvent, OpenVerse`() {

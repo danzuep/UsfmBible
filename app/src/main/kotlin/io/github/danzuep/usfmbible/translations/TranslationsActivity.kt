@@ -49,15 +49,16 @@ import io.github.danzuep.usfmbible.ui.indeterminateProgressDialog
 import io.github.danzuep.usfmbible.ui.progressDialog
 import io.github.danzuep.usfmbible.ui.showCopyright
 import io.github.danzuep.usfmbible.ui.toast
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.android.ext.android.inject
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, TranslationsViewModel.ViewAction, TranslationsViewModel.ViewState, TranslationsViewModel>() {
     companion object {
         const val KEY_DOWNLOAD_TRANSLATION = "io.github.danzuep.usfmbible.KEY_DOWNLOAD_TRANSLATION"
     }
 
-    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider
+        get() = container.coroutineDispatcherProvider
 
     private lateinit var adapter: TranslationsAdapter
 
@@ -68,7 +69,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     private var downloadTranslationDialog: ProgressDialog? = null
     private var removeTranslationDialog: AlertDialog? = null
 
-    override val viewModel: TranslationsViewModel by viewModel()
+    override val viewModel: TranslationsViewModel by viewModels { container.viewModelFactory }
 
     override val viewBinding: ActivityTranslationsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTranslationsBinding.inflate(layoutInflater) }
 

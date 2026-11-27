@@ -37,15 +37,16 @@ import io.github.danzuep.usfmbible.ui.listDialog
 import io.github.danzuep.usfmbible.ui.toast
 import io.github.danzuep.usfmbible.preview.Preview
 import io.github.danzuep.usfmbible.preview.PreviewAdapter
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.android.ext.android.inject
+import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.container
 
 class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewAction, SearchViewModel.ViewState, SearchViewModel>() {
-    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider
+        get() = container.coroutineDispatcherProvider
 
     private lateinit var adapter: SearchAdapter
 
-    override val viewModel: SearchViewModel by viewModel()
+    override val viewModel: SearchViewModel by viewModels { container.viewModelFactory }
 
     override val viewBinding: ActivitySearchBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySearchBinding.inflate(layoutInflater) }
 

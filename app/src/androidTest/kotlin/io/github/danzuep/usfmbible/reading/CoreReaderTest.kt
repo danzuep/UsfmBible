@@ -27,7 +27,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import org.koin.core.context.GlobalContext
+import io.github.danzuep.usfmbible.ContainerHolder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import io.github.danzuep.usfmbible.R
@@ -60,7 +60,7 @@ class CoreReaderTest {
         private val context: Context get() = ApplicationProvider.getApplicationContext()
 
         private val repository: BibleReadingRepository
-            get() = GlobalContext.get().get<BibleReadingRepository>()
+            get() = (context.applicationContext as ContainerHolder).container.bibleReadingRepository
 
         /** The first launch imports the bundled translation, so wait for it once. */
         @BeforeClass

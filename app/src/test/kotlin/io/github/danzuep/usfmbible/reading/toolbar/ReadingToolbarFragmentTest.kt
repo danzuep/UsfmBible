@@ -36,8 +36,8 @@ import org.junit.runner.RunWith
 import io.github.danzuep.usfmbible.tests.BaseFragmentTest
 import io.github.danzuep.usfmbible.tests.MockContents
 import io.github.danzuep.usfmbible.tests.getProperty
-import org.koin.core.module.dsl.viewModel
-import org.koin.dsl.module
+import io.github.danzuep.usfmbible.tests.TestContainer
+import android.app.Application
 
 @RunWith(AndroidJUnit4::class)
 class ReadingToolbarFragmentTest : BaseFragmentTest() {
@@ -47,11 +47,7 @@ class ReadingToolbarFragmentTest : BaseFragmentTest() {
 
     val chapterSelectionViewModel: ChapterSelectionViewModel = mockk(relaxed = true)
 
-    override fun overrides() = module {
-        single { mockNavigator }
-        viewModel { readingToolbarViewModel }
-        viewModel { chapterSelectionViewModel }
-    }
+    override fun createContainer(application: Application) = TestContainer(application, mockNavigator, readingToolbarViewModel, chapterSelectionViewModel)
 
     @Test
     fun `test toolbar ViewEvent`() {

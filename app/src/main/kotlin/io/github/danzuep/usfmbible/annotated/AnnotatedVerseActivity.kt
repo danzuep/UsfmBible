@@ -32,12 +32,13 @@ import io.github.danzuep.usfmbible.ui.fadeIn
 import io.github.danzuep.usfmbible.ui.listDialog
 import io.github.danzuep.usfmbible.preview.Preview
 import io.github.danzuep.usfmbible.preview.PreviewAdapter
-import org.koin.android.ext.android.inject
+import io.github.danzuep.usfmbible.container
 
 abstract class AnnotatedVerseActivity<V : VerseAnnotation, VM : AnnotatedVerseViewModel<V>>(
     @StringRes private val toolbarText: Int
 ) : BaseActivity<ActivityAnnotatedBinding, AnnotatedVerseViewModel.ViewAction, AnnotatedVerseViewModel.ViewState, VM>() {
-    val coroutineDispatcherProvider: CoroutineDispatcherProvider by inject()
+    val coroutineDispatcherProvider: CoroutineDispatcherProvider
+        get() = container.coroutineDispatcherProvider
 
     private lateinit var adapter: AnnotatedVerseAdapter
 

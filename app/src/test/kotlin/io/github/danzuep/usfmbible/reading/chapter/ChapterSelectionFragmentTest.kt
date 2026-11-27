@@ -33,16 +33,14 @@ import io.github.danzuep.usfmbible.tests.MockContents
 import io.github.danzuep.usfmbible.tests.getProperty
 import org.junit.runner.RunWith
 import org.robolectric.shadows.ShadowDialog
-import org.koin.core.module.dsl.viewModel
-import org.koin.dsl.module
+import io.github.danzuep.usfmbible.tests.TestContainer
+import android.app.Application
 
 @RunWith(AndroidJUnit4::class)
 class ChapterSelectionFragmentTest : BaseFragmentTest() {
     val viewModel: ChapterSelectionViewModel = mockk(relaxed = true)
 
-    override fun overrides() = module {
-        viewModel { viewModel }
-    }
+    override fun createContainer(application: Application) = TestContainer(application, null, viewModel)
 
     @Test
     fun `test onViewStateUpdated(), with null error`() {
