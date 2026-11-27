@@ -68,8 +68,8 @@ object Versions {
             const val viewPager2 = "1.1.0"
         }
 
-        const val baselineProfile = "1.4.1"
-        const val benchmark = "1.4.1"
+        const val baselineProfile = "1.5.0-alpha06"
+        const val benchmark = "1.5.0-alpha06"
         const val profileInstaller = "1.4.1"
         const val uiAutomator = "2.3.0"
 
