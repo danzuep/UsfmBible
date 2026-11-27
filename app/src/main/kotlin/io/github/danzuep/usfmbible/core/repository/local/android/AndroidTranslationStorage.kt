@@ -20,7 +20,7 @@ package io.github.danzuep.usfmbible.core.repository.local.android
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import me.xizzhu.android.ask.db.transaction
+import io.github.danzuep.usfmbible.core.repository.local.android.db.transaction
 import io.github.danzuep.usfmbible.core.TranslationInfo
 import io.github.danzuep.usfmbible.core.repository.local.LocalTranslationStorage
 import io.github.danzuep.usfmbible.core.repository.local.android.db.AndroidDatabase

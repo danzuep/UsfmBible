@@ -20,7 +20,6 @@ package io.github.danzuep.usfmbible.core.repository.local.android.db
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.WorkerThread
-import me.xizzhu.android.ask.db.*
 import io.github.danzuep.usfmbible.core.ReadingProgress
 
 class ReadingProgressDao(sqliteHelper: SQLiteOpenHelper) {
@@ -37,13 +36,9 @@ class ReadingProgressDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun createTable(db: SQLiteDatabase) {
-        db.createTable(TABLE_READING_PROGRESS) {
-            it[COLUMN_BOOK_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_CHAPTER_INDEX] = INTEGER + PRIMARY_KEY + NOT_NULL
-            it[COLUMN_READ_COUNT] = INTEGER + NOT_NULL
-            it[COLUMN_TIME_SPENT_IN_MILLS] = INTEGER + NOT_NULL
-            it[COLUMN_LAST_READING_TIMESTAMP] = INTEGER + NOT_NULL
-        }
+        db.createTable(TABLE_READING_PROGRESS, "$COLUMN_BOOK_INDEX INTEGER NOT NULL, $COLUMN_CHAPTER_INDEX INTEGER NOT NULL, " +
+                "$COLUMN_READ_COUNT INTEGER NOT NULL, $COLUMN_TIME_SPENT_IN_MILLS INTEGER NOT NULL, " +
+                "$COLUMN_LAST_READING_TIMESTAMP INTEGER NOT NULL, PRIMARY KEY($COLUMN_BOOK_INDEX, $COLUMN_CHAPTER_INDEX)")
     }
 
     @WorkerThread

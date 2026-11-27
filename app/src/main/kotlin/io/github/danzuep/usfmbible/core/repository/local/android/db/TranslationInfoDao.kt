@@ -20,7 +20,6 @@ package io.github.danzuep.usfmbible.core.repository.local.android.db
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import androidx.annotation.WorkerThread
-import me.xizzhu.android.ask.db.*
 import io.github.danzuep.usfmbible.core.TranslationInfo
 
 class TranslationInfoDao(sqliteHelper: SQLiteOpenHelper) {
@@ -37,13 +36,8 @@ class TranslationInfoDao(sqliteHelper: SQLiteOpenHelper) {
 
     @WorkerThread
     fun createTable(db: SQLiteDatabase) {
-        db.createTable(TABLE_TRANSLATION_INFO) {
-            it[COLUMN_SHORT_NAME] = TEXT + PRIMARY_KEY
-            it[COLUMN_NAME] = TEXT + NOT_NULL
-            it[COLUMN_LANGUAGE] = TEXT + NOT_NULL
-            it[COLUMN_SIZE] = INTEGER + NOT_NULL
-            it[COLUMN_DOWNLOADED] = INTEGER + NOT_NULL
-        }
+        db.createTable(TABLE_TRANSLATION_INFO, "$COLUMN_SHORT_NAME TEXT, $COLUMN_NAME TEXT NOT NULL, $COLUMN_LANGUAGE TEXT NOT NULL, " +
+                "$COLUMN_SIZE INTEGER NOT NULL, $COLUMN_DOWNLOADED INTEGER NOT NULL, PRIMARY KEY($COLUMN_SHORT_NAME)")
     }
 
     @WorkerThread

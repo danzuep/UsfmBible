@@ -17,8 +17,9 @@
 
 package io.github.danzuep.usfmbible.core.repository.local.android.db
 
+import android.content.ContentValues
+import android.database.Cursor
 import android.database.sqlite.SQLiteOpenHelper
-import me.xizzhu.android.ask.db.*
 import io.github.danzuep.usfmbible.core.Note
 import io.github.danzuep.usfmbible.core.VerseIndex
 
@@ -28,20 +29,18 @@ class NoteDao(sqliteHelper: SQLiteOpenHelper) : VerseAnnotationDao<Note>(sqliteH
         private const val COLUMN_NOTE = "note"
     }
 
-    override fun buildQueryToSearchVerseAnnotations(query: String): Query = db.select(TABLE_NOTE) { noOp().withQuery(COLUMN_NOTE, query) }
+    override fun buildQueryToSearchVerseAnnotations(query: String): Query = db.select(TABLE_NOTE) { withQuery(COLUMN_NOTE, query) }
 
-    override fun MutableMap<String, ColumnModifiers>.putCustomColumnModifiers() {
-        put(COLUMN_NOTE, TEXT + NOT_NULL)
-    }
+    override fun customColumnDefinitions(): List<String> = listOf("$COLUMN_NOTE TEXT NOT NULL")
 
-    override fun Map<String, Any?>.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): Note =
+    override fun Cursor.toVerseAnnotation(verseIndex: VerseIndex, timestamp: Long): Note =
             Note(verseIndex, getString(COLUMN_NOTE), timestamp)
 
     override fun getCustomColumns(): Array<String> = arrayOf(COLUMN_NOTE)
 
     override fun defaultVerseAnnotation(verseIndex: VerseIndex): Note = Note(verseIndex, "", -1L)
 
-    override fun MutableMap<String, Any?>.putCustomColumnValues(verseAnnotation: Note) {
+    override fun ContentValues.putCustomColumnValues(verseAnnotation: Note) {
         put(COLUMN_NOTE, verseAnnotation.note)
     }
 }

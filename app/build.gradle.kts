@@ -161,7 +161,6 @@ dependencies {
     implementation(Dependencies.Hilt.android)
     ksp(Dependencies.Hilt.compiler)
 
-    implementation(Dependencies.ask)
     implementation(Dependencies.kermit)
     implementation(Dependencies.materialComponent)
 
