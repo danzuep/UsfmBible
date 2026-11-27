@@ -71,10 +71,13 @@ jobs:
         printf 'engwebp\tWorld English Bible\teng\n' > bundle-src/list.tsv
     - name: Parse the WEB Bible into a prebuilt database
       run: |
-        # Writes bundled-assets/bundled/bundled.db, so the app does not parse the USFM on first launch.
+        # Writes bundle-src/bundled/bundled.db, so the app does not parse the USFM on first launch.
         BUNDLE_DIR="$PWD/bundle-src" ./gradlew cleanTestDebugUnitTest testDebugUnitTest --tests '*BundledDatabaseGenerator'
         mkdir -p bundled-assets/bundled
-        cp bundle-src/bundled/bundled.db bundled-assets/bundled/bundled.db
+        # The app unzips this on first run; zip -9 shrinks the SQLite file far more than the APK's default deflate.
+        (cd bundle-src/bundled && zip -9 -q "$OLDPWD/bundled-assets/bundled/bundled.db.zip" bundled.db)
+        cp -r bundle-src/bundled/copyright bundled-assets/bundled/ || echo "No copyright notices found"
+        ls -l bundle-src/bundled/bundled.db bundled-assets/bundled/bundled.db.zip
     - name: Build APK with the WEB Bible prepackaged
       run: |
         ./gradlew assembleRelease -PbundledAssetsDir="$PWD/bundled-assets" -PdefaultBookIndex=42 ${VERSION:+-PappVersion=$VERSION}
