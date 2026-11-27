@@ -18,6 +18,7 @@
 package io.github.danzuep.usfmbible
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.test.core.app.ApplicationProvider
 import android.app.Application
 import io.github.danzuep.usfmbible.annotated.bookmarks.BookmarksViewModel
@@ -59,6 +60,6 @@ class AppContainerTest : BaseContainerTest() {
     fun `test view models can be created`() {
         listOf<KClass<out ViewModel>>(
             ReadingProgressViewModel::class, ReadingViewModel::class, SearchViewModel::class, SettingsViewModel::class, TimelineViewModel::class, TranslationUpdatesViewModel::class, TranslationsViewModel::class, ChapterSelectionViewModel::class, ReadingToolbarViewModel::class, BookmarksViewModel::class, HighlightsViewModel::class, NotesViewModel::class,
-        ).forEach { type -> assertNotNull(container.viewModelFactory.create(type.java)) }
+        ).forEach { type -> assertNotNull(container.viewModelFactory.create(type.java, CreationExtras.Empty)) }
     }
 }
