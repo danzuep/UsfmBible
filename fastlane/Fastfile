@@ -3,7 +3,7 @@ default_platform(:android)
 # Shared store listing: fastlane/metadata/android is also read by F-Droid and the website.
 platform :android do
   desc "Check the store listing and changelog against Google Play without publishing (validate_only)"
-  lane :validate do
+  lane :validate_aso do
     upload_to_play_store(
       track: "internal",
       validate_only: true,
@@ -13,34 +13,22 @@ platform :android do
     )
   end
 
-  desc "Upload only the store listing text, icon, feature graphic and screenshots"
-  lane :metadata do
+  desc "Upload the store listing text, icon, feature graphic, screenshots and changelogs, without a build"
+  lane :push_aso do
     upload_to_play_store(
       skip_upload_apk: true,
-      skip_upload_aab: true,
-      skip_upload_changelogs: true
+      skip_upload_aab: true
     )
   end
 
-  desc "Upload a signed AAB and its changelog to the internal testing track, e.g. fastlane internal aab:app-release.aab"
-  lane :internal do |options|
-    aab = options[:aab] || UI.user_error!("Pass aab:<path to the signed .aab>")
+  desc "Build a signed release AAB and upload it as a draft to a testing track, e.g. fastlane beta_release version:0.44.0 [track:alpha|internal]"
+  lane :beta_release do |options|
+    version = options[:version] || UI.user_error!("Pass version:X.Y.Z (becomes versionName and versionCode, which must grow with every upload)")
+    UI.user_error!("keystore.properties is missing, so the bundle would be signed with the debug key and Play would reject it") unless File.exist?(File.expand_path("../keystore.properties", __dir__))
+    gradle(task: "bundleRelease", properties: { "appVersion" => version }, project_dir: "..")
     upload_to_play_store(
-      track: "internal",
-      aab: aab,
-      release_status: "draft",
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true
-    )
-  end
-
-  desc "Upload a signed AAB and its changelog to the closed testing track (Play's \"alpha\" track), e.g. fastlane closed aab:app-release.aab"
-  lane :closed do |options|
-    aab = options[:aab] || UI.user_error!("Pass aab:<path to the signed .aab>")
-    upload_to_play_store(
-      track: "alpha",
-      aab: aab,
+      track: options[:track] || "alpha", # Play's "alpha" track is closed testing
+      aab: File.expand_path("../app/build/outputs/bundle/release/app-release.aab", __dir__),
       release_status: "draft",
       skip_upload_metadata: true,
       skip_upload_images: true,

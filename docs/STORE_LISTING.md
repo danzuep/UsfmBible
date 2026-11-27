@@ -33,8 +33,18 @@ Once the Play account is active
 -------------------------------
 
 1. Complete identity verification, create the app (`com.github.danzuep.usfmbible`) and enrol in Play App Signing. A new personal account must run a closed test with at least 20 testers opted in for 14 continuous days before applying for production access.
-2. Build a signed bundle: `./gradlew bundleRelease -PappVersion=X.Y.Z`. Signing needs the upload keystore described in [RELEASING.md](RELEASING.md); without `keystore.properties` the bundle is signed with a per-runner debug key and Play rejects later uploads. CI builds APKs only, so build the AAB locally or add a workflow.
-3. Fill in the Play Console forms above, then `bundle exec fastlane validate`, `metadata` and `closed aab:...`.
+2. Build a signed bundle: `./gradlew bundleRelease -PappVersion=X.Y.Z` (`beta_release` does this). Signing needs the upload keystore described in [RELEASING.md](RELEASING.md); without `keystore.properties` the bundle is signed with a per-runner debug key and Play rejects later uploads. CI builds APKs only, so build the AAB locally or add a workflow.
+3. Fill in the Play Console forms above, then `bundle exec fastlane validate_aso`, `push_aso` and `beta_release version:X.Y.Z` (after the manual first upload, see [RELEASING.md](RELEASING.md#google-play)).
 4. Create a tester group (Google Group or email list) and add it to the closed track. Recruit from friends, church and Bible-study groups, r/androidapps and r/Bible, and the GitHub issues page; aim for 25 to cover drop-outs. Send the opt-in link with a short checklist: install, download a translation, read offline, search, add a note, listen, import a USFM zip.
 5. Collect feedback through GitHub issues and Play's feedback channel, fix, and upload a new build to the same track about every week (versionCode must grow; the changelog is `changelogs/<versionCode>.txt`). Keep testers opted in until day 14 is complete.
 6. Apply for production access, answer the review questions with the changes made from feedback, then use `bundle exec fastlane supply --track alpha --track_promote_to production` or Play Console to promote. Set `playStoreId` in `website/hugo.toml` so the website shows the Play button.
+
+Verification checklist
+----------------------
+
+- [ ] `python3 .github/scripts/check-store-assets.py` passes (title at most 30, short description 80, full description 4,000, changelogs 500 characters; icon 512x512, feature graphic 1024x500, 2 to 8 phone screenshots).
+- [ ] Screenshots are named `NN-description.jpg` in `phoneScreenshots/`; `push_aso` replaces the whole set in file name order, so removed files disappear from Play.
+- [ ] `fastlane validate_aso` succeeds (needs `PLAY_STORE_JSON_KEY`; it needs the app to exist in Play Console).
+- [ ] The first signed AAB was uploaded manually in Play Console, and the Data safety, content rating, privacy policy URL and target audience forms are complete.
+- [ ] `changelogs/<versionCode>.txt` exists for the release (versionCode is `major*10000 + minor*100 + patch`), or `default.txt` is acceptable.
+- [ ] Custom-named closed tracks are not the default "alpha" track; pass `track:<name>` to `beta_release` if you created one.
