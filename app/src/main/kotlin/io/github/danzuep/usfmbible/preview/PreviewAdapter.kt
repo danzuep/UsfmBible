@@ -45,6 +45,8 @@ class PreviewAdapter(
     executor: Executor,
     private val onViewEvent: (ViewEvent) -> Unit,
 ) : VerticalRecyclerViewAdapter<PreviewItem, PreviewViewHolder<PreviewItem, *>>(PreviewItem.DiffCallback(), executor) {
+    override fun viewTypeOf(item: PreviewItem): Int = item.viewType
+
     sealed class ViewEvent {
         data class OpenVerse(val verseToOpen: VerseIndex) : ViewEvent()
     }

@@ -18,12 +18,11 @@
 package io.github.danzuep.usfmbible.tests
 
 import android.app.Application
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.CreationExtras
+import kotlin.reflect.KClass
 import io.github.danzuep.usfmbible.AppContainer
 import io.github.danzuep.usfmbible.ContainerHolder
 import io.github.danzuep.usfmbible.Navigator
+import io.github.danzuep.usfmbible.infra.BaseViewModel
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
@@ -41,15 +40,13 @@ class TestApp : Application(), ContainerHolder {
 class TestContainer(
     application: Application,
     private val navigatorOverride: Navigator? = null,
-    private vararg val viewModelOverrides: ViewModel,
+    private vararg val viewModelOverrides: BaseViewModel<*, *>,
 ) : AppContainer(application) {
     override val navigator: Navigator get() = navigatorOverride ?: super.navigator
 
-    override val viewModelFactory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            viewModelOverrides.firstOrNull { modelClass.isInstance(it) }?.let { modelClass.cast(it)!! }
-                ?: super@TestContainer.viewModelFactory.create(modelClass, extras)
-    }
+    @Suppress("UNCHECKED_CAST")
+    override fun <VM : BaseViewModel<*, *>> createViewModel(type: KClass<VM>): VM =
+        viewModelOverrides.firstOrNull { type.isInstance(it) } as VM? ?: super.createViewModel(type)
 }
 
 /** Installs [factory] for the application of each test, and removes it afterwards so containers never leak between tests. */

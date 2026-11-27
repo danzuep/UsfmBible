@@ -51,6 +51,8 @@ class SearchAdapter(
     executor: Executor,
     private val onViewEvent: (ViewEvent) -> Unit,
 ) : VerticalRecyclerViewAdapter<SearchItem, SearchViewHolder<SearchItem, *>>(SearchItem.DiffCallback(), executor) {
+    override fun viewTypeOf(item: SearchItem): Int = item.viewType
+
     sealed class ViewEvent {
         data class OpenVerse(val verseToOpen: VerseIndex) : ViewEvent()
         data class OpenBook(val bookIndex: Int) : ViewEvent()

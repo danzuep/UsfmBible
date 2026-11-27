@@ -12,7 +12,7 @@ import io.github.danzuep.usfmbible.ui.ProgressDialog
 import io.github.danzuep.usfmbible.ui.listDialog
 import io.github.danzuep.usfmbible.ui.progressDialog
 import io.github.danzuep.usfmbible.ui.toast
-import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class TranslationUpdatesActivity : BaseActivity<
@@ -21,7 +21,7 @@ class TranslationUpdatesActivity : BaseActivity<
     TranslationUpdatesViewModel.ViewState,
     TranslationUpdatesViewModel,
     >() {
-    override val viewModel: TranslationUpdatesViewModel by viewModels { container.viewModelFactory }
+    override val viewModel: TranslationUpdatesViewModel by viewModelOf()
 
     override val viewBinding: ActivityTranslationUpdatesBinding by lazy(LazyThreadSafetyMode.NONE) {
         ActivityTranslationUpdatesBinding.inflate(layoutInflater)

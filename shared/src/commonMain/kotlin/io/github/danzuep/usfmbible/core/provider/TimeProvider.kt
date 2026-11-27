@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-package io.github.danzuep.usfmbible.utils
+package io.github.danzuep.usfmbible.core.provider
 
-import java.text.NumberFormat
-import java.util.Locale
-
-/** Formats a chapter or verse number with the digits of the current locale. */
-fun Int.localized(): String = NumberFormat.getIntegerInstance(Locale.getDefault().withNativeDigits()).apply { isGroupingUsed = false }.format(this)
+interface TimeProvider : TimeSource {
+    val elapsedRealtime: Long
+}

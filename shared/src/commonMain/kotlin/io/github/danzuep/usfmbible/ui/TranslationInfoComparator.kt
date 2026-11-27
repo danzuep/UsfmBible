@@ -17,28 +17,22 @@
 
 package io.github.danzuep.usfmbible.ui
 
-import androidx.annotation.IntDef
-import androidx.annotation.VisibleForTesting
+import io.github.danzuep.usfmbible.utils.VisibleForTesting
+import io.github.danzuep.usfmbible.utils.userLanguageName
 import io.github.danzuep.usfmbible.core.TranslationInfo
-import java.util.*
-import kotlin.Comparator
 
-class TranslationInfoComparator(@SortOrder private val sortOrder: Int) : Comparator<TranslationInfo> {
+class TranslationInfoComparator(private val sortOrder: Int) : Comparator<TranslationInfo> {
     companion object {
         const val SORT_ORDER_LANGUAGE_THEN_NAME = 0
         const val SORT_ORDER_LANGUAGE_THEN_SHORT_NAME = 1
-
-        @IntDef(SORT_ORDER_LANGUAGE_THEN_NAME, SORT_ORDER_LANGUAGE_THEN_SHORT_NAME)
-        @Retention(AnnotationRetention.SOURCE)
-        annotation class SortOrder
     }
 
     override fun compare(t1: TranslationInfo, t2: TranslationInfo): Int {
         val userLanguage = userLanguage()
         val language1 = languageDisplayName(t1.language)
         val language2 = languageDisplayName(t2.language)
-        val score1 = if (userLanguage == language1 || languageMatchesLocale(t1.language)) 1 else 0
-        val score2 = if (userLanguage == language2 || languageMatchesLocale(t2.language)) 1 else 0
+        val score1 = if (userLanguage == language1 || languageMatchesUserLocale(t1.language)) 1 else 0
+        val score2 = if (userLanguage == language2 || languageMatchesUserLocale(t2.language)) 1 else 0
         var r = score2 - score1
         if (r == 0) {
             r = languageNameComparator.compare(language1, language2)
@@ -54,5 +48,5 @@ class TranslationInfoComparator(@SortOrder private val sortOrder: Int) : Compara
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    fun userLanguage(): String = Locale.getDefault().displayLanguage
+    fun userLanguage(): String = userLanguageName()
 }

@@ -71,15 +71,15 @@ class SettingsViewModelTest : BaseUnitTest() {
         super.setup()
 
         uri = mockk()
-        inputStream = mockk<InputStream>().apply { every { close() } returns Unit }
-        outputStream = mockk<OutputStream>().apply { every { close() } returns Unit }
+        inputStream = java.io.ByteArrayInputStream("{}".toByteArray())
+        outputStream = java.io.ByteArrayOutputStream()
         resolver = mockk<ContentResolver>().apply {
             every { openInputStream(uri) } returns inputStream
             every { openOutputStream(uri) } returns outputStream
         }
         backupManager = mockk<BackupManager>().apply {
-            coEvery { backup(outputStream) } returns Unit
-            coEvery { restore(inputStream) } returns Unit
+            coEvery { prepareForBackup() } returns "{}"
+            coEvery { restore(any<String>()) } returns Unit
         }
         settingsManager = mockk()
         every { settingsManager.settings() } returns emptyFlow()
@@ -416,7 +416,7 @@ class SettingsViewModelTest : BaseUnitTest() {
 
     @Test
     fun `test backup(), success`() = runTest {
-        coEvery { backupManager.backup(outputStream) } returns Unit
+        coEvery { backupManager.prepareForBackup() } returns "{}"
 
         settingsViewModel.backup(uri)
         assertEquals(
@@ -503,7 +503,7 @@ class SettingsViewModelTest : BaseUnitTest() {
 
     @Test
     fun `test restore(), success`() = runTest {
-        coEvery { backupManager.restore(inputStream) } returns Unit
+        coEvery { backupManager.restore("{}") } returns Unit
 
         settingsViewModel.restore(uri)
         assertEquals(

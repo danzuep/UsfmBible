@@ -29,7 +29,7 @@ import java.util.concurrent.Executor
 
 abstract class VerticalRecyclerViewItem(val viewType: Int)
 
-abstract class VerticalRecyclerViewHolder<Item : VerticalRecyclerViewItem, VB : ViewBinding>(protected val viewBinding: VB)
+abstract class VerticalRecyclerViewHolder<Item : Any, VB : ViewBinding>(protected val viewBinding: VB)
     : RecyclerView.ViewHolder(viewBinding.root) {
     protected var item: Item? = null
 
@@ -41,13 +41,16 @@ abstract class VerticalRecyclerViewHolder<Item : VerticalRecyclerViewItem, VB : 
     protected abstract fun bind(item: Item, payloads: List<Any>)
 }
 
-abstract class VerticalRecyclerViewAdapter<Item : VerticalRecyclerViewItem, ViewHolder : VerticalRecyclerViewHolder<Item, *>>(
+abstract class VerticalRecyclerViewAdapter<Item : Any, ViewHolder : VerticalRecyclerViewHolder<Item, *>>(
     diffCallback: DiffUtil.ItemCallback<Item>,
     executor: Executor
 ) : ListAdapter<Item, ViewHolder>(
     AsyncDifferConfig.Builder(diffCallback).setBackgroundThreadExecutor(executor).build()
 ) {
-    override fun getItemViewType(position: Int): Int = getItem(position).viewType
+    /** The layout of the item, which tells the adapter which view holder shows it. */
+    protected abstract fun viewTypeOf(item: Item): Int
+
+    override fun getItemViewType(position: Int): Int = viewTypeOf(getItem(position))
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bindData(getItem(position))

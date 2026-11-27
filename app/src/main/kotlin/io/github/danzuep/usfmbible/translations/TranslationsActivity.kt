@@ -49,7 +49,7 @@ import io.github.danzuep.usfmbible.ui.indeterminateProgressDialog
 import io.github.danzuep.usfmbible.ui.progressDialog
 import io.github.danzuep.usfmbible.ui.showCopyright
 import io.github.danzuep.usfmbible.ui.toast
-import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, TranslationsViewModel.ViewAction, TranslationsViewModel.ViewState, TranslationsViewModel>() {
@@ -69,7 +69,7 @@ class TranslationsActivity : BaseActivity<ActivityTranslationsBinding, Translati
     private var downloadTranslationDialog: ProgressDialog? = null
     private var removeTranslationDialog: AlertDialog? = null
 
-    override val viewModel: TranslationsViewModel by viewModels { container.viewModelFactory }
+    override val viewModel: TranslationsViewModel by viewModelOf()
 
     override val viewBinding: ActivityTranslationsBinding by lazy(LazyThreadSafetyMode.NONE) { ActivityTranslationsBinding.inflate(layoutInflater) }
 

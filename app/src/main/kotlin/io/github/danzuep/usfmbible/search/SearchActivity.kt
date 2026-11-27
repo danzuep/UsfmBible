@@ -36,7 +36,7 @@ import io.github.danzuep.usfmbible.ui.listDialog
 import io.github.danzuep.usfmbible.ui.toast
 import io.github.danzuep.usfmbible.preview.Preview
 import io.github.danzuep.usfmbible.preview.PreviewAdapter
-import androidx.activity.viewModels
+import io.github.danzuep.usfmbible.infra.viewModelOf
 import io.github.danzuep.usfmbible.container
 
 class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewAction, SearchViewModel.ViewState, SearchViewModel>() {
@@ -45,7 +45,7 @@ class SearchActivity : BaseActivity<ActivitySearchBinding, SearchViewModel.ViewA
 
     private lateinit var adapter: SearchAdapter
 
-    override val viewModel: SearchViewModel by viewModels { container.viewModelFactory }
+    override val viewModel: SearchViewModel by viewModelOf()
 
     override val viewBinding: ActivitySearchBinding by lazy(LazyThreadSafetyMode.NONE) { ActivitySearchBinding.inflate(layoutInflater) }
 

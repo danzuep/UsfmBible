@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2023 Xizhi Zhu
  * Copyright (C) 2026 Daniel Collingwood
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,14 +19,12 @@ package io.github.danzuep.usfmbible.ui
 
 import java.util.Locale
 
-/** The localized name of [language] (e.g. `en`, `eng` or `zh_CN`), or [language] itself if it is not a known language code. */
-fun languageDisplayName(language: String): String {
+actual fun languageDisplayName(language: String): String {
     val code = language.split("_")[0]
     return Locale.forLanguageTag(code).displayLanguage.ifEmpty { code }
 }
 
-/** The English name followed by the native name in brackets (e.g. `Greek (Ελληνικά)`), or the English name alone if no other native name is known. */
-fun languageDisplayNameWithNative(language: String): String {
+actual fun languageDisplayNameWithNative(language: String): String {
     val code = language.split("_")[0]
     val english = languageDisplayName(code)
     val locale = Locale.forLanguageTag(code)
@@ -52,3 +51,5 @@ fun languageMatchesLocale(language: String, locale: Locale = Locale.getDefault()
     // The bibliographic and terminological codes differ for some languages, e.g. `zho` and `chi`.
     return RELATED_LANGUAGES.any { (macro, members) -> (user == macro || user in members) && (code == macro || code in members) }
 }
+
+actual fun languageMatchesUserLocale(language: String): Boolean = languageMatchesLocale(language)

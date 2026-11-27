@@ -22,7 +22,6 @@ import android.net.Uri
 import androidx.annotation.Px
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.lifecycle.viewModelScope
 import java.io.IOException
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -281,7 +280,7 @@ class SettingsViewModel(
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             runCatching {
                 application.contentResolver.openOutputStream(uri)
-                    ?.use { backupManager.backup(it) }
+                    ?.use { it.write(backupManager.prepareForBackup().toByteArray(Charsets.UTF_8)) }
                     ?: throw IOException("Failed to open Uri for backup - $uri")
                 updateViewState { it.copy(backupState = ViewState.BackupRestoreState.Completed(successful = true)) }
             }.onFailure { e ->
@@ -306,7 +305,7 @@ class SettingsViewModel(
         viewModelScope.launch(coroutineDispatcherProvider.io) {
             runCatching {
                 application.contentResolver.openInputStream(uri)
-                    ?.use { backupManager.restore(it) }
+                    ?.use { backupManager.restore(it.readBytes().toString(Charsets.UTF_8)) }
                     ?: throw IOException("Failed to open Uri for restore - $uri")
                 updateViewState { it.copy(restoreState = ViewState.BackupRestoreState.Completed(successful = true)) }
             }.onFailure { e ->

@@ -18,7 +18,6 @@
 package io.github.danzuep.usfmbible.reading.toolbar
 
 import android.app.Application
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first

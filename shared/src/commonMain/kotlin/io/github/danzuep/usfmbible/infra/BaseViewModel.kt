@@ -17,16 +17,25 @@
 
 package io.github.danzuep.usfmbible.infra
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-abstract class BaseViewModel<ViewAction, ViewState>(initialViewState: ViewState) : ViewModel() {
-    protected val tag: String = javaClass.simpleName
+/**
+ * Platform independent view model: one [ViewState] flow, one-shot [ViewAction]s and a scope that lives until [clear].
+ * The UI only renders the state and forwards user input, so everything else can be tested on the JVM.
+ */
+abstract class BaseViewModel<ViewAction, ViewState>(initialViewState: ViewState) {
+    protected val tag: String = this::class.simpleName ?: "ViewModel"
+
+    /** Runs on the main dispatcher, which tests replace with `Dispatchers.setMain`. */
+    protected val viewModelScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private val viewAction: MutableSharedFlow<ViewAction> = MutableSharedFlow()
     private val viewState: MutableStateFlow<ViewState> = MutableStateFlow(initialViewState)
@@ -42,4 +51,12 @@ abstract class BaseViewModel<ViewAction, ViewState>(initialViewState: ViewState)
     protected fun updateViewState(block: (currentViewState: ViewState) -> ViewState?) {
         viewState.update { block(it) ?: it }
     }
+
+    /** Cancels everything the view model started, called by the platform once the screen is gone for good. */
+    fun clear() {
+        viewModelScope.cancel()
+        onCleared()
+    }
+
+    protected open fun onCleared() {}
 }

@@ -17,7 +17,7 @@
 
 package io.github.danzuep.usfmbible.core
 
-import androidx.annotation.VisibleForTesting
+import io.github.danzuep.usfmbible.utils.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -36,7 +36,7 @@ class ReadingProgressManager(
         private val appScope: CoroutineScope,
 ) {
     companion object {
-        private val TAG: String = ReadingProgressManager::class.java.simpleName
+        private val TAG: String = "ReadingProgressManager"
 
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         const val TIME_SPENT_THRESHOLD_IN_MILLIS = 2500L

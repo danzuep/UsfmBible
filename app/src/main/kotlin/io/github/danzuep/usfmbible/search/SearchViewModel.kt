@@ -18,7 +18,6 @@
 package io.github.danzuep.usfmbible.search
 
 import android.app.Application
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay

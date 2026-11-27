@@ -8,31 +8,6 @@ import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import java.util.Locale
 
-// Arabic is left out on purpose: its default numbering system is already native.
-private val NATIVE_NUMBERING_SYSTEMS = mapOf(
-    "th" to "thai",
-    "hi" to "deva", "mr" to "deva", "ne" to "deva",
-    "bn" to "beng", "as" to "beng",
-    "gu" to "gujr",
-    "pa" to "guru",
-    "kn" to "knda",
-    "ml" to "mlym",
-    "ta" to "tamldec",
-    "te" to "telu",
-    "or" to "orya",
-    "my" to "mymr",
-    "km" to "khmr",
-    "lo" to "laoo",
-    "fa" to "arabext", "ps" to "arabext", "ur" to "arabext",
-)
-
-/** Adds the language's native numbering system, unless the locale already picks one or has no known system. */
-fun Locale.withNativeDigits(): Locale {
-    if (getUnicodeLocaleType("nu") != null) return this
-    val system = NATIVE_NUMBERING_SYSTEMS[language] ?: return this
-    return Locale.Builder().setLocale(this).setUnicodeLocaleKeyword("nu", system).build()
-}
-
 fun Configuration.withNativeDigits(): Configuration = Configuration(this).apply {
     val forced = LocaleList(*Array(locales.size()) { locales[it].withNativeDigits() })
     if (!forced.isEmpty) setLocales(forced)

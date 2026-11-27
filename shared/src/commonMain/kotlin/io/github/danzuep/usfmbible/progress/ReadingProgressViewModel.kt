@@ -17,7 +17,6 @@
 
 package io.github.danzuep.usfmbible.progress
 
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import io.github.danzuep.usfmbible.core.Bible
@@ -166,4 +165,25 @@ class ReadingProgressViewModel(
     fun markErrorAsShown(error: ViewState.Error) {
         updateViewState { current -> if (current.error == error) current.copy(error = null) else null }
     }
+}
+
+sealed class ReadingProgressItem {
+    data class Summary(
+        val settings: Settings,
+        val continuousReadingDays: Int,
+        val chaptersRead: Int,
+        val finishedBooks: Int,
+        val finishedOldTestament: Int,
+        val finishedNewTestament: Int
+    ) : ReadingProgressItem()
+
+    data class Book(
+        val settings: Settings,
+        val bookName: String,
+        val bookIndex: Int,
+        val chaptersRead: List<Boolean>,
+        val chaptersReadCount: Int,
+        val expanded: Boolean,
+        val isCurrentBook: Boolean = false,
+    ) : ReadingProgressItem()
 }

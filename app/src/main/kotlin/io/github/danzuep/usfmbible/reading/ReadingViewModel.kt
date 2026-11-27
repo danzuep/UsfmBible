@@ -19,7 +19,6 @@ package io.github.danzuep.usfmbible.reading
 
 import android.app.Application
 import androidx.annotation.IntDef
-import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
