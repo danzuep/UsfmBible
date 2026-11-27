@@ -68,6 +68,11 @@ object Versions {
             const val viewPager2 = "1.1.0"
         }
 
+        const val baselineProfile = "1.4.1"
+        const val benchmark = "1.4.1"
+        const val profileInstaller = "1.4.1"
+        const val uiAutomator = "2.3.0"
+
         object Test {
             const val core = "1.5.0"
             const val junit = "1.1.4"
@@ -106,6 +111,10 @@ object Dependencies {
         const val annotation = "androidx.annotation:annotation:${Versions.AndroidX.annotation}"
         const val appCompat = "androidx.appcompat:appcompat:${Versions.AndroidX.appCompat}"
         const val core = "androidx.core:core:${Versions.AndroidX.core}"
+        const val baselineProfilePlugin = "androidx.baselineprofile:androidx.baselineprofile.gradle.plugin:${Versions.AndroidX.baselineProfile}"
+        const val benchmarkMacro = "androidx.benchmark:benchmark-macro-junit4:${Versions.AndroidX.benchmark}"
+        const val profileInstaller = "androidx.profileinstaller:profileinstaller:${Versions.AndroidX.profileInstaller}"
+        const val uiAutomator = "androidx.test.uiautomator:uiautomator:${Versions.AndroidX.uiAutomator}"
 
         object Fragment {
             const val core = "androidx.fragment:fragment-ktx:${Versions.AndroidX.fragment}"

@@ -106,3 +106,13 @@ bundle exec fastlane closed version:0.44.0         # same, to closed testing ("a
 Run `python3 .github/scripts/check-store-assets.py` (needs `pip install pillow`) to check all of these limits; the `Website` workflow runs it on pull requests. Add new screenshots as-is and run it with `--fix`, which pads any screenshot taller than 2:1 with black side bars instead of cropping it.
 
 `internal` and `closed` upload a draft to the internal or closed testing track, so add testers and roll it out in Play Console. See [STORE_LISTING.md](STORE_LISTING.md) for the screenshot plan, copy rationale and the tester checklist.
+
+## Baseline Profile
+
+`:baselineprofile` is a macrobenchmark module that records which classes and methods run at startup, so release builds are precompiled and cold start is faster on slow CPUs. Generating it needs a device or emulator (API 28+), which the agent sandbox and normal CI don't have.
+
+1. Connect a device or start an emulator with a translation installed.
+2. Run `./gradlew :app:generateReleaseBaselineProfile`.
+3. Commit the generated `app/src/release/generated/baselineProfiles/` files. Regenerate when startup or the reader changes a lot.
+
+`androidx.profileinstaller` in the app installs the profile on first run, and release builds pick it up automatically.
