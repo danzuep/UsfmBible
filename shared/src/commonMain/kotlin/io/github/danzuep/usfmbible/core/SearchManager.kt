@@ -129,13 +129,13 @@ class SearchManager(
 }
 
 /** Shared matching rule for search and for filtering lists, e.g. the translation list. */
-internal fun String.containsAnyKeyword(keywords: List<String>, wholeWords: Boolean): Boolean =
+fun String.containsAnyKeyword(keywords: List<String>, wholeWords: Boolean): Boolean =
     keywords.any { term ->
         if (wholeWords) containsWholeWord(term)
         else lowercaseForUser().contains(term, false)
     }
 
-internal fun String.containsWholeWord(keyword: String): Boolean {
+fun String.containsWholeWord(keyword: String): Boolean {
     val text = lowercaseForUser()
     val term = keyword.lowercaseForUser()
     if (term.isEmpty()) return false
@@ -157,7 +157,7 @@ private val REFERENCE_REGEX = Regex("""(.*?\S)\s*(\d+)(?:(?:[:.]|\s+)(\d+)(?:\s*
  * Parses references such as "John 1", "John 1:4", "John 1 4", "1 John 3:2-5", "Gen. 1:1", "JHN1.1" or "jhn 1" against the book names
  * (or short names, or 3-letter book codes) of a translation. Returns null if the query is not a reference, so it can be searched as text.
  */
-internal fun parseReference(query: String, bookNames: List<String>, bookShortNames: List<String>): BibleReference? {
+fun parseReference(query: String, bookNames: List<String>, bookShortNames: List<String>): BibleReference? {
     val match = REFERENCE_REGEX.matchEntire(query.trim()) ?: return null
     val (name, chapter, verseStart, verseEnd) = match.destructured
 

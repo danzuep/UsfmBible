@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import java.util.concurrent.Executor
 
+abstract class VerticalRecyclerViewItem(val viewType: Int)
+
 abstract class VerticalRecyclerViewHolder<Item : Any, VB : ViewBinding>(protected val viewBinding: VB)
     : RecyclerView.ViewHolder(viewBinding.root) {
     protected var item: Item? = null

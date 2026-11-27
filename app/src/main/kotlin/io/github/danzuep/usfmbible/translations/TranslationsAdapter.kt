@@ -39,6 +39,8 @@ class TranslationsAdapter(
     executor: Executor,
     private val onViewEvent: (ViewEvent) -> Unit,
 ) : VerticalRecyclerViewAdapter<TranslationsItem, TranslationsViewHolder<TranslationsItem, *>>(TranslationsItem.DiffCallback(), executor) {
+    override fun viewTypeOf(item: TranslationsItem): Int = item.viewType
+
     sealed class ViewEvent {
         data class DownloadTranslation(val translationToDownload: TranslationInfo) : ViewEvent()
         data class RemoveTranslation(val translationToRemove: TranslationInfo) : ViewEvent()

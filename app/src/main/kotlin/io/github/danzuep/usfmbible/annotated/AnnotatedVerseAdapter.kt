@@ -53,6 +53,8 @@ class AnnotatedVerseAdapter(
     executor: Executor,
     private val onViewEvent: (ViewEvent) -> Unit,
 ) : VerticalRecyclerViewAdapter<AnnotatedVerseItem, AnnotatedVerseViewHolder<AnnotatedVerseItem, *>>(AnnotatedVerseItem.DiffCallback(), executor) {
+    override fun viewTypeOf(item: AnnotatedVerseItem): Int = item.viewType
+
     sealed class ViewEvent {
         data class OpenVerse(val verseToOpen: VerseIndex) : ViewEvent()
         data class ShowPreview(val verseToPreview: VerseIndex) : ViewEvent()
