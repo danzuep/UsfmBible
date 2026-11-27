@@ -26,8 +26,10 @@ import io.github.danzuep.usfmbible.core.repository.BibleReadingRepository
 import io.github.danzuep.usfmbible.core.repository.VerseAnnotationRepository
 import io.github.danzuep.usfmbible.core.repository.remote.BOOK_CODES
 import io.github.danzuep.usfmbible.utils.firstNotEmpty
-import java.text.Normalizer
-import java.util.*
+import io.github.danzuep.usfmbible.utils.composeUnicode
+import io.github.danzuep.usfmbible.utils.isWordCharacterAt
+import io.github.danzuep.usfmbible.utils.isWordCharacterBefore
+import io.github.danzuep.usfmbible.utils.lowercaseForUser
 
 class SearchManager(
         private val bibleReadingRepository: BibleReadingRepository,
@@ -130,12 +132,12 @@ class SearchManager(
 internal fun String.containsAnyKeyword(keywords: List<String>, wholeWords: Boolean): Boolean =
     keywords.any { term ->
         if (wholeWords) containsWholeWord(term)
-        else lowercase(Locale.getDefault()).contains(term, false)
+        else lowercaseForUser().contains(term, false)
     }
 
 internal fun String.containsWholeWord(keyword: String): Boolean {
-    val text = lowercase(Locale.getDefault())
-    val term = keyword.lowercase(Locale.getDefault())
+    val text = lowercaseForUser()
+    val term = keyword.lowercaseForUser()
     if (term.isEmpty()) return false
 
     var start = text.indexOf(term)
@@ -148,12 +150,6 @@ internal fun String.containsWholeWord(keyword: String): Boolean {
     }
     return false
 }
-
-private fun String.isWordCharacterBefore(index: Int): Boolean =
-        Character.isLetterOrDigit(Character.codePointBefore(this, index)) || Character.codePointBefore(this, index) == '_'.code
-
-private fun String.isWordCharacterAt(index: Int): Boolean =
-        Character.isLetterOrDigit(Character.codePointAt(this, index)) || Character.codePointAt(this, index) == '_'.code
 
 private val REFERENCE_REGEX = Regex("""(.*?\S)\s*(\d+)(?:(?:[:.]|\s+)(\d+)(?:\s*[-\u2010-\u2015\u2212]\s*(\d+))?)?""")
 
@@ -170,7 +166,7 @@ internal fun parseReference(query: String, bookNames: List<String>, bookShortNam
             .takeIf { it >= 0 }
             ?: bookShortNames.indexOfFirst { it.normalizeBookName() == bookName }
                     .takeIf { it >= 0 }
-            ?: BOOK_CODES.indexOfFirst { it.lowercase(Locale.getDefault()) == bookName.replace(" ", "") }
+            ?: BOOK_CODES.indexOfFirst { it.lowercaseForUser() == bookName.replace(" ", "") }
                     .takeIf { it >= 0 }
             ?: bookNames.indexOfFirst { bookName.length >= 3 && it.normalizeBookName().startsWith(bookName) }
                     .takeIf { it >= 0 }
@@ -190,13 +186,13 @@ internal fun parseReference(query: String, bookNames: List<String>, bookShortNam
  * removes invisible formatting characters (zero-width, soft hyphen, direction marks, BOM) and collapses whitespace.
  */
 internal fun String.normalizeQuery(): String =
-        Normalizer.normalize(this, Normalizer.Form.NFC)
+        composeUnicode()
                 .replace(Regex("[\\p{Cf}\\u00AD]"), "")
                 .replace(Regex("[\\p{Z}\\s]+"), " ")
                 .trim()
 
 private fun String.normalizeBookName(): String =
-        lowercase(Locale.getDefault()).replace(".", "").trim().split(Regex("\\s+")).joinToString(" ")
+        lowercaseForUser().replace(".", "").trim().split(Regex("\\s+")).joinToString(" ")
 
 fun String.toKeywords(): List<String> {
     if (isEmpty()) return emptyList()
@@ -204,7 +200,7 @@ fun String.toKeywords(): List<String> {
     val results = arrayListOf<String>()
     val sb = StringBuilder()
     var doubleQuoteStarted = false
-    lowercase(Locale.getDefault()).forEach { c ->
+    lowercaseForUser().forEach { c ->
         if (c.isDoubleQuote()) {
             results.addAndClear(sb)
             doubleQuoteStarted = !doubleQuoteStarted

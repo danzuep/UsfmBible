@@ -18,17 +18,8 @@
 package io.github.danzuep.usfmbible.core.provider
 
 import android.os.SystemClock
-import java.util.Calendar
-
-interface TimeProvider : TimeSource {
-    val calendar: Calendar
-    val elapsedRealtime: Long
-}
 
 class DefaultTimeProvider : TimeProvider {
-    override val calendar: Calendar
-        get() = Calendar.getInstance()
-
     override val currentTimeMillis: Long
         get() = System.currentTimeMillis()
 

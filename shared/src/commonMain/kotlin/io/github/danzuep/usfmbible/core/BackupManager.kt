@@ -17,13 +17,11 @@
 
 package io.github.danzuep.usfmbible.core
 
-import androidx.annotation.VisibleForTesting
+import io.github.danzuep.usfmbible.utils.VisibleForTesting
 import kotlinx.coroutines.*
 import io.github.danzuep.usfmbible.core.repository.ReadingProgressRepository
 import io.github.danzuep.usfmbible.core.repository.VerseAnnotationRepository
 import io.github.danzuep.usfmbible.utils.mergeSort
-import java.io.InputStream
-import java.io.OutputStream
 
 class BackupManager(private val serializer: Serializer,
                     private val bookmarkRepository: VerseAnnotationRepository<Bookmark>,
@@ -39,12 +37,8 @@ class BackupManager(private val serializer: Serializer,
     data class Data(val bookmarks: List<Bookmark>, val highlights: List<Highlight>,
                     val notes: List<Note>, val readingProgress: ReadingProgress)
 
-    suspend fun backup(to: OutputStream) = withContext(Dispatchers.IO) {
-        to.write(prepareForBackup().toByteArray(Charsets.UTF_8))
-    }
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    internal suspend fun prepareForBackup(): String = withContext(Dispatchers.Default) {
+    /** The backup as JSON text, for the platform to write to wherever the user chose. */
+    suspend fun prepareForBackup(): String = withContext(Dispatchers.Default) {
         val bookmarksAsync = async { bookmarkRepository.read(Constants.SORT_BY_BOOK) }
         val highlightsAsync = async { highlightRepository.read(Constants.SORT_BY_BOOK) }
         val notesAsync = async { noteRepository.read(Constants.SORT_BY_BOOK) }
@@ -53,12 +47,8 @@ class BackupManager(private val serializer: Serializer,
                 Data(bookmarksAsync.await(), highlightsAsync.await(), notesAsync.await(), readingProgressAsync.await()))
     }
 
-    suspend fun restore(from: InputStream) = withContext(Dispatchers.IO) {
-        restore(String(from.readBytes(), Charsets.UTF_8))
-    }
-
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
-    internal suspend fun restore(content: String) = withContext(Dispatchers.Default) {
+    /** Merges the backup [content], as written by [prepareForBackup], into what is stored. */
+    suspend fun restore(content: String) = withContext(Dispatchers.Default) {
         val data = serializer.deserialize(content)
         arrayOf(loadAndMergeBookmarksAsync(data.bookmarks), loadAndMergeHighlightsAsync(data.highlights),
                 loadAndMergeNotesAsync(data.notes), loadAndMergeReadingProgressAsync(data.readingProgress)
